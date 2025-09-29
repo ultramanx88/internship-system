@@ -73,9 +73,9 @@ const navConfig = {
         { href: '/admin/applications/pending', label: 'รอการตรวจสอบ'},
       ]
     },
+    { href: '/admin/companies', icon: Building, label: 'ข้อมูลสถานประกอบการ' },
     { href: '/admin/schedules', icon: CalendarClock, label: 'นัดหมายนิเทศ' },
     { href: '/admin/reports', icon: ClipboardList, label: 'รายงานผลการนิเทศ' },
-    { href: '/admin/companies', icon: Building, label: 'ข้อมูลสถานประกอบการ' },
     { href: '/admin/summary', icon: BarChart2, label: 'รายงานสรุป' },
     { href: '/admin/settings', icon: Settings, label: 'ตั้งค่า' },
   ],
