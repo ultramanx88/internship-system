@@ -10,10 +10,45 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Faculty {
-  id        String   @id @default(cuid())
-  nameTh    String
-  nameEn    String
+model User {
+  id          String        @id @default(cuid())
+  name        String?
+  email       String        @unique
+  password    String
+  roles       String[]      @default(["student"]) // Simplified roles as string array
+  skills      String?
+  statement   String?
+  applications Application[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Internship {
+  id          String        @id @default(cuid())
+  title       String
+  company     String
+  location    String
+  description String
+  type        String // "internship" or "co-op"
+  applications Application[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Application {
+  id            String      @id @default(cuid())
+  dateApplied   DateTime
+  status        String      // "pending", "approved", "rejected"
+  feedback      String?
+  projectTopic  String?
+
+  student     User       @relation(fields: [studentId], references: [id])
+  studentId   String
+  internship  Internship @relation(fields: [internshipId], references: [id])
+  internshipId String
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

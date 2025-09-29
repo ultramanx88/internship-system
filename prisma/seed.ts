@@ -46,8 +46,10 @@ async function main() {
 
   // Seed Applications
   for (const app of applications) {
-     await prisma.application.create({
-        data: {
+     await prisma.application.upsert({
+        where: { id: app.id },
+        update: {},
+        create: {
             id: app.id,
             studentId: app.studentId,
             internshipId: app.internshipId,

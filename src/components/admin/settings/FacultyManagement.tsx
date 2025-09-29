@@ -8,11 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PlusCircle, Save, Trash2, Loader2 } from 'lucide-react';
 import type { Faculty } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
 
 export function FacultyManagement() {
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
   
   useEffect(() => {
     async function fetchFaculties() {
@@ -26,13 +28,17 @@ export function FacultyManagement() {
         setFaculties(data);
       } catch (error) {
         console.error(error);
-        // Handle error display to user
+        toast({
+            variant: 'destructive',
+            title: 'เกิดข้อผิดพลาด',
+            description: 'ไม่สามารถดึงข้อมูลคณะได้',
+        })
       } finally {
         setIsLoading(false);
       }
     }
     fetchFaculties();
-  }, []);
+  }, [toast]);
 
   const handleAddFaculty = () => {
     setFaculties([
@@ -68,11 +74,18 @@ export function FacultyManagement() {
 
       const updatedData = await response.json();
       setFaculties(updatedData.data);
-      alert('บันทึกการเปลี่ยนแปลงสำเร็จ!');
+      toast({
+          title: 'บันทึกสำเร็จ',
+          description: 'ข้อมูลคณะได้รับการอัปเดตเรียบร้อยแล้ว',
+      });
 
     } catch (error) {
       console.error(error);
-      alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      toast({
+        variant: 'destructive',
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถบันทึกข้อมูลคณะได้',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -83,7 +96,7 @@ export function FacultyManagement() {
       <CardHeader>
         <CardTitle>จัดการคณะ</CardTitle>
         <CardDescription>
-          เพิ่ม, ลบ, และแก้ไขรายชื่อคณะในระบบ (ใช้ข้อมูลจำลอง)
+          เพิ่ม, ลบ, และแก้ไขรายชื่อคณะในระบบ
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
