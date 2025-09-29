@@ -4,7 +4,6 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { type Role } from '@/lib/types';
-import { roles as validRolesList } from '@/lib/permissions';
 
 const createUserSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -106,7 +105,7 @@ export async function POST(request: Request) {
                 name,
                 email,
                 password: hashedPassword,
-                roles: roles as Role[], // Cast roles to Role[]
+                roles: roles as Role[],
             },
         });
 
