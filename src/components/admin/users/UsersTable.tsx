@@ -28,6 +28,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { AddUserForm } from './AddUserForm';
+import { UploadUsersDialog } from './UploadUsersDialog';
 
 export function UsersTable() {
     const [users, setUsers] = useState<User[]>([]);
@@ -37,6 +38,7 @@ export function UsersTable() {
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+    const [isUploadOpen, setIsUploadOpen] = useState(false);
     const { toast } = useToast();
 
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -145,8 +147,9 @@ export function UsersTable() {
         return translations;
     }, []);
 
-    const handleAddUserSuccess = () => {
+    const handleSuccess = () => {
       setIsAddUserOpen(false);
+      setIsUploadOpen(false);
       fetchUsers();
     }
 
@@ -176,10 +179,18 @@ export function UsersTable() {
                         </SelectContent>
                     </Select>
                     <div className="ml-auto flex flex-wrap items-center gap-2">
-                        <Button variant="outline">
-                            <Upload className="mr-2 h-4 w-4" />
-                            อัปโหลด Excel
-                        </Button>
+                         <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant="outline">
+                                    <Upload className="mr-2 h-4 w-4" />
+                                    อัปโหลด Excel
+                                </Button>
+                            </DialogTrigger>
+                            <UploadUsersDialog 
+                                onCancel={() => setIsUploadOpen(false)}
+                                onSuccess={handleSuccess}
+                            />
+                        </Dialog>
                          <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
                             <DialogTrigger asChild>
                                 <Button>
@@ -195,7 +206,7 @@ export function UsersTable() {
                                 </DialogDescription>
                                 </DialogHeader>
                                 <AddUserForm 
-                                  onSuccess={handleAddUserSuccess}
+                                  onSuccess={handleSuccess}
                                   onCancel={() => setIsAddUserOpen(false)}
                                 />
                             </DialogContent>
@@ -254,7 +265,7 @@ export function UsersTable() {
                             ) : (
                                 <TableRow>
                                     <TableCell colSpan={5} className="h-24 text-center">
-                                        ไม่พบข้อมูล (อาจเกิดจากปัญหาการเชื่อมต่อฐานข้อมูล)
+                                        ไม่พบข้อมูล
                                     </TableCell>
                                 </TableRow>
                             )}
