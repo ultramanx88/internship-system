@@ -24,6 +24,7 @@ import {
   BookUser,
   GraduationCap,
   ClipboardList,
+  Settings,
 } from 'lucide-react';
 
 const studentNav = [
@@ -45,6 +46,7 @@ const adminNav = [
   { href: '/admin/reports', icon: ClipboardList, label: 'รายงานผลการนิเทศ' },
   { href: '/admin/companies', icon: Building, label: 'ข้อมูลสถานประกอบการ' },
   { href: '/admin/summary', icon: BarChart2, label: 'รายงานสรุป' },
+  { href: '/admin/settings', icon: Settings, label: 'ตั้งค่า' },
 ];
 
 export function DashboardSidebar() {
