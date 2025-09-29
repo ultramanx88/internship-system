@@ -60,14 +60,14 @@ export function LoginForm() {
     }, 500);
   };
   
-    const handleUserSelect = (email: string) => {
-        const user = users.find(u => u.email === email);
-        if (user) {
-            setIdentifier(user.email);
-            setPassword(user.password || '');
-            setRole(user.roles[0]); // Select the first role for simplicity
-        }
-    }
+  const handleUserSelect = (email: string) => {
+      const user = users.find(u => u.email === email);
+      if (user) {
+          setIdentifier(user.email);
+          setPassword(user.password || '123456');
+          setRole(user.roles[0]); // Select the first role for simplicity
+      }
+  }
 
   return (
     <>
