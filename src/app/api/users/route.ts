@@ -1,3 +1,4 @@
+
 import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(users);
   } catch (error) {
     console.error('Failed to fetch users:', error);
+    // Return an empty array on error to prevent client-side crashes
     return NextResponse.json([]);
   }
 }
@@ -102,7 +104,7 @@ export async function POST(request: Request) {
                 name,
                 email,
                 password: hashedPassword,
-                roles: roles as any, // Prisma expects Role[], Zod validates as string[]
+                roles: roles as Role[],
             },
         });
 
