@@ -3,29 +3,29 @@ import type { User, Internship, Application, ProgressReport, AcademicTerm, Holid
 // Data from DEMO_USERS.md, adapted for multi-role structure
 export const users: User[] = [
   // Admin Users
-  { id: 'admin2', name: 'System Administrator', email: 'admin2@smart-solutions.com', password: 'admin123', roles: ['admin'] },
-  { id: 'demo001', name: 'Demo Admin 001', email: 'demo001@smart-solutions.com', password: '123456', roles: ['admin'] },
-  { id: 'admin', name: 'System Administrator', email: 'admin@smart-solutions.com', password: '123456', roles: ['admin'] },
-  { id: 'admin001', name: 'Admin 001', email: 'admin001@smart-solutions.com', password: '123456', roles: ['admin'] },
-  { id: 'admin002', name: 'Admin 002', email: 'admin002@smart-solutions.com', password: '123456', roles: ['admin'] },
-  { id: 'admin003', name: 'Admin 003', email: 'admin003@smart-solutions.com', password: '123456', roles: ['admin'] },
+  { id: 'user_admin2', name: 'System Administrator', email: 'admin2@smart-solutions.com', password: 'admin123', roles: ['admin'] },
+  { id: 'user_demo001', name: 'Demo Admin 001', email: 'demo001@smart-solutions.com', password: '123456', roles: ['admin'] },
+  { id: 'user_admin', name: 'System Administrator', email: 'admin@smart-solutions.com', password: '123456', roles: ['admin'] },
+  { id: 'user_admin001', name: 'Admin 001', email: 'admin001@smart-solutions.com', password: '123456', roles: ['admin'] },
+  { id: 'user_admin002', name: 'Admin 002', email: 'admin002@smart-solutions.com', password: '123456', roles: ['admin'] },
+  { id: 'user_admin003', name: 'Admin 003', email: 'admin003@smart-solutions.com', password: '123456', roles: ['admin'] },
   
   // Staff Users
-  { id: 's6800001', name: 'Staff 001', email: 's6800001@smart-solutions.com', password: '123456', roles: ['staff'] },
-  { id: 's6800002', name: 'Staff 002', email: 's6800002@smart-solutions.com', password: '123456', roles: ['staff'] },
+  { id: 'user_s6800001', name: 'Staff 001', email: 's6800001@smart-solutions.com', password: '123456', roles: ['staff'] },
+  { id: 'user_s6800002', name: 'Staff 002', email: 's6800002@smart-solutions.com', password: '123456', roles: ['staff'] },
 
   // Instructor Users
-  { id: 't6800001', name: 'Instructor 001', email: 't6800001@smart-solutions.com', password: '123456', roles: ['courseInstructor'] },
+  { id: 'user_t6800001', name: 'Instructor 001', email: 't6800001@smart-solutions.com', password: '123456', roles: ['courseInstructor'] },
   
   // Multi-role User (Instructor and Visitor)
-  { id: 't6800002', name: 'Instructor 002 (and Visitor)', email: 't6800002@smart-solutions.com', password: '123456', roles: ['courseInstructor', 'visitor'] },
+  { id: 'user_t6800002', name: 'Instructor 002 (and Visitor)', email: 't6800002@smart-solutions.com', password: '123456', roles: ['courseInstructor', 'visitor'] },
   
   // Multi-role User (Instructor, Committee, Visitor)
-  { id: 't6800003', name: 'Instructor 003 (and Committee, Visitor)', email: 't6800003@smart-solutions.com', password: '123456', roles: ['courseInstructor', 'committee', 'visitor'] },
+  { id: 'user_t6800003', name: 'Instructor 003 (and Committee, Visitor)', email: 't6800003@smart-solutions.com', password: '123456', roles: ['courseInstructor', 'committee', 'visitor'] },
   
   // Committee Users
-  { id: 't6800004', name: 'Committee 004', email: 't6800004@smart-solutions.com', password: '123456', roles: ['committee'] },
-  { id: 't6800005', name: 'Committee 005 (and Visitor)', email: 't6800005@smart-solutions.com', password: '123456', roles: ['committee', 'visitor'] },
+  { id: 'user_t6800004', name: 'Committee 004', email: 't6800004@smart-solutions.com', password: '123456', roles: ['committee'] },
+  { id: 'user_t6800005', name: 'Committee 005 (and Visitor)', email: 't6800005@smart-solutions.com', password: '123456', roles: ['committee', 'visitor'] },
 
   // Student Users
   { id: 'test001', name: 'Test User', email: 'test@test.com', password: '123456', roles: ['student'], skills: 'React, TypeScript, Node.js', statement: 'Eager to apply my web development skills in a real-world setting and contribute to a dynamic team.' },

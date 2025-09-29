@@ -1,15 +1,15 @@
-
 import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { type Role } from '@/lib/types';
+import { createId } from '@paralleldrive/cuid2';
 
 const createUserSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  roles: z.array(z.string()).min(1, 'At least one role is required'),
+  roles: z.array(z.nativeEnum(Role)).min(1, 'At least one role is required'),
 });
 
 export async function GET(request: NextRequest) {
@@ -43,7 +43,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(users);
   } catch (error) {
     console.error('Failed to fetch users:', error);
-    // Return an empty array on error to prevent client-side crashes
     return NextResponse.json([]);
   }
 }
@@ -62,6 +61,14 @@ export async function DELETE(request: Request) {
     }
 
     const { ids } = result.data;
+
+    // Prevent deletion of critical demo users if needed, though not strictly required by user
+    // const protectedIds = ['admin2', 'test001'];
+    // const finalIds = ids.filter(id => !protectedIds.includes(id));
+
+    if (ids.length === 0) {
+        return NextResponse.json({ message: 'No users to delete or selected users are protected.' });
+    }
 
     await prisma.user.deleteMany({
       where: {
@@ -102,10 +109,11 @@ export async function POST(request: Request) {
         
         const newUser = await prisma.user.create({
             data: {
+                id: createId(), // Generate a new CUID
                 name,
                 email,
                 password: hashedPassword,
-                roles: roles as Role[],
+                roles, // This is now a validated enum array
             },
         });
 

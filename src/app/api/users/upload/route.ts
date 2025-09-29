@@ -5,12 +5,14 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import * as xlsx from 'xlsx';
 import { z } from 'zod';
-import { type Role } from '@/lib/types';
+import { Role } from '@/lib/types';
 import { roles as validRoles } from '@/lib/permissions';
+import { createId } from '@paralleldrive/cuid2';
 
 const validRoleIds = validRoles.map(r => r.id);
 
 const userSchema = z.object({
+  id: z.string().optional(),
   email: z.string().email({ message: 'อีเมลไม่ถูกต้อง' }),
   name: z.string().min(2, { message: 'ชื่อต้องมีอย่างน้อย 2 ตัวอักษร' }),
   password: z.string().min(6, { message: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' }),
@@ -56,23 +58,36 @@ export async function POST(request: Request) {
     const errors: string[] = [];
 
     const existingUsers = await prisma.user.findMany({
-      select: { email: true },
+      select: { email: true, id: true },
     });
     const existingEmails = new Set(existingUsers.map(u => u.email));
+    const existingIds = new Set(existingUsers.map(u => u.id));
 
     for (const [index, row] of data.entries()) {
       const rowIndex = index + 2; // Excel rows are 1-based, plus header
+      
+      // Ensure password is a string
+      if (row.password !== undefined && typeof row.password !== 'string') {
+        row.password = String(row.password);
+      }
+
       const validation = userSchema.safeParse(row);
 
       if (!validation.success) {
         const errorMessages = validation.error.issues.map(issue => `แถวที่ ${rowIndex}: ${issue.message} (ข้อมูล: ${JSON.stringify(row)})`);
         errors.push(...errorMessages);
+        skippedCount++;
         continue;
       }
       
-      const { email, name, password, roles } = validation.data;
+      const { id, email, name, password, roles } = validation.data;
       
       if (existingEmails.has(email)) {
+        skippedCount++;
+        continue;
+      }
+
+      if (id && existingIds.has(id)) {
         skippedCount++;
         continue;
       }
@@ -81,6 +96,7 @@ export async function POST(request: Request) {
       
       await prisma.user.create({
         data: {
+          id: id || createId(),
           name,
           email,
           password: hashedPassword,
@@ -90,6 +106,7 @@ export async function POST(request: Request) {
 
       createdCount++;
       existingEmails.add(email); // Add to set to handle duplicates within the same file
+      if (id) existingIds.add(id);
     }
 
     return NextResponse.json({
