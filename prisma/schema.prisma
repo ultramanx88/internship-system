@@ -1,0 +1,169 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // หรือ mysql, sqlite, etc.
+  url      = env("DATABASE_URL")
+}
+
+// ==============
+//  Core Models
+// ==============
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String // อย่าลืม Hash รหัสผ่านก่อนบันทึก!
+  roles     Role[]   @default([])
+  titleId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Student-specific fields
+  skills    String?
+  statement String?
+
+  // Relations
+  title        UserTitle?         @relation(fields: [titleId], references: [id])
+  applications Application[]
+  reviews      ApplicationReview[]
+
+  @@map("users")
+}
+
+model Internship {
+  id          String   @id @default(cuid())
+  title       String
+  companyName String
+  description String
+  location    String
+  type        InternshipType
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  applications Application[]
+
+  @@map("internships")
+}
+
+model Application {
+  id           String            @id @default(cuid())
+  dateApplied  DateTime          @default(now())
+  status       ApplicationStatus @default(PENDING)
+  feedback     String?
+  projectTopic String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  studentId String
+  student   User   @relation(fields: [studentId], references: [id])
+
+  internshipId String
+  internship   Internship @relation(fields: [internshipId], references: [id])
+
+  reviews ApplicationReview[]
+
+  @@map("applications")
+}
+
+model ApplicationReview {
+  id            String   @id @default(cuid())
+  decision      String // "approve" or "reject"
+  reason        String?
+  reviewerRole  Role
+  createdAt     DateTime @default(now())
+
+  // Relations
+  reviewerId    String
+  reviewer      User    @relation(fields: [reviewerId], references: [id])
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id])
+
+  @@map("application_reviews")
+}
+
+
+// ==================
+//  Settings Models
+// ==================
+
+model AcademicTerm {
+  id        String   @id @default(cuid())
+  year      Int
+  semester  String // "1", "2", "summer"
+  startDate DateTime
+  endDate   DateTime
+
+  @@map("academic_terms")
+}
+
+model Holiday {
+  id   String   @id @default(cuid())
+  name String
+  date DateTime
+
+  @@map("holidays")
+}
+
+model UserTitle {
+  id           String         @id @default(cuid())
+  nameTh       String
+  nameEn       String
+  applicableTo UserRoleGroup[] @default([])
+
+  // Relations
+  users User[]
+
+  @@map("user_titles")
+}
+
+model Major {
+  id     String     @id @default(cuid())
+  nameTh String
+  nameEn String
+  type   MajorType // "major" or "minor"
+  order  Int        @default(0)
+
+  @@map("majors")
+}
+
+// ==================
+//      Enums
+// ==================
+
+enum Role {
+  STUDENT
+  STAFF
+  COURSE_INSTRUCTOR
+  COMMITTEE
+  VISITOR
+  ADMIN
+}
+
+enum InternshipType {
+  INTERNSHIP
+  COOP
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum UserRoleGroup {
+  STUDENT
+  ACADEMIC
+}
+
+enum MajorType {
+  MAJOR
+  MINOR
+}
