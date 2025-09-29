@@ -6,6 +6,59 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  name       String
+  password   String
+  roles      String[] @default([])
+  skills     String?
+  statement  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  applications Application[]
+
+  @@map("users")
+}
+
+model Internship {
+  id          String   @id @default(cuid())
+  title       String
+  company     String
+  location    String
+  description String   @db.Text
+  type        String // "internship" or "co-op"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  applications Application[]
+
+  @@map("internships")
+}
+
+model Application {
+  id           String   @id @default(cuid())
+  dateApplied  DateTime
+  status       String // "pending", "approved", "rejected"
+  feedback     String?  @db.Text
+  projectTopic String?
+
+  // Relations
+  student   User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId String
+
+  internship   Internship @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  internshipId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("applications")
 }
