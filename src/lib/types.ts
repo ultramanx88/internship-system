@@ -85,7 +85,7 @@ export interface Major {
     id: string;
     nameTh: string;
     nameEn: string;
-    type: 'major' | 'minor';
+    parentId?: string | null;
 }
 
 // Company Evaluation type
@@ -94,4 +94,11 @@ export interface CompanyEvaluation {
     companyName: string;
     isEvaluated: boolean;
     evaluationDate: string | null;
-    questions: Company
+    questions: CompanyEvaluationQuestion[];
+}
+
+export interface CompanyEvaluationQuestion {
+    id: string;
+    question: string;
+    score?: number | null;
+}

@@ -1,4 +1,4 @@
-import type { User, Internship, Application, ProgressReport, AcademicTerm, Holiday, UserRoleGroup, UserTitle, Major, CompanyEvaluation } from './types';
+import type { User, Internship, Application, ProgressReport, AcademicTerm, Holiday, UserRoleGroup, UserTitle, Major, CompanyEvaluation, CompanyEvaluationQuestion } from './types';
 
 // Data from DEMO_USERS.md, adapted for multi-role structure
 export const users: User[] = [
@@ -99,9 +99,10 @@ export const titles: UserTitle[] = [
 ];
 
 export const majors: Major[] = [
-    { id: 'm-1', nameTh: 'เทคโนโลยีสารสนเทศ', nameEn: 'Information Technology', type: 'major'},
-    { id: 'm-2', nameTh: 'วิทยาการคอมพิวเตอร์', nameEn: 'Computer Science', type: 'major'},
-    { id: 'm-3', nameTh: 'การจัดการสารสนเทศ', nameEn: 'Information Management', type: 'minor'},
+    { id: 'm-1', nameTh: 'เทคโนโลยีสารสนเทศ', nameEn: 'Information Technology', parentId: null },
+    { id: 'm-1-1', nameTh: 'การจัดการสารสนเทศ', nameEn: 'Information Management', parentId: 'm-1' },
+    { id: 'm-1-2', nameTh: 'เทคโนโลยีเว็บ', nameEn: 'Web Technology', parentId: 'm-1' },
+    { id: 'm-2', nameTh: 'วิทยาการคอมพิวเตอร์', nameEn: 'Computer Science', parentId: null },
 ];
 
 export const companyEvaluations: CompanyEvaluation[] = [
