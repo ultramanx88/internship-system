@@ -1,4 +1,4 @@
-import { Role } from './types';
+import { Role } from '@prisma/client';
 
 export const modules = [
     { id: 'dashboard', label: 'แดชบอร์ด', description: 'เข้าถึงหน้าแดชบอร์ดหลัก' },

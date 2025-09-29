@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn } from 'lucide-react';
-import { Role } from '@/lib/types';
+import { Role } from '@prisma/client';
 import { users } from '@/lib/data';
 
 export function LoginForm() {

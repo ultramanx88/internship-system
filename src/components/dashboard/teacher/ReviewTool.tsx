@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { getAiRecommendation, updateApplicationStatus } from '@/lib/actions';
-import { type User, type Internship, type Application, type ApplicationStatus } from '@/lib/types';
+import { User, Internship, Application, ApplicationStatus } from '@prisma/client';
 import { type ReviewApplicationOutput } from '@/ai/flows/teacher-application-review';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

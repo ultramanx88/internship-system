@@ -8,12 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PlusCircle, Save, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { majors as initialMajors } from '@/lib/data';
-import type { Major } from '@/lib/types';
+import { Major } from '@prisma/client';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
 export function MajorManagement() {
-  const [majors, setMajors] = useState<Major[]>(initialMajors);
+  const [majors, setMajors] = useState<Omit<Major, 'createdAt' | 'updatedAt'>[]>(initialMajors);
 
   const majorGroups = useMemo(() => {
     const topLevelMajors = majors.filter(m => !m.parentId);

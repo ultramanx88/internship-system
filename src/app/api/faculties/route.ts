@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import type { Faculty } from '@/lib/types';
+import { Faculty } from '@prisma/client';
 
 // GET: Fetch all faculties from the database
 export async function GET() {
@@ -20,7 +20,7 @@ export async function GET() {
 // POST: Create, Update, or Delete faculties in the database
 export async function POST(request: Request) {
   try {
-    const incomingFaculties: Faculty[] = await request.json();
+    const incomingFaculties: Omit<Faculty, 'createdAt' | 'updatedAt'>[] = await request.json();
 
     if (!Array.isArray(incomingFaculties)) {
       return NextResponse.json({ message: 'Invalid data format' }, { status: 400 });

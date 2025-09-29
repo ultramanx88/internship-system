@@ -1,4 +1,4 @@
-import type { Application } from '@/lib/types';
+import { Application } from '@prisma/client';
 import {
   Table,
   TableBody,
@@ -27,7 +27,7 @@ async function getApplications() {
 
 
 export default async function AdminPage() {
-    const applications: Application[] = await getApplications();
+    const applications: Omit<Application, "createdAt" | "updatedAt">[] = await getApplications();
     
     const statusColors: { [key: string]: string } = {
         approved: "bg-[#2f7b69] text-white",

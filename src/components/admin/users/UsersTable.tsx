@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import type { User } from '@/lib/types';
+import type { User } from '@prisma/client';
 import { roles as roleData } from '@/lib/permissions';
 import {
   Table,

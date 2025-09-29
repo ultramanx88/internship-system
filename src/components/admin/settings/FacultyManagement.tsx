@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PlusCircle, Save, Trash2, Loader2 } from 'lucide-react';
-import type { Faculty } from '@/lib/types';
+import { Faculty } from '@prisma/client';
 import { useToast } from '@/hooks/use-toast';
 
 export function FacultyManagement() {
-  const [faculties, setFaculties] = useState<Faculty[]>([]);
+  const [faculties, setFaculties] = useState<Omit<Faculty, 'createdAt' | 'updatedAt'>[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();

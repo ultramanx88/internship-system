@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { applications } from './data';
 import { reviewApplication } from '@/ai/flows/teacher-application-review';
 import type { ReviewApplicationInput } from '@/ai/flows/teacher-application-review';
+import { ApplicationStatus } from '@prisma/client';
 
 // This is a temporary in-memory store for users until DB is set up again.
 const tempUsers: any[] = [];
@@ -58,7 +59,7 @@ export async function getAiRecommendation(input: ReviewApplicationInput) {
 }
 
 
-export async function updateApplicationStatus(applicationId: string, status: "pending" | "approved" | "rejected", feedback?: string) {
+export async function updateApplicationStatus(applicationId: string, status: ApplicationStatus, feedback?: string) {
     const applicationIndex = applications.findIndex(app => app.id === applicationId);
 
     if (applicationIndex === -1) {

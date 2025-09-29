@@ -23,7 +23,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2, UserPlus } from 'lucide-react';
-import type { Role } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { roles as roleData } from '@/lib/permissions';
 

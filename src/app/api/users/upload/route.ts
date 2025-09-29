@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import * as xlsx from 'xlsx';
 import { z } from 'zod';
-import { Role } from '@/lib/types';
+import { Role } from '@prisma/client';
 import { roles as validRoles } from '@/lib/permissions';
 import { createId } from '@paralleldrive/cuid2';
 

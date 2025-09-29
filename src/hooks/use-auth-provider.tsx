@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { users } from '@/lib/data';
-import type { User, Role } from '@/lib/types';
+import { User, Role } from '@prisma/client';
 
 export type AuthUser = Pick<User, 'id' | 'email' | 'name' | 'roles'>;
 

@@ -1,31 +1,35 @@
-import type { User, Internship, Application, ProgressReport, AcademicTerm, Holiday, UserRoleGroup, UserTitle, Major, CompanyEvaluation, CompanyEvaluationQuestion, Faculty, Role } from './types';
+import { User, Internship, Application, ProgressReport, AcademicTerm, Holiday, Major, CompanyEvaluation, Faculty, Role } from '@prisma/client';
+
+type DemoUser = Omit<User, 'createdAt' | 'updatedAt'> & {
+    password?: string;
+};
 
 // Data from DEMO_USERS.md, adapted for multi-role structure
-export const users: User[] = [
+export const users: DemoUser[] = [
   // Admin Users
-  { id: 'user_admin2', name: 'System Administrator', email: 'admin2@smart-solutions.com', password: 'admin123', roles: ['admin'] },
-  { id: 'user_demo001', name: 'Demo Admin 001', email: 'demo001@smart-solutions.com', password: '123456', roles: ['admin'] },
-  { id: 'user_admin', name: 'System Administrator', email: 'admin@smart-solutions.com', password: '123456', roles: ['admin'] },
-  { id: 'user_admin001', name: 'Admin 001', email: 'admin001@smart-solutions.com', password: '123456', roles: ['admin'] },
-  { id: 'user_admin002', name: 'Admin 002', email: 'admin002@smart-solutions.com', password: '123456', roles: ['admin'] },
-  { id: 'user_admin003', name: 'Admin 003', email: 'admin003@smart-solutions.com', password: '123456', roles: ['admin'] },
+  { id: 'user_admin2', name: 'System Administrator', email: 'admin2@smart-solutions.com', password: 'admin123', roles: ['admin'], skills: null, statement: null },
+  { id: 'user_demo001', name: 'Demo Admin 001', email: 'demo001@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null },
+  { id: 'user_admin', name: 'System Administrator', email: 'admin@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null },
+  { id: 'user_admin001', name: 'Admin 001', email: 'admin001@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null },
+  { id: 'user_admin002', name: 'Admin 002', email: 'admin002@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null },
+  { id: 'user_admin003', name: 'Admin 003', email: 'admin003@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null },
   
   // Staff Users
-  { id: 'user_s6800001', name: 'Staff 001', email: 's6800001@smart-solutions.com', password: '123456', roles: ['staff'] },
-  { id: 'user_s6800002', name: 'Staff 002', email: 's6800002@smart-solutions.com', password: '123456', roles: ['staff'] },
+  { id: 'user_s6800001', name: 'Staff 001', email: 's6800001@smart-solutions.com', password: '123456', roles: ['staff'], skills: null, statement: null },
+  { id: 'user_s6800002', name: 'Staff 002', email: 's6800002@smart-solutions.com', password: '123456', roles: ['staff'], skills: null, statement: null },
 
   // Instructor Users
-  { id: 'user_t6800001', name: 'Instructor 001', email: 't6800001@smart-solutions.com', password: '123456', roles: ['courseInstructor'] },
+  { id: 'user_t6800001', name: 'Instructor 001', email: 't6800001@smart-solutions.com', password: '123456', roles: ['courseInstructor'], skills: null, statement: null },
   
   // Multi-role User (Instructor and Visitor)
-  { id: 'user_t6800002', name: 'Instructor 002 (and Visitor)', email: 't6800002@smart-solutions.com', password: '123456', roles: ['courseInstructor', 'visitor'] },
+  { id: 'user_t6800002', name: 'Instructor 002 (and Visitor)', email: 't6800002@smart-solutions.com', password: '123456', roles: ['courseInstructor', 'visitor'], skills: null, statement: null },
   
   // Multi-role User (Instructor, Committee, Visitor)
-  { id: 'user_t6800003', name: 'Instructor 003 (and Committee, Visitor)', email: 't6800003@smart-solutions.com', password: '123456', roles: ['courseInstructor', 'committee', 'visitor'] },
+  { id: 'user_t6800003', name: 'Instructor 003 (and Committee, Visitor)', email: 't6800003@smart-solutions.com', password: '123456', roles: ['courseInstructor', 'committee', 'visitor'], skills: null, statement: null },
   
   // Committee Users
-  { id: 'user_t6800004', name: 'Committee 004', email: 't6800004@smart-solutions.com', password: '123456', roles: ['committee'] },
-  { id: 'user_t6800005', name: 'Committee 005 (and Visitor)', email: 't6800005@smart-solutions.com', password: '123456', roles: ['committee', 'visitor'] },
+  { id: 'user_t6800004', name: 'Committee 004', email: 't6800004@smart-solutions.com', password: '123456', roles: ['committee'], skills: null, statement: null },
+  { id: 'user_t6800005', name: 'Committee 005 (and Visitor)', email: 't6800005@smart-solutions.com', password: '123456', roles: ['committee', 'visitor'], skills: null, statement: null },
 
   // Student Users
   { id: 'test001', name: 'Test User', email: 'test@test.com', password: '123456', roles: ['student'], skills: 'React, TypeScript, Node.js', statement: 'Eager to apply my web development skills in a real-world setting and contribute to a dynamic team.' },
@@ -40,19 +44,19 @@ export const users: User[] = [
   { id: 'u6800008', name: 'Student 008', email: 'u6800008@smart-solutions.com', password: '123456', roles: ['student'], skills: 'Ruby on Rails', statement: 'Full-stack developer with a love for rapid prototyping.' },
   { id: 'u6800009', name: 'Student 009', email: 'u6800009@smart-solutions.com', password: '123456', roles: ['student'], skills: 'PHP, Laravel', statement: 'Experienced with classic web technologies and modern frameworks.' },
   { id: 'u6800010', name: 'Student 010', email: 'u6800010@smart-solutions.com', password: '123456', roles: ['student'], skills: 'Marketing, SEO, SEM', statement: 'Digital marketing student ready to drive growth.' },
-  { id: 'u6800011', name: 'Student 011', email: 'u6800011@smart-solutions.com', password: '123456', roles: ['student'] },
-  { id: 'u6800012', name: 'Student 012', email: 'u6800012@smart-solutions.com', password: '123456', roles: ['student'] },
-  { id: 'u6800013', name: 'Student 013', email: 'u6800013@smart-solutions.com', password: '123456', roles: ['student'] },
-  { id: 'u6800014', name: 'Student 014', email: 'u6800014@smart-solutions.com', password: '123456', roles: ['student'] },
-  { id: 'u6800015', name: 'Student 015', email: 'u6800015@smart-solutions.com', password: '123456', roles: ['student'] },
-  { id: 'u6800016', name: 'Student 016', email: 'u6800016@smart-solutions.com', password: '123456', roles: ['student'] },
-  { id: 'u6800017', name: 'Student 017', email: 'u6800017@smart-solutions.com', password: '123456', roles: ['student'] },
-  { id: 'u6800018', name: 'Student 018', email: 'u6800018@smart-solutions.com', password: '123456', roles: ['student'] },
-  { id: 'u6800019', name: 'Student 019', email: 'u6800019@smart-solutions.com', password: '123456', roles: ['student'] },
-  { id: 'u6800020', name: 'Student 020', email: 'u6800020@smart-solutions.com', password: '123456', roles: ['student'] },
+  { id: 'u6800011', name: 'Student 011', email: 'u6800011@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
+  { id: 'u6800012', name: 'Student 012', email: 'u6800012@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
+  { id: 'u6800013', name: 'Student 013', email: 'u6800013@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
+  { id: 'u6800014', name: 'Student 014', email: 'u6800014@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
+  { id: 'u6800015', name: 'Student 015', email: 'u6800015@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
+  { id: 'u6800016', name: 'Student 016', email: 'u6800016@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
+  { id: 'u6800017', name: 'Student 017', email: 'u6800017@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
+  { id: 'u6800018', name: 'Student 018', email: 'u6800018@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
+  { id: 'u6800019', name: 'Student 019', email: 'u6800019@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
+  { id: 'u6800020', name: 'Student 020', email: 'u6800020@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
 ];
 
-export const internships: Internship[] = [
+export const internships: Omit<Internship, 'createdAt' | 'updatedAt'>[] = [
     { id: 'int001', title: 'Frontend Developer', company: 'Tech Innovators Inc.', location: 'กรุงเทพฯ', description: 'พัฒนาและดูแลเว็บแอปพลิเคชันโดยใช้ React และ TypeScript สร้างส่วนประกอบที่นำกลับมาใช้ใหม่ได้และไลบรารีส่วนหน้าเพื่อใช้ในอนาคต', type: 'internship' },
     { id: 'int002', title: 'Backend Developer (Co-op)', company: 'Data Systems Ltd.', location: 'เชียงใหม่', description: 'ออกแบบและใช้งาน API ของฝั่งเซิร์ฟเวอร์ ทำงานกับฐานข้อมูล และรับรองประสิทธิภาพของแอปพลิเคชัน', type: 'co-op' },
     { id: 'int003', title: 'UI/UX Designer', company: 'Creative Solutions', location: 'กรุงเทพฯ', description: 'สร้าง wireframes, storyboards, user flows, process flows และ site maps เพื่อสื่อสารแนวคิดการออกแบบและการมีปฏิสัมพันธ์อย่างมีประสิทธิภาพ', type: 'internship' },
@@ -60,37 +64,44 @@ export const internships: Internship[] = [
     { id: 'int005', title: 'Full Stack Developer (Co-op)', company: 'Agile Coders', location: 'กรุงเทพฯ', description: 'ทำงานทั้งส่วนหน้าและส่วนหลังของเว็บแอปพลิเคชัน มีส่วนร่วมในทุกขั้นตอนของวงจรการพัฒนาซอฟต์แวร์', type: 'co-op' },
 ];
 
-export let applications: Application[] = [
-    { id: 'app001', studentId: 'test001', internshipId: 'int001', status: 'pending', dateApplied: '2024-05-01' },
-    { id: 'app002', studentId: '65010001', internshipId: 'int002', status: 'approved', dateApplied: '2024-05-02', projectTopic: 'การพัฒนาระบบแนะนำสินค้าด้วย Machine Learning' },
-    { id: 'app003', studentId: 'u6800001', internshipId: 'int003', status: 'rejected', dateApplied: '2024-05-03', feedback: 'ขาดประสบการณ์ในเครื่องมือออกแบบที่ต้องการ' },
-    { id: 'app004', studentId: 'u6800002', internshipId: 'int004', status: 'pending', dateApplied: '2024-05-04' },
-    { id: 'app005', studentId: 'test001', internshipId: 'int005', status: 'approved', dateApplied: '2024-05-05', projectTopic: 'การสร้างแดชบอร์ดวิเคราะห์ข้อมูลแบบ Real-time' },
-    { id: 'app006', studentId: 'u6800003', internshipId: 'int001', status: 'pending', dateApplied: '2024-05-06' },
+export let applications: Omit<Application, 'createdAt' | 'updatedAt'>[] = [
+    { id: 'app001', studentId: 'test001', internshipId: 'int001', status: 'pending', dateApplied: new Date('2024-05-01') },
+    { id: 'app002', studentId: '65010001', internshipId: 'int002', status: 'approved', dateApplied: new Date('2024-05-02'), projectTopic: 'การพัฒนาระบบแนะนำสินค้าด้วย Machine Learning', feedback: null },
+    { id: 'app003', studentId: 'u6800001', internshipId: 'int003', status: 'rejected', dateApplied: new Date('2024-05-03'), feedback: 'ขาดประสบการณ์ในเครื่องมือออกแบบที่ต้องการ', projectTopic: null },
+    { id: 'app004', studentId: 'u6800002', internshipId: 'int004', status: 'pending', dateApplied: new Date('2024-05-04'), feedback: null, projectTopic: null },
+    { id: 'app005', studentId: 'test001', internshipId: 'int005', status: 'approved', dateApplied: new Date('2024-05-05'), projectTopic: 'การสร้างแดชบอร์ดวิเคราะห์ข้อมูลแบบ Real-time', feedback: null },
+    { id: 'app006', studentId: 'u6800003', internshipId: 'int001', status: 'pending', dateApplied: new Date('2024-05-06'), feedback: null, projectTopic: null },
 ];
 
 
-export const progressReports: ProgressReport[] = [
-    { id: 'rep001', applicationId: 'app002', report: 'สัปดาห์ที่ 1: ตั้งค่าสภาพแวดล้อมการพัฒนาและเริ่มทำความเข้าใจ codebase', date: '2024-06-10' },
-    { id: 'rep002', applicationId: 'app002', report: 'สัปดาห์ที่ 2: ใช้ API endpoint แรกสำหรับโปรไฟล์ผู้ใช้', date: '2024-06-17' },
-    { id: 'rep003', applicationId: 'app005', report: 'สัปดาห์ที่ 1: รวบรวมข้อกำหนดสำหรับแดชบอร์ด', date: '2024-06-12' },
+export const progressReports: Omit<ProgressReport, 'createdAt' | 'updatedAt'>[] = [
+    { id: 'rep001', applicationId: 'app002', report: 'สัปดาห์ที่ 1: ตั้งค่าสภาพแวดล้อมการพัฒนาและเริ่มทำความเข้าใจ codebase', date: new Date('2024-06-10') },
+    { id: 'rep002', applicationId: 'app002', report: 'สัปดาห์ที่ 2: ใช้ API endpoint แรกสำหรับโปรไฟล์ผู้ใช้', date: new Date('2024-06-17') },
+    { id: 'rep003', applicationId: 'app005', report: 'สัปดาห์ที่ 1: รวบรวมข้อกำหนดสำหรับแดชบอร์ด', date: new Date('2024-06-12') },
 ];
 
-export const academicTerms: AcademicTerm[] = [
+export const academicTerms: Omit<AcademicTerm, 'createdAt' | 'updatedAt'>[] = [
     { id: 'term-1', year: 2567, semester: '1', startDate: new Date('2024-08-05'), endDate: new Date('2024-12-06') },
     { id: 'term-2', year: 2567, semester: '2', startDate: new Date('2025-01-06'), endDate: new Date('2025-05-09') },
 ];
 
-export const holidays: Holiday[] = [
+export const holidays: Omit<Holiday, 'createdAt' | 'updatedAt'>[] = [
     { id: 'holiday-1', date: new Date('2025-01-01'), name: 'วันขึ้นปีใหม่' },
     { id: 'holiday-2', date: new Date('2025-04-14'), name: 'วันสงกรานต์' },
 ];
 
+export type UserRoleGroup = 'student' | 'academic';
 export const userRoleGroups: { id: UserRoleGroup; label: string }[] = [
     { id: 'student', label: 'นักศึกษา' },
     { id: 'academic', label: 'บุคลากรทางการศึกษา' }
 ];
 
+export type UserTitle = {
+    id: string;
+    nameTh: string;
+    nameEn: string;
+    applicableTo: UserRoleGroup[];
+};
 export const titles: UserTitle[] = [
     { id: 't-1', nameTh: 'นาย', nameEn: 'Mr.', applicableTo: ['student', 'academic'] },
     { id: 't-2', nameTh: 'นางสาว', nameEn: 'Ms.', applicableTo: ['student'] },
@@ -98,18 +109,32 @@ export const titles: UserTitle[] = [
     { id: 't-4', nameTh: 'ผศ.ดร.', nameEn: 'Asst. Prof. Dr.', applicableTo: ['academic'] },
 ];
 
-export const majors: Major[] = [
+export const majors: Omit<Major, 'createdAt' | 'updatedAt'>[] = [
     { id: 'm-1', nameTh: 'เทคโนโลยีสารสนเทศ', nameEn: 'Information Technology', parentId: null },
     { id: 'm-1-1', nameTh: 'การจัดการสารสนเทศ', nameEn: 'Information Management', parentId: 'm-1' },
     { id: 'm-1-2', nameTh: 'เทคโนโลยีเว็บ', nameEn: 'Web Technology', parentId: 'm-1' },
     { id: 'm-2', nameTh: 'วิทยาการคอมพิวเตอร์', nameEn: 'Computer Science', parentId: null },
 ];
 
-export let faculties: Faculty[] = [
+export let faculties: Omit<Faculty, 'createdAt' | 'updatedAt'>[] = [
     { id: 'f-1', nameTh: 'คณะเทคโนโลยีสารสนเทศ', nameEn: 'School of Information Technology' },
     { id: 'f-2', nameTh: 'คณะวิศวกรรมศาสตร์', nameEn: 'School of Engineering' },
     { id: 'f-3', nameTh: 'คณะบริหารธุรกิจ', nameEn: 'School of Business Administration' },
 ];
+
+
+export type CompanyEvaluationQuestion = {
+    id: string;
+    question: string;
+    score?: number | null;
+};
+export type CompanyEvaluation = {
+    internshipId: string;
+    companyName: string;
+    isEvaluated: boolean;
+    evaluationDate: string | null;
+    questions: CompanyEvaluationQuestion[];
+};
 
 export const companyEvaluations: CompanyEvaluation[] = [
     { 

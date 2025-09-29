@@ -1,13 +1,13 @@
 'use client';
 
-import type { Application } from '@/lib/types';
+import { Application } from '@prisma/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { Users, CheckCircle, Clock, BarChart2 } from 'lucide-react';
 import { ChartConfig, ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
 type AdminDashboardProps = {
-  applications: Application[];
+  applications: Omit<Application, 'createdAt' | 'updatedAt'>[];
 };
 
 export default function AdminDashboard({ applications }: AdminDashboardProps) {

@@ -8,8 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PlusCircle, Save, Trash2 } from 'lucide-react';
-import { titles as initialTitles, userRoleGroups } from '@/lib/data';
-import type { UserTitle, UserRoleGroup } from '@/lib/types';
+import { titles as initialTitles, userRoleGroups, UserRoleGroup, UserTitle } from '@/lib/data';
 
 export function TitleManagement() {
   const [titles, setTitles] = useState<UserTitle[]>(initialTitles);
