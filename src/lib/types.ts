@@ -41,3 +41,17 @@ export type ProgressReport = {
   report: string;
   date: string;
 };
+
+export type AcademicTerm = {
+  id: string;
+  year: number;
+  semester: string;
+  startDate: Date;
+  endDate: Date;
+};
+
+export type Holiday = {
+    id: string;
+    date: Date;
+    name: string;
+};

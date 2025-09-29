@@ -1,4 +1,4 @@
-import type { User, Internship, Application, ProgressReport } from './types';
+import type { User, Internship, Application, ProgressReport, AcademicTerm, Holiday } from './types';
 
 // Data from DEMO_USERS.md, adapted for multi-role structure
 export let users: User[] = [
@@ -67,4 +67,14 @@ export let applications: Application[] = [
 
 export let progressReports: ProgressReport[] = [
   { id: 'report-1', applicationId: 'app-2', report: 'Week 1: Onboarding complete. Met the team and set up my development environment. Started working on my first ticket for API optimization.', date: '2024-07-25' }
+];
+
+export const academicTerms: AcademicTerm[] = [
+  { id: 'term-1', year: 2567, semester: '1', startDate: new Date('2024-08-01'), endDate: new Date('2024-12-20') },
+  { id: 'term-2', year: 2567, semester: '2', startDate: new Date('2025-01-10'), endDate: new Date('2025-05-30') },
+];
+
+export const holidays: Holiday[] = [
+    { id: 'holiday-1', date: new Date('2024-10-13'), name: 'วันคล้ายวันสวรรคต ร.9' },
+    { id: 'holiday-2', date: new Date('2024-12-10'), name: 'วันรัฐธรรมนูญ' },
 ];
