@@ -4,7 +4,7 @@ import { internships, applications, users, progressReports } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Briefcase, CheckCircle, Clock, FileText, XCircle } from 'lucide-react';
+import { Briefcase, CheckCircle, Clock, FileText, XCircle, BookOpen } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -28,6 +28,7 @@ export default function StudentPage() {
   const student = users.find(u => u.id === STUDENT_ID);
   const myApplications = applications.filter(app => app.studentId === STUDENT_ID);
   const approvedApplication = myApplications.find(app => app.status === 'approved');
+  const approvedInternship = approvedApplication ? internships.find(i => i.id === approvedApplication.internshipId) : null;
   const myProgressReports = approvedApplication ? progressReports.filter(p => p.applicationId === approvedApplication.id) : [];
 
   const statusTranslations: { [key: string]: string } = {
@@ -35,6 +36,8 @@ export default function StudentPage() {
     pending: "รอการตรวจสอบ",
     rejected: "ปฏิเสธ",
   };
+
+  const isCoop = approvedInternship?.type === 'co-op';
 
   return (
     <div className="grid gap-8 text-secondary-600">
@@ -71,11 +74,37 @@ export default function StudentPage() {
                 </CardContent>
             </Card>
 
+            {isCoop && (
+                <Card>
+                     <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                           <BookOpen />
+                           ข้อมูลโปรเจค (สหกิจศึกษา)
+                        </CardTitle>
+                        <CardDescription>จัดการหัวข้อและรายละเอียดโปรเจคสหกิจของคุณ</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {approvedApplication?.projectTopic ? (
+                            <div>
+                                <p className="font-semibold">หัวข้อโปรเจค:</p>
+                                <p className="text-muted-foreground">{approvedApplication.projectTopic}</p>
+                                <Button variant="outline" size="sm" className="mt-2">แก้ไขหัวข้อ</Button>
+                            </div>
+                        ) : (
+                             <div>
+                                <p className="text-muted-foreground">คุณยังไม่ได้กำหนดหัวข้อโปรเจค</p>
+                                <Button size="sm" className="mt-2">กำหนดหัวข้อโปรเจค</Button>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
+
             {approvedApplication && (
                 <Card>
                     <CardHeader>
                         <CardTitle>ความคืบหน้าการฝึกงาน</CardTitle>
-                        <CardDescription>บันทึกความคืบหน้าการฝึกงานของคุณที่ {internships.find(i => i.id === approvedApplication.internshipId)?.company}</CardDescription>
+                        <CardDescription>บันทึกความคืบหน้าการฝึกงานของคุณที่ {approvedInternship?.company}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                        <form className="space-y-4">

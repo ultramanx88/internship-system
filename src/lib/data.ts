@@ -54,20 +54,21 @@ export let users: User[] = [
 ];
 
 export const internships: Internship[] = [
-  { id: 'intern-1', title: 'Frontend Developer Intern', company: 'Innovate Inc.', location: 'Remote', description: 'Work with our frontend team to build and maintain our React-based web applications. Experience with TypeScript and Tailwind CSS is a plus.' },
-  { id: 'intern-2', title: 'Backend Developer Intern', company: 'DataCorp', location: 'New York, NY', description: 'Join our backend team to develop and optimize our Python/Django services. Focus on API design, database management, and performance.' },
-  { id: 'intern-3', title: 'UX/UI Design Intern', company: 'Creative Solutions', location: 'San Francisco, CA', description: 'Help shape the user experience of our products. Create wireframes, mockups, and prototypes. Proficiency in Figma is required.' },
+  { id: 'intern-1', title: 'Frontend Developer (ฝึกงาน)', company: 'Innovate Inc.', location: 'Remote', description: 'Work with our frontend team to build and maintain our React-based web applications. Experience with TypeScript and Tailwind CSS is a plus.', type: 'internship' },
+  { id: 'intern-2', title: 'Backend Developer (สหกิจ)', company: 'DataCorp', location: 'New York, NY', description: 'Join our backend team to develop and optimize our Python/Django services. Focus on API design, database management, and performance.', type: 'co-op' },
+  { id: 'intern-3', title: 'UX/UI Design (ฝึกงาน)', company: 'Creative Solutions', location: 'San Francisco, CA', description: 'Help shape the user experience of our products. Create wireframes, mockups, and prototypes. Proficiency in Figma is required.', type: 'internship' },
 ];
 
 export let applications: Application[] = [
-  { id: 'app-1', studentId: 'test001', internshipId: 'intern-1', status: 'pending', dateApplied: '2024-07-20' },
-  { id: 'app-2', studentId: '65010001', internshipId: 'intern-2', status: 'approved', dateApplied: '2024-07-18' },
+  { id: 'app-1', studentId: 'test001', internshipId: 'intern-2', status: 'approved', dateApplied: '2024-07-20' },
+  { id: 'app-2', studentId: '65010001', internshipId: 'intern-1', status: 'approved', dateApplied: '2024-07-18' },
   { id: 'app-3', studentId: 'test001', internshipId: 'intern-3', status: 'rejected', dateApplied: '2024-07-15', feedback: 'Lacks required portfolio experience in UX/UI design.' },
-  { id: 'app-4', studentId: '65010001', internshipId: 'intern-1', status: 'pending', dateApplied: '2024-07-21' },
+  { id: 'app-4', studentId: '65010001', internshipId: 'intern-2', status: 'pending', dateApplied: '2024-07-21' },
 ];
 
 export let progressReports: ProgressReport[] = [
-  { id: 'report-1', applicationId: 'app-2', report: 'Week 1: Onboarding complete. Met the team and set up my development environment. Started working on my first ticket for API optimization.', date: '2024-07-25' }
+  { id: 'report-1', applicationId: 'app-1', report: 'Week 1: Onboarding complete. Started research for the co-op project on performance optimization.', date: '2024-07-25' },
+  { id: 'report-2', applicationId: 'app-2', report: 'Week 1: Onboarding complete. Met the team and set up my development environment. Started working on my first ticket for a new UI component.', date: '2024-07-25' }
 ];
 
 export const academicTerms: AcademicTerm[] = [

@@ -20,12 +20,15 @@ export type User = {
   titleId?: string;
 };
 
+export type InternshipType = 'internship' | 'co-op';
+
 export type Internship = {
   id: string;
   title: string;
   company: string;
   description: string;
   location: string;
+  type: InternshipType;
 };
 
 export type ApplicationStatus = 'pending' | 'approved' | 'rejected';
@@ -37,6 +40,7 @@ export type Application = {
   status: ApplicationStatus;
   dateApplied: string;
   feedback?: string;
+  projectTopic?: string;
 };
 
 export type ProgressReport = {
