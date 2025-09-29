@@ -27,7 +27,7 @@ export default function AdminReportsPage() {
         // Mock data for reports
         return mockApplications
             .filter(app => app.status === 'approved')
-            .map(app => {
+            .map((app, index) => {
                 const student = mockUsers.find(u => u.id === app.studentId);
                 const internship = mockInternships.find(i => i.id === app.internshipId);
                 const teacher = mockUsers.find(u => u.role === 'teacher');
@@ -36,7 +36,7 @@ export default function AdminReportsPage() {
                     studentName: student?.name || 'N/A',
                     companyName: internship?.company || 'N/A',
                     teacherName: teacher?.name || 'N/A',
-                    reportStatus: ['มีรายงานแล้ว', 'ยังไม่มีรายงาน'][Math.floor(Math.random() * 2)],
+                    reportStatus: ['มีรายงานแล้ว', 'ยังไม่มีรายงาน'][index % 2],
                 };
             });
     }, []);
