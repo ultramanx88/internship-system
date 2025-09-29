@@ -9,6 +9,7 @@ import { Save } from 'lucide-react';
 import { RoleManagementMatrix } from '@/components/admin/settings/RoleManagementMatrix';
 import { AcademicCalendarSettings } from '@/components/admin/settings/AcademicCalendarSettings';
 import { TitleManagement } from '@/components/admin/settings/TitleManagement';
+import { MajorManagement } from '@/components/admin/settings/MajorManagement';
 
 export default function AdminSettingsPage() {
   return (
@@ -19,6 +20,7 @@ export default function AdminSettingsPage() {
       </div>
 
       <TitleManagement />
+      <MajorManagement />
       <AcademicCalendarSettings />
       <RoleManagementMatrix />
 

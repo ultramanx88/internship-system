@@ -65,3 +65,9 @@ export type UserTitle = {
     nameEn: string;
     applicableTo: UserRoleGroup[];
 }
+
+export type Major = {
+    id: string;
+    name: string;
+    type: 'major' | 'minor';
+};
