@@ -121,7 +121,12 @@ export default function AdminReportsPage() {
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-center">
-                                                <Button size="sm" variant="outline" disabled={item.reportStatus === 'ยังไม่มีรายงาน'}>
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="outline" 
+                                                    disabled={item.reportStatus === 'ยังไม่มีรายงาน'}
+                                                    onClick={() => alert('ฟังก์ชันยังไม่ถูกใช้งาน')}
+                                                >
                                                     ดูรายงาน
                                                 </Button>
                                             </TableCell>
