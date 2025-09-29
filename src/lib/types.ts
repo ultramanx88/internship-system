@@ -77,3 +77,17 @@ export type Major = {
     nameEn: string;
     type: 'major' | 'minor';
 };
+
+export type CompanyEvaluationQuestion = {
+    id: string;
+    question: string;
+    score: number | null;
+}
+
+export type CompanyEvaluation = {
+    internshipId: string;
+    companyName: string;
+    isEvaluated: boolean;
+    evaluationDate: string | null;
+    questions: CompanyEvaluationQuestion[];
+}

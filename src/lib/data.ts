@@ -1,5 +1,5 @@
 
-import type { User, Internship, Application, ProgressReport, AcademicTerm, Holiday, UserTitle, UserRoleGroup, Major } from './types';
+import type { User, Internship, Application, ProgressReport, AcademicTerm, Holiday, UserTitle, UserRoleGroup, Major, CompanyEvaluation } from './types';
 
 // Data from DEMO_USERS.md, adapted for multi-role structure
 export let users: User[] = [
@@ -102,3 +102,29 @@ export const majors: Major[] = [
     { id: 'major-4', nameTh: 'การตลาดดิจิทัล', nameEn: 'Digital Marketing', type: 'minor' },
     { id: 'major-5', nameTh: 'การจัดการธุรกิจ', nameEn: 'Business Management', type: 'minor' },
 ];
+
+export const companyEvaluations: CompanyEvaluation[] = [
+    {
+        internshipId: 'intern-2', // DataCorp
+        companyName: 'DataCorp',
+        isEvaluated: true,
+        evaluationDate: '2024-08-01T10:00:00Z',
+        questions: [
+            { id: 'q1', question: 'ด้านการสนับสนุนและการให้คำปรึกษาจากพี่เลี้ยง', score: 5 },
+            { id: 'q2', question: 'ด้านการมอบหมายงานที่ท้าทายและส่งเสริมการเรียนรู้', score: 4 },
+        ]
+    },
+    {
+        internshipId: 'intern-1', // Innovate Inc.
+        companyName: 'Innovate Inc.',
+        isEvaluated: false,
+        evaluationDate: null,
+        questions: [
+            { id: 'q1', question: 'ด้านการสนับสนุนและการให้คำปรึกษาจากพี่เลี้ยง', score: null },
+            { id: 'q2', question: 'ด้านการมอบหมายงานที่ท้าทายและส่งเสริมการเรียนรู้', score: null },
+            { id: 'q3', question: 'ด้านสภาพแวดล้อมในการทำงานและวัฒนธรรมองค์กร', score: null },
+            { id: 'q4', question: 'ด้านโอกาสในการพัฒนาทักษะและความรู้เพิ่มเติม', score: null },
+            { id: 'q5', question: 'ด้านความชัดเจนของเนื้องานและเป้าหมาย', score: null },
+        ]
+    }
+]

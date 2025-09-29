@@ -26,6 +26,7 @@ import {
   ClipboardList,
   Settings,
   UserCheck,
+  Star,
 } from 'lucide-react';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import Image from 'next/image';
@@ -35,6 +36,7 @@ const navConfig = {
     { href: '/student', icon: LayoutDashboard, label: 'แดชบอร์ด' },
     { href: '/student/internships', icon: Briefcase, label: 'การฝึกงาน' },
     { href: '/student/applications', icon: FileText, label: 'ใบสมัครของฉัน' },
+    { href: '/student/evaluation', icon: Star, label: 'ประเมินผล' },
   ],
   staff: [
     { href: '/admin/users', icon: Users, label: 'จัดการผู้ใช้' },
