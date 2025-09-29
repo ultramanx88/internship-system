@@ -1,3 +1,5 @@
+'use client';
+
 import { internships, applications, users, progressReports } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
