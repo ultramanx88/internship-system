@@ -68,8 +68,8 @@ export function DashboardSidebar() {
   const pathname = usePathname();
 
   const getNavItems = () => {
-    if (!user) return [];
-    // Use a Set to store unique nav items based on their href
+    if (!user || !user.roles) return [];
+    // Use a Map to store unique nav items based on their href
     const uniqueNavs = new Map();
 
     user.roles.forEach(role => {
