@@ -7,10 +7,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  // The 'directUrl' is used for migrations and any direct database access.
+  url       = env("ACCELERATE_URL")
   directUrl = env("DIRECT_URL")
-  // The 'url' is used by the Prisma Client for the Accelerate connection pool.
-  url       = env("DATABASE_URL")
 }
 
 
@@ -35,7 +33,7 @@ model User {
   // Relations
   title        UserTitle?         @relation(fields: [titleId], references: [id])
   applications Application[]
-  reviews      ApplicationReview[]
+  reviews      ApplicationReview[] @relation("ReviewerReviews")
 
   @@map("users")
 }
@@ -62,8 +60,8 @@ model Application {
   status       ApplicationStatus @default(PENDING)
   feedback     String?
   projectTopic String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
   // Relations
   studentId String
@@ -86,7 +84,7 @@ model ApplicationReview {
 
   // Relations
   reviewerId    String
-  reviewer      User    @relation(fields: [reviewerId], references: [id])
+  reviewer      User    @relation("ReviewerReviews", fields: [reviewerId], references: [id])
   applicationId String
   application   Application @relation(fields: [applicationId], references: [id])
 
