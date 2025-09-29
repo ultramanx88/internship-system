@@ -6,100 +6,83 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id              String        @id @default(cuid())
-  email           String        @unique
-  name            String
-  password        String
-  roles           Role[]
-  skills          String?
-  statement       String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id         String   @id @default(cuid())
+  email      String   @unique
+  name       String?
+  password   String
+  roles      Role[]
+  skills     String?
+  statement  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  applications    Application[]
-
-  // A user can review many applications
-  reviews         ApplicationReview[] @relation("ReviewerToReview")
-  // A user can be the creator of many reviews
-  createdReviews  ApplicationReview[] @relation("CreatorOfReview")
+  applications Application[]
+  reviews      ApplicationReview[] @relation("ReviewerToReview")
 }
 
 model Internship {
-  id           String        @id @default(cuid())
-  title        String
-  company      String
-  description  String
-  location     String
-  type         InternshipType
+  id          String   @id @default(cuid())
+  title       String
+  company     String
+  description String
+  location    String
+  type        InternshipType
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   applications Application[]
 }
 
 model Application {
-  id           String              @id @default(cuid())
-  student      User                @relation(fields: [studentId], references: [id])
+  id           String   @id @default(cuid())
   studentId    String
-  internship   Internship          @relation(fields: [internshipId], references: [id])
   internshipId String
   status       ApplicationStatus
   dateApplied  DateTime
   feedback     String?
   projectTopic String?
-  reviews      ApplicationReview[]
-  progress     ProgressReport[]
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  student    User                @relation(fields: [studentId], references: [id])
+  internship Internship          @relation(fields: [internshipId], references: [id])
+  reviews    ApplicationReview[] @relation("ApplicationToReview")
 }
 
 model ApplicationReview {
-  id            String             @id @default(cuid())
-  application   Application        @relation(fields: [applicationId], references: [id])
+  id            String   @id @default(cuid())
   applicationId String
-  
-  // The user who is performing the review
-  reviewer      User               @relation("ReviewerToReview", fields: [reviewerId], references: [id])
   reviewerId    String
-  
-  // The user who created this review entry (might be an admin or staff)
-  createdBy     User               @relation("CreatorOfReview", fields: [createdById], references: [id])
-  createdById   String
-  
-  status        ApplicationStatus
-  comments      String?
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-}
+  recommendation String
+  reason        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-model ProgressReport {
-  id            String      @id @default(cuid())
-  application   Application @relation(fields: [applicationId], references: [id])
-  applicationId String
-  report        String
-  date          DateTime
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  application Application @relation("ApplicationToReview", fields: [applicationId], references: [id])
+  reviewer    User        @relation("ReviewerToReview", fields: [reviewerId], references: [id])
 }
 
 enum Role {
-  STUDENT
-  STAFF
-  COURSE_INSTRUCTOR
-  COMMITTEE
-  VISITOR
-  ADMIN
+  student
+  staff
+  courseInstructor
+  committee
+  visitor
+  admin
 }
 
 enum InternshipType {
-  INTERNSHIP
-  CO_OP
+  internship
+  co_op
 }
 
 enum ApplicationStatus {
-  PENDING
-  APPROVED
-  REJECTED
+  pending
+  approved
+  rejected
 }
