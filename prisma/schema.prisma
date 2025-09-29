@@ -6,9 +6,13 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // หรือ mysql, sqlite, etc.
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // The 'directUrl' is used for migrations and any direct database access.
+  directUrl = env("DIRECT_URL")
+  // The 'url' is used by the Prisma Client for the Accelerate connection pool.
+  url       = env("DATABASE_URL")
 }
+
 
 // ==============
 //  Core Models
