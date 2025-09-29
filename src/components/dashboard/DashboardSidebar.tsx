@@ -80,7 +80,7 @@ export function DashboardSidebar() {
             </>
           ) : (
             navItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
+              <SidebarMenuItem key={item.label}>
                 <SidebarMenuButton
                   href={item.href}
                   asChild
