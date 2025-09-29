@@ -83,7 +83,7 @@ export function FacultyManagement() {
       <CardHeader>
         <CardTitle>จัดการคณะ</CardTitle>
         <CardDescription>
-          เพิ่ม, ลบ, และแก้ไขรายชื่อคณะในระบบ ข้อมูลจะถูกบันทึกลงฐานข้อมูลจริง
+          เพิ่ม, ลบ, และแก้ไขรายชื่อคณะในระบบ (ใช้ข้อมูลจำลอง)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
