@@ -514,7 +514,7 @@ export class VisitorService extends RemoteA {
       PROTECTED_PATH.VISITOR_ASSIGN_SCHEDULE + `/${id}`,
       entity
     );
-    const { data } = response;
+    const { data }_response;
     return data;
   };
   reqGetVisitorScheduleReport = async (
