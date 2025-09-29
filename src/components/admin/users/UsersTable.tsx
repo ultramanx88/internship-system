@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, Trash2, UserPlus } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
+import { Role } from '@/lib/types';
 
 export function UsersTable() {
     const [users, setUsers] = useState(mockUsers);
@@ -31,7 +32,7 @@ export function UsersTable() {
             const matchesSearch = user.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
                 user.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
                 user.id.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
-            const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+            const matchesRole = roleFilter === 'all' || user.roles.includes(roleFilter as Role);
             return matchesSearch && matchesRole;
         });
     }, [users, debouncedSearchTerm, roleFilter]);
@@ -65,8 +66,11 @@ export function UsersTable() {
     
     const roleTranslations: { [key: string]: string } = {
         admin: 'ผู้ดูแลระบบ',
-        teacher: 'อาจารย์',
-        student: 'นักเรียน'
+        staff: 'เจ้าหน้าที่ธุรการ',
+        courseInstructor: 'อาจารย์ประจำวิชา',
+        committee: 'กรรมการ',
+        visitor: 'อาจารย์นิเทศ',
+        student: 'นักศึกษา'
     };
 
     return (
@@ -89,8 +93,11 @@ export function UsersTable() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">ตำแหน่งทั้งหมด</SelectItem>
-                            <SelectItem value="student">นักเรียน</SelectItem>
-                            <SelectItem value="teacher">อาจารย์</SelectItem>
+                            <SelectItem value="student">นักศึกษา</SelectItem>
+                            <SelectItem value="staff">เจ้าหน้าที่ธุรการ</SelectItem>
+                            <SelectItem value="courseInstructor">อาจารย์ประจำวิชา</SelectItem>
+                            <SelectItem value="committee">กรรมการ</SelectItem>
+                            <SelectItem value="visitor">อาจารย์นิเทศ</SelectItem>
                             <SelectItem value="admin">ผู้ดูแลระบบ</SelectItem>
                         </SelectContent>
                     </Select>
@@ -143,7 +150,7 @@ export function UsersTable() {
                                         <TableCell className="font-medium">{user.name}</TableCell>
                                         <TableCell>{user.email}</TableCell>
                                         <TableCell>{user.id}</TableCell>
-                                        <TableCell>{roleTranslations[user.role]}</TableCell>
+                                        <TableCell>{user.roles.map(r => roleTranslations[r]).join(', ')}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (

@@ -34,7 +34,7 @@ export async function registerStudent(values: z.infer<typeof RegisterSchema>) {
     name,
     email,
     password, // In a real app, hash this!
-    role: 'student' as const,
+    roles: ['student'] as const,
     skills: studentSkills,
     statement: studentStatement,
   };

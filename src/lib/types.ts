@@ -1,11 +1,17 @@
-export type Role = 'student' | 'teacher' | 'admin';
+export type Role =
+  | 'student'
+  | 'staff'
+  | 'courseInstructor'
+  | 'committee'
+  | 'visitor'
+  | 'admin';
 
 export type User = {
   id: string;
   name: string;
   email: string;
   password?: string; // Should be handled securely, present for mock data
-  role: Role;
+  roles: Role[];
   skills?: string;
   statement?: string;
 };

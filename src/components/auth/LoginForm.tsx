@@ -40,16 +40,14 @@ export function LoginForm() {
                 title: 'เข้าสู่ระบบสำเร็จ',
                 description: `ยินดีต้อนรับกลับ, ${user.name}!`,
             });
-            switch (user.role) {
-                case 'student':
-                    router.push('/student');
-                    break;
-                case 'teacher':
-                    router.push('/teacher');
-                    break;
-                case 'admin':
-                    router.push('/admin');
-                    break;
+            if (user.roles.includes('admin')) {
+                router.push('/admin');
+            } else if (user.roles.includes('courseInstructor') || user.roles.includes('committee')) {
+                router.push('/teacher');
+            } else if (user.roles.includes('student')) {
+                router.push('/student');
+            } else {
+                router.push('/admin'); // Fallback for other roles like staff, visitor
             }
         } else {
             toast({
@@ -67,7 +65,7 @@ export function LoginForm() {
         if (user) {
             setIdentifier(user.email);
             setPassword(user.password || '');
-            setRole(user.role);
+            setRole(user.roles[0]); // Select the first role for simplicity
         }
     }
 
@@ -102,8 +100,11 @@ export function LoginForm() {
             <SelectValue placeholder="เลือกบทบาท" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="student">นักเรียน</SelectItem>
-            <SelectItem value="teacher">อาจารย์</SelectItem>
+            <SelectItem value="student">นักศึกษา</SelectItem>
+            <SelectItem value="courseInstructor">อาจารย์ประจำวิชา</SelectItem>
+            <SelectItem value="committee">กรรมการ</SelectItem>
+            <SelectItem value="visitor">อาจารย์นิเทศ</SelectItem>
+            <SelectItem value="staff">เจ้าหน้าที่ธุรการ</SelectItem>
             <SelectItem value="admin">ผู้ดูแลระบบ</SelectItem>
           </SelectContent>
         </Select>
@@ -117,12 +118,12 @@ export function LoginForm() {
         <Label htmlFor="user-select">หรือเลือกผู้ใช้สาธิต:</Label>
         <Select onValueChange={handleUserSelect}>
           <SelectTrigger id="user-select">
-            <SelectValue placeholder="เลือกผู้ใช้สาธิต" />
+            <SelectValue placeholder="เลือกผู้ใช้สาิธิต" />
           </SelectTrigger>
           <SelectContent>
             {users.map(user => (
               <SelectItem key={user.id} value={user.email}>
-                {user.name} ({user.role})
+                {user.name} ({user.roles.join(', ')})
               </SelectItem>
             ))}
           </SelectContent>

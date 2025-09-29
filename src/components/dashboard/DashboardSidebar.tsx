@@ -25,45 +25,65 @@ import {
   GraduationCap,
   ClipboardList,
   Settings,
+  UserCheck,
 } from 'lucide-react';
 
-const studentNav = [
-  { href: '/student', icon: LayoutDashboard, label: 'แดชบอร์ด' },
-  { href: '/student/internships', icon: Briefcase, label: 'การฝึกงาน' },
-  { href: '/student/applications', icon: FileText, label: 'ใบสมัครของฉัน' },
-];
+const navConfig = {
+  student: [
+    { href: '/student', icon: LayoutDashboard, label: 'แดชบอร์ด' },
+    { href: '/student/internships', icon: Briefcase, label: 'การฝึกงาน' },
+    { href: '/student/applications', icon: FileText, label: 'ใบสมัครของฉัน' },
+  ],
+  staff: [
+    { href: '/admin/users', icon: Users, label: 'จัดการผู้ใช้' },
+    { href: '/admin/applications', icon: FileText, label: 'เอกสารขอฝึกงาน' },
+  ],
+  courseInstructor: [
+    { href: '/teacher', icon: LayoutDashboard, label: 'แดชบอร์ด (อ.ประจำวิชา)' },
+    { href: '/teacher/review', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร' },
+    { href: '/instructor/assign_visitor', icon: UserCheck, label: 'มอบหมายอาจารย์นิเทศ' },
+  ],
+  committee: [
+    { href: '/teacher/review', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร (กก.)' },
+  ],
+  visitor: [
+     { href: '/visitor/schedule', icon: CalendarClock, label: 'ตารางนิเทศ' },
+     { href: '/visitor/visits', icon: ClipboardList, label: 'รายงานผลนิเทศ' },
+  ],
+  admin: [
+    { href: '/admin', icon: LayoutDashboard, label: 'แดชบอร์ด' },
+    { href: '/admin/users', icon: Users, label: 'จัดการผู้ใช้' },
+    { href: '/admin/applications', icon: FileText, label: 'เอกสารขอฝึกงาน' },
+    { href: '/admin/schedules', icon: CalendarClock, label: 'นัดหมายนิเทศ' },
+    { href: '/admin/reports', icon: ClipboardList, label: 'รายงานผลการนิเทศ' },
+    { href: '/admin/companies', icon: Building, label: 'ข้อมูลสถานประกอบการ' },
+    { href: '/admin/summary', icon: BarChart2, label: 'รายงานสรุป' },
+    { href: '/admin/settings', icon: Settings, label: 'ตั้งค่า' },
+  ],
+};
 
-const teacherNav = [
-  { href: '/teacher', icon: LayoutDashboard, label: 'แดชบอร์ด' },
-  { href: '/teacher/review', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร' },
-];
-
-const adminNav = [
-  { href: '/admin', icon: LayoutDashboard, label: 'แดชบอร์ด' },
-  { href: '/admin/users', icon: Users, label: 'จัดการผู้ใช้' },
-  { href: '/admin/applications', icon: FileText, label: 'เอกสารขอฝึกงาน' },
-  { href: '/admin/schedules', icon: CalendarClock, label: 'นัดหมายนิเทศ' },
-  { href: '/admin/reports', icon: ClipboardList, label: 'รายงานผลการนิเทศ' },
-  { href: '/admin/companies', icon: Building, label: 'ข้อมูลสถานประกอบการ' },
-  { href: '/admin/summary', icon: BarChart2, label: 'รายงานสรุป' },
-  { href: '/admin/settings', icon: Settings, label: 'ตั้งค่า' },
-];
 
 export function DashboardSidebar() {
   const { user, loading } = useAuth();
   const pathname = usePathname();
 
   const getNavItems = () => {
-    switch (user?.role) {
-      case 'student':
-        return studentNav;
-      case 'teacher':
-         return teacherNav;
-      case 'admin':
-         return adminNav;
-      default:
-        return [];
-    }
+    if (!user) return [];
+    // Use a Set to store unique nav items based on their href
+    const uniqueNavs = new Map();
+
+    user.roles.forEach(role => {
+      const navs = navConfig[role];
+      if (navs) {
+        navs.forEach(nav => {
+            if (!uniqueNavs.has(nav.href)) {
+                uniqueNavs.set(nav.href, nav);
+            }
+        })
+      }
+    });
+
+    return Array.from(uniqueNavs.values());
   };
 
   const navItems = getNavItems();

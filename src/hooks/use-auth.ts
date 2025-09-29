@@ -1,10 +1,10 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { type User } from '@/lib/types';
+import { type User, type Role } from '@/lib/types';
 import { users as mockUsers } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 
-export type AuthUser = Pick<User, 'id' | 'email' | 'name' | 'role'>;
+export type AuthUser = Pick<User, 'id' | 'email' | 'name' | 'roles'>;
 
 const USER_STORAGE_KEY = 'internship-flow-user';
 
@@ -27,9 +27,9 @@ export function useAuth() {
     }
   }, []);
 
-  const login = useCallback((identifier: string, password: string, role: string) => {
+  const login = useCallback((identifier: string, password: string, role: Role) => {
     const foundUser = mockUsers.find(u => 
-        (u.email === identifier || u.id === identifier) && u.role === role && u.password === password
+        (u.email === identifier || u.id === identifier) && u.roles.includes(role) && u.password === password
     );
     if (foundUser) {
         const { password, ...userToStore } = foundUser;
