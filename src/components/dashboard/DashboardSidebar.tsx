@@ -27,6 +27,8 @@ import {
   Settings,
   UserCheck,
 } from 'lucide-react';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import Image from 'next/image';
 
 const navConfig = {
   student: [
@@ -65,6 +67,7 @@ const navConfig = {
 
 export function DashboardSidebar() {
   const { user, loading } = useAuth();
+  const { logo } = useAppTheme();
   const pathname = usePathname();
 
   const getNavItems = () => {
@@ -92,7 +95,7 @@ export function DashboardSidebar() {
     <>
       <SidebarHeader>
         <div className="flex items-center gap-2">
-          <Icons.logo className="h-8 w-8 text-primary" />
+          <Icons.logo className="h-8 w-8 text-primary" logoUrl={logo} />
           <span className="text-lg font-semibold text-foreground">
             InternshipFlow
           </span>

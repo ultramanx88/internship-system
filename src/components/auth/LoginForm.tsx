@@ -81,6 +81,7 @@ export function LoginForm() {
           required
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
+          disabled={isLoading}
         />
       </div>
       <div className="grid gap-2">
@@ -91,11 +92,12 @@ export function LoginForm() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          disabled={isLoading}
         />
       </div>
       <div className="grid gap-2">
         <Label htmlFor="role">บทบาท</Label>
-        <Select value={role} onValueChange={(value) => setRole(value as Role)}>
+        <Select value={role} onValueChange={(value) => setRole(value as Role)} disabled={isLoading}>
           <SelectTrigger id="role">
             <SelectValue placeholder="เลือกบทบาท" />
           </SelectTrigger>
@@ -116,7 +118,7 @@ export function LoginForm() {
     </form>
      <div className="mt-4">
         <Label htmlFor="user-select">หรือเลือกผู้ใช้สาธิต:</Label>
-        <Select onValueChange={handleUserSelect}>
+        <Select onValueChange={handleUserSelect} disabled={isLoading}>
           <SelectTrigger id="user-select">
             <SelectValue placeholder="เลือกผู้ใช้สาิธิต" />
           </SelectTrigger>

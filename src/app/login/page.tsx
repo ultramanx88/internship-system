@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -10,8 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 export default function LoginPage() {
+  const { logo } = useAppTheme();
   const loginImage = PlaceHolderImages.find(
     (img) => img.id === 'login-background'
   );
@@ -29,7 +33,7 @@ export default function LoginPage() {
       )}
       <div className="absolute left-8 top-8 text-white">
         <div className="flex items-center gap-2">
-          <Icons.logo className="h-8 w-8" />
+          <Icons.logo className="h-8 w-8" logoUrl={logo} />
           <h1 className="text-2xl font-bold">InternshipFlow</h1>
         </div>
       </div>
