@@ -31,15 +31,12 @@ export default function LoginPage() {
           className="absolute inset-0 -z-10 h-full w-full object-cover brightness-50"
         />
       )}
-      <div className="absolute left-8 top-8 text-white">
-        <div className="flex items-center gap-2">
-          <Icons.logo className="h-8 w-8" logoUrl={logo} />
-          <h1 className="text-2xl font-bold">InternshipFlow</h1>
-        </div>
-      </div>
       <Card className="z-10 w-full max-w-md bg-background/80 backdrop-blur-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">ยินดีต้อนรับกลับ</CardTitle>
+          <div className="flex justify-center">
+             <Icons.logo className="h-12 w-12 text-primary" logoUrl={logo} />
+          </div>
+          <CardTitle className="text-3xl font-bold">ยินดีต้อนรับ</CardTitle>
           <CardDescription>
             เข้าสู่ระบบเพื่อเข้าถึงแดชบอร์ดของคุณ
           </CardDescription>
