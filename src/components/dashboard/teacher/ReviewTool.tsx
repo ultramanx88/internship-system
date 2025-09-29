@@ -44,7 +44,7 @@ export function ReviewTool({ student, internship, application }: ReviewToolProps
     } else {
       toast({
         variant: 'destructive',
-        title: 'AI Recommendation Failed',
+        title: 'การแนะนำจาก AI ล้มเหลว',
         description: result.message,
       });
     }
@@ -57,15 +57,15 @@ export function ReviewTool({ student, internship, application }: ReviewToolProps
 
     if (result.success) {
       toast({
-        title: 'Decision Submitted',
-        description: `Application has been ${status}.`,
+        title: 'ส่งการตัดสินใจแล้ว',
+        description: `ใบสมัครถูก ${status === 'approved' ? 'อนุมัติ' : 'ปฏิเสธ'}`,
       });
       router.push('/teacher');
       router.refresh();
     } else {
         toast({
             variant: 'destructive',
-            title: 'Submission Failed',
+            title: 'การส่งล้มเหลว',
             description: result.message,
         });
     }
@@ -73,17 +73,22 @@ export function ReviewTool({ student, internship, application }: ReviewToolProps
   
   const isDecided = application.status !== 'pending';
 
+  const recommendationTranslations: { [key: string]: string } = {
+    approve: "อนุมัติ",
+    reject: "ปฏิเสธ",
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Review & Decision</CardTitle>
-        <CardDescription>Use the AI tool to assist your decision-making process.</CardDescription>
+        <CardTitle>ตรวจสอบและตัดสินใจ</CardTitle>
+        <CardDescription>ใช้เครื่องมือ AI เพื่อช่วยในกระบวนการตัดสินใจของคุณ</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
           <Button onClick={handleGetRecommendation} disabled={isLoadingAi || !!recommendation || isDecided}>
             {isLoadingAi && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isLoadingAi ? 'Analyzing...' : 'Get AI Recommendation'}
+            {isLoadingAi ? 'กำลังวิเคราะห์...' : 'รับคำแนะนำจาก AI'}
             <Sparkles className="ml-2 h-4 w-4" />
           </Button>
         </div>
@@ -92,10 +97,10 @@ export function ReviewTool({ student, internship, application }: ReviewToolProps
           <Alert variant={recommendation.recommendation === 'approve' ? 'default' : 'destructive'} className={recommendation.recommendation === 'approve' ? 'bg-green-50 border-green-200' : ''}>
              <AlertTitle className="flex items-center gap-2">
                 {recommendation.recommendation === 'approve' ? <Check className="h-5 w-5 text-green-600"/> : <X className="h-5 w-5"/>}
-                AI Recommendation: <Badge variant="outline" className="capitalize">{recommendation.recommendation}</Badge>
+                คำแนะนำจาก AI: <Badge variant="outline" className="capitalize">{recommendationTranslations[recommendation.recommendation]}</Badge>
             </AlertTitle>
             <AlertDescription className="mt-2 pl-7">
-                <strong>Reason:</strong> {recommendation.reason}
+                <strong>เหตุผล:</strong> {recommendation.reason}
             </AlertDescription>
           </Alert>
         )}
@@ -103,12 +108,12 @@ export function ReviewTool({ student, internship, application }: ReviewToolProps
         <Separator />
 
         <div className="space-y-4">
-            <h3 className="font-semibold">Final Decision</h3>
+            <h3 className="font-semibold">การตัดสินใจสุดท้าย</h3>
              <div className="space-y-2">
-                <label htmlFor="feedback" className="text-sm font-medium">Feedback (Optional)</label>
+                <label htmlFor="feedback" className="text-sm font-medium">ความคิดเห็น (ไม่บังคับ)</label>
                 <Textarea 
                     id="feedback"
-                    placeholder="Provide feedback for the student..."
+                    placeholder="ให้ความคิดเห็นสำหรับนักเรียน..."
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
                     disabled={isSubmitting || isDecided}
@@ -117,15 +122,15 @@ export function ReviewTool({ student, internship, application }: ReviewToolProps
             <div className="flex gap-4">
                 <Button onClick={() => handleDecision('approved')} disabled={isSubmitting || isDecided} className="bg-green-600 hover:bg-green-700">
                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check />}
-                    Approve
+                    อนุมัติ
                 </Button>
                 <Button variant="destructive" onClick={() => handleDecision('rejected')} disabled={isSubmitting || isDecided}>
                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <X />}
-                    Reject
+                    ปฏิเสธ
                 </Button>
             </div>
              {isDecided && (
-                <p className="text-sm font-medium text-muted-foreground">A decision has already been made for this application.</p>
+                <p className="text-sm font-medium text-muted-foreground">มีการตัดสินใจสำหรับใบสมัครนี้แล้ว</p>
             )}
         </div>
       </CardContent>

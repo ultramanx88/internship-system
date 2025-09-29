@@ -17,17 +17,17 @@ export default function RegisterPage() {
           <div className="mb-4 flex justify-center">
             <Icons.logo className="h-12 w-12 text-primary" />
           </div>
-          <CardTitle className="text-3xl font-bold">Create an Account</CardTitle>
+          <CardTitle className="text-3xl font-bold">สร้างบัญชี</CardTitle>
           <CardDescription>
-            Join InternshipFlow as a student and find your next opportunity.
+            เข้าร่วม InternshipFlow ในฐานะนักเรียนและค้นหาโอกาสครั้งต่อไปของคุณ
           </CardDescription>
         </CardHeader>
         <CardContent>
           <RegisterForm />
           <div className="mt-4 text-center text-sm">
-            Already have an account?{' '}
+            มีบัญชีอยู่แล้ว?{' '}
             <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
-              Sign in
+              เข้าสู่ระบบ
             </Link>
           </div>
         </CardContent>

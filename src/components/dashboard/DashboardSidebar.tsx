@@ -22,20 +22,20 @@ import {
 } from 'lucide-react';
 
 const studentNav = [
-  { href: '/student', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/student/internships', icon: Briefcase, label: 'Internships' },
-  { href: '/student/applications', icon: FileText, label: 'My Applications' },
+  { href: '/student', icon: LayoutDashboard, label: 'แดชบอร์ด' },
+  { href: '/student/internships', icon: Briefcase, label: 'การฝึกงาน' },
+  { href: '/student/applications', icon: FileText, label: 'ใบสมัครของฉัน' },
 ];
 
 const teacherNav = [
-  { href: '/teacher', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/teacher/review', icon: CheckSquare, label: 'Review Applications' },
+  { href: '/teacher', icon: LayoutDashboard, label: 'แดชบอร์ด' },
+  { href: '/teacher/review', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร' },
 ];
 
 const adminNav = [
-  { href: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/admin/applications', icon: Users, label: 'All Applications' },
-  { href: '/admin/stats', icon: BarChart2, label: 'Statistics' },
+  { href: '/admin', icon: LayoutDashboard, label: 'แดชบอร์ด' },
+  { href: '/admin/applications', icon: Users, label: 'ใบสมัครทั้งหมด' },
+  { href: '/admin/stats', icon: BarChart2, label: 'สถิติ' },
 ];
 
 export function DashboardSidebar() {

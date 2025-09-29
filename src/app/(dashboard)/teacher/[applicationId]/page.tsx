@@ -35,11 +35,11 @@ export default async function ApplicationReviewPage({ params }: { params: { appl
         <Button asChild variant="outline" size="sm" className="mb-4">
             <Link href="/teacher">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
+                กลับไปที่แดชบอร์ด
             </Link>
         </Button>
-        <h1 className="text-3xl font-bold">Application Review</h1>
-        <p className="text-muted-foreground">Reviewing application from {student.name} for the {internship.title} position.</p>
+        <h1 className="text-3xl font-bold">ตรวจสอบใบสมัคร</h1>
+        <p className="text-muted-foreground">กำลังตรวจสอบใบสมัครจาก {student.name} สำหรับตำแหน่ง {internship.title}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -57,19 +57,19 @@ export default async function ApplicationReviewPage({ params }: { params: { appl
                 </CardHeader>
                 <CardContent className="space-y-4">
                    <div>
-                       <h4 className="font-semibold">Skills</h4>
+                       <h4 className="font-semibold">ทักษะ</h4>
                        <p className="text-sm text-muted-foreground">{student.skills}</p>
                    </div>
                     <div>
-                       <h4 className="font-semibold">Personal Statement</h4>
+                       <h4 className="font-semibold">เรียงความส่วนตัว</h4>
                        <p className="text-sm text-muted-foreground">{student.statement}</p>
                    </div>
                 </CardContent>
             </Card>
              <Card>
                 <CardHeader>
-                    <CardTitle>Internship Details</CardTitle>
-                    <CardDescription>{internship.title} at {internship.company}</CardDescription>
+                    <CardTitle>รายละเอียดการฝึกงาน</CardTitle>
+                    <CardDescription>{internship.title} ที่ {internship.company}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-muted-foreground">{internship.description}</p>

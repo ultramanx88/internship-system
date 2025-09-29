@@ -18,23 +18,23 @@ export default async function TeacherPage() {
   return (
     <div className="grid gap-8">
       <div>
-        <h1 className="text-3xl font-bold">Teacher Dashboard</h1>
-        <p className="text-muted-foreground">Review and manage student internship applications.</p>
+        <h1 className="text-3xl font-bold">แดชบอร์ดอาจารย์</h1>
+        <p className="text-muted-foreground">ตรวจสอบและจัดการใบสมัครฝึกงานของนักเรียน</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Pending Applications</CardTitle>
-          <CardDescription>These applications are awaiting your review.</CardDescription>
+          <CardTitle>ใบสมัครที่รอการตรวจสอบ</CardTitle>
+          <CardDescription>ใบสมัครเหล่านี้กำลังรอการตรวจสอบจากคุณ</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Student</TableHead>
-                <TableHead>Internship</TableHead>
-                <TableHead>Date Applied</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+                <TableHead>นักเรียน</TableHead>
+                <TableHead>การฝึกงาน</TableHead>
+                <TableHead>วันที่สมัคร</TableHead>
+                <TableHead className="text-right">ดำเนินการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -49,7 +49,7 @@ export default async function TeacherPage() {
                       <TableCell>{new Date(app.dateApplied).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
                         <Button asChild variant="outline" size="sm">
-                          <Link href={`/teacher/${app.id}`}>Review</Link>
+                          <Link href={`/teacher/${app.id}`}>ตรวจสอบ</Link>
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -58,7 +58,7 @@ export default async function TeacherPage() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center">
-                    No pending applications.
+                    ไม่มีใบสมัครที่รอการตรวจสอบ
                   </TableCell>
                 </TableRow>
               )}

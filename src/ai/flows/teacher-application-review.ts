@@ -12,16 +12,16 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const ReviewApplicationInputSchema = z.object({
-  studentName: z.string().describe('The name of the student applying.'),
-  studentSkills: z.string().describe('A list of skills the student possesses.'),
-  studentStatement: z.string().describe('The student statement of purpose for the internship.'),
-  internshipDescription: z.string().describe('The description of the internship position.'),
+  studentName: z.string().describe('ชื่อของนักเรียนที่สมัคร'),
+  studentSkills: z.string().describe('รายการทักษะที่นักเรียนมี'),
+  studentStatement: z.string().describe('เรียงความแสดงจุดประสงค์ของนักเรียนในการฝึกงาน'),
+  internshipDescription: z.string().describe('คำอธิบายตำแหน่งงานฝึกงาน'),
 });
 export type ReviewApplicationInput = z.infer<typeof ReviewApplicationInputSchema>;
 
 const ReviewApplicationOutputSchema = z.object({
-  recommendation: z.enum(['approve', 'reject']).describe('The recommendation for the application.'),
-  reason: z.string().describe('The detailed reasoning behind the recommendation.'),
+  recommendation: z.enum(['approve', 'reject']).describe('คำแนะนำสำหรับใบสมัคร'),
+  reason: z.string().describe('เหตุผลโดยละเอียดเบื้องหลังคำแนะนำ'),
 });
 export type ReviewApplicationOutput = z.infer<typeof ReviewApplicationOutputSchema>;
 
@@ -33,14 +33,14 @@ const reviewApplicationPrompt = ai.definePrompt({
   name: 'reviewApplicationPrompt',
   input: {schema: ReviewApplicationInputSchema},
   output: {schema: ReviewApplicationOutputSchema},
-  prompt: `You are a seasoned teacher reviewing internship applications. Based on the student's skills, statement, and the internship description, provide a recommendation to either approve or reject the application. Explain your reasoning in detail.
+  prompt: `คุณเป็นอาจารย์ผู้มีประสบการณ์ในการตรวจสอบใบสมัครฝึกงาน จากทักษะของนักเรียน, เรียงความ, และคำอธิบายการฝึกงาน, โปรดให้คำแนะนำว่าจะอนุมัติหรือปฏิเสธใบสมัคร อธิบายเหตุผลของคุณโดยละเอียด
 
-Student Name: {{{studentName}}}
-Student Skills: {{{studentSkills}}}
-Student Statement: {{{studentStatement}}}
-Internship Description: {{{internshipDescription}}}
+ชื่อนักเรียน: {{{studentName}}}
+ทักษะของนักเรียน: {{{studentSkills}}}
+เรียงความของนักเรียน: {{{studentStatement}}}
+คำอธิบายการฝึกงาน: {{{internshipDescription}}}
 
-Consider whether the student's skills and experience align with the internship requirements, and the quality and sincerity of the student's statement.`, // Changed template string to backticks
+พิจารณาว่าทักษะและประสบการณ์ของนักเรียนสอดคล้องกับข้อกำหนดของการฝึกงานหรือไม่ และคุณภาพและความจริงใจของเรียงความของนักเรียน`,
 });
 
 const reviewApplicationFlow = ai.defineFlow(

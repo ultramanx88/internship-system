@@ -16,9 +16,9 @@ export default function AdminDashboard({ applications }: AdminDashboardProps) {
   const rejectedApps = applications.filter(app => app.status === 'rejected').length;
 
   const chartData = [
-    { name: 'Pending', count: pendingApps, fill: 'var(--color-pending)' },
-    { name: 'Approved', count: approvedApps, fill: 'var(--color-approved)' },
-    { name: 'Rejected', count: rejectedApps, fill: 'var(--color-rejected)' },
+    { name: 'รอตรวจสอบ', count: pendingApps, fill: 'var(--color-pending)' },
+    { name: 'อนุมัติ', count: approvedApps, fill: 'var(--color-approved)' },
+    { name: 'ปฏิเสธ', count: rejectedApps, fill: 'var(--color-rejected)' },
   ];
   
   const approvalRate = totalApps > 0 ? ((approvedApps / totalApps) * 100).toFixed(0) : 0;
@@ -28,7 +28,7 @@ export default function AdminDashboard({ applications }: AdminDashboardProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
+            <CardTitle className="text-sm font-medium">ใบสมัครทั้งหมด</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -37,7 +37,7 @@ export default function AdminDashboard({ applications }: AdminDashboardProps) {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Approved</CardTitle>
+            <CardTitle className="text-sm font-medium">อนุมัติแล้ว</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
@@ -46,7 +46,7 @@ export default function AdminDashboard({ applications }: AdminDashboardProps) {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <CardTitle className="text-sm font-medium">รอการตรวจสอบ</CardTitle>
             <Clock className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
@@ -55,7 +55,7 @@ export default function AdminDashboard({ applications }: AdminDashboardProps) {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Approval Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">อัตราการอนุมัติ</CardTitle>
             <div className="h-4 w-4 text-green-500 font-bold">%</div>
           </CardHeader>
           <CardContent>
@@ -66,7 +66,7 @@ export default function AdminDashboard({ applications }: AdminDashboardProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Application Status Overview</CardTitle>
+          <CardTitle>ภาพรวมสถานะใบสมัคร</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>

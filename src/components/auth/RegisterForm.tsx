@@ -21,11 +21,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { UserPlus } from 'lucide-react';
 
 const formSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters.'),
-  email: z.string().email('Invalid email address.'),
-  password: z.string().min(6, 'Password must be at least 6 characters.'),
-  studentSkills: z.string().min(10, 'Please list some of your skills.'),
-  studentStatement: z.string().min(20, 'Statement must be at least 20 characters.'),
+  name: z.string().min(2, 'ชื่อต้องมีอย่างน้อย 2 ตัวอักษร'),
+  email: z.string().email('ที่อยู่อีเมลไม่ถูกต้อง'),
+  password: z.string().min(6, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'),
+  studentSkills: z.string().min(10, 'กรุณาระบุทักษะของคุณ'),
+  studentStatement: z.string().min(20, 'เรียงความต้องมีอย่างน้อย 20 ตัวอักษร'),
 });
 
 export function RegisterForm() {
@@ -47,14 +47,14 @@ export function RegisterForm() {
 
     if (result.success) {
       toast({
-        title: 'Registration Successful',
-        description: 'Welcome! You can now sign in.',
+        title: 'ลงทะเบียนสำเร็จ',
+        description: 'ยินดีต้อนรับ! ตอนนี้คุณสามารถเข้าสู่ระบบได้แล้ว',
       });
       router.push('/login');
     } else {
       toast({
         variant: 'destructive',
-        title: 'Registration Failed',
+        title: 'การลงทะเบียนล้มเหลว',
         description: result.message,
       });
     }
@@ -68,9 +68,9 @@ export function RegisterForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel>ชื่อเต็ม</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <Input placeholder="สมชาย ใจดี" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -81,7 +81,7 @@ export function RegisterForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>อีเมล</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="you@example.com" {...field} />
               </FormControl>
@@ -94,7 +94,7 @@ export function RegisterForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>รหัสผ่าน</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
@@ -107,10 +107,10 @@ export function RegisterForm() {
           name="studentSkills"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Your Skills</FormLabel>
+              <FormLabel>ทักษะของคุณ</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="e.g., React, Python, Figma, Public Speaking..."
+                  placeholder="เช่น React, Python, Figma, การพูดในที่สาธารณะ..."
                   {...field}
                 />
               </FormControl>
@@ -123,10 +123,10 @@ export function RegisterForm() {
           name="studentStatement"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Personal Statement</FormLabel>
+              <FormLabel>เรียงความส่วนตัว</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Tell us about yourself and what you're looking for in an internship."
+                  placeholder="บอกเราเกี่ยวกับตัวคุณและสิ่งที่คุณกำลังมองหาในการฝึกงาน"
                   className="min-h-[100px]"
                   {...field}
                 />
@@ -136,7 +136,7 @@ export function RegisterForm() {
           )}
         />
         <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Registering...' : 'Register'}
+          {form.formState.isSubmitting ? 'กำลังลงทะเบียน...' : 'ลงทะเบียน'}
           <UserPlus />
         </Button>
       </form>

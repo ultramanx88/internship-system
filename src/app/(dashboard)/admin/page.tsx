@@ -31,25 +31,25 @@ export default async function AdminPage() {
     return (
         <div className="grid gap-8">
             <div>
-                <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-                <p className="text-muted-foreground">Oversee the entire internship program at a glance.</p>
+                <h1 className="text-3xl font-bold">แดชบอร์ดผู้ดูแลระบบ</h1>
+                <p className="text-muted-foreground">ภาพรวมโปรแกรมการฝึกงานทั้งหมดในที่เดียว</p>
             </div>
 
             <AdminDashboard applications={applications} />
 
             <Card>
                 <CardHeader>
-                    <CardTitle>All Applications</CardTitle>
-                    <CardDescription>A complete log of all student applications.</CardDescription>
+                    <CardTitle>ใบสมัครทั้งหมด</CardTitle>
+                    <CardDescription>บันทึกใบสมัครของนักเรียนทั้งหมด</CardDescription>
                 </CardHeader>
                 <CardContent>
                 <Table>
                     <TableHeader>
                     <TableRow>
-                        <TableHead>Student</TableHead>
-                        <TableHead>Internship</TableHead>
-                        <TableHead>Date Applied</TableHead>
-                        <TableHead className="text-right">Status</TableHead>
+                        <TableHead>นักเรียน</TableHead>
+                        <TableHead>การฝึกงาน</TableHead>
+                        <TableHead>วันที่สมัคร</TableHead>
+                        <TableHead className="text-right">สถานะ</TableHead>
                     </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -60,7 +60,7 @@ export default async function AdminPage() {
                         <TableCell>{new Date(app.dateApplied).toLocaleDateString()}</TableCell>
                         <TableCell className="text-right">
                             <Badge variant="outline" className={`capitalize ${statusColors[app.status]}`}>
-                                {app.status}
+                                {app.status === 'approved' ? 'อนุมัติ' : app.status === 'pending' ? 'รอการตรวจสอบ' : 'ปฏิเสธ'}
                             </Badge>
                         </TableCell>
                         </TableRow>

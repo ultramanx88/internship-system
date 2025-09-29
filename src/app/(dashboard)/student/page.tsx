@@ -28,19 +28,25 @@ export default function StudentPage() {
   const approvedApplication = myApplications.find(app => app.status === 'approved');
   const myProgressReports = approvedApplication ? progressReports.filter(p => p.applicationId === approvedApplication.id) : [];
 
+  const statusTranslations: { [key: string]: string } = {
+    approved: "อนุมัติ",
+    pending: "รอการตรวจสอบ",
+    rejected: "ปฏิเสธ",
+  };
+
   return (
     <div className="grid gap-8">
       <div>
-        <h1 className="text-3xl font-bold">Welcome, {student?.name}!</h1>
-        <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your internship journey.</p>
+        <h1 className="text-3xl font-bold">ยินดีต้อนรับ, {student?.name}!</h1>
+        <p className="text-muted-foreground">นี่คือสิ่งที่เกิดขึ้นกับการเดินทางฝึกงานของคุณ</p>
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-8">
             <Card>
                 <CardHeader>
-                    <CardTitle>My Applications</CardTitle>
-                    <CardDescription>Track the status of your submitted applications.</CardDescription>
+                    <CardTitle>ใบสมัครของฉัน</CardTitle>
+                    <CardDescription>ติดตามสถานะใบสมัครที่คุณส่งไป</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
@@ -54,7 +60,7 @@ export default function StudentPage() {
                                     </div>
                                     <Badge variant="outline" className={`capitalize ${statusColors[app.status]}`}>
                                         {statusIcons[app.status]}
-                                        <span className="ml-2">{app.status}</span>
+                                        <span className="ml-2">{statusTranslations[app.status]}</span>
                                     </Badge>
                                 </div>
                             );
@@ -66,23 +72,23 @@ export default function StudentPage() {
             {approvedApplication && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Internship Progress</CardTitle>
-                        <CardDescription>Log your progress for your internship at {internships.find(i => i.id === approvedApplication.internshipId)?.company}.</CardDescription>
+                        <CardTitle>ความคืบหน้าการฝึกงาน</CardTitle>
+                        <CardDescription>บันทึกความคืบหน้าการฝึกงานของคุณที่ {internships.find(i => i.id === approvedApplication.internshipId)?.company}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                        <form className="space-y-4">
-                           <Textarea placeholder="Write your weekly progress report..." />
-                           <Button>Submit Report</Button>
+                           <Textarea placeholder="เขียนรายงานความคืบหน้าประจำสัปดาห์ของคุณ..." />
+                           <Button>ส่งรายงาน</Button>
                        </form>
                        <Separator />
-                       <h4 className="font-semibold text-lg">Submitted Reports</h4>
+                       <h4 className="font-semibold text-lg">รายงานที่ส่งแล้ว</h4>
                        <div className="space-y-4 max-h-60 overflow-y-auto">
                         {myProgressReports.length > 0 ? myProgressReports.map(report => (
                             <div key={report.id} className="p-4 bg-muted rounded-lg">
                                 <p className="text-sm">{report.report}</p>
                                 <p className="text-xs text-muted-foreground mt-2">{new Date(report.date).toLocaleDateString()}</p>
                             </div>
-                        )) : <p className="text-sm text-muted-foreground">No reports submitted yet.</p>}
+                        )) : <p className="text-sm text-muted-foreground">ยังไม่มีการส่งรายงาน</p>}
                        </div>
                     </CardContent>
                 </Card>
@@ -92,8 +98,8 @@ export default function StudentPage() {
         <div className="space-y-8">
             <Card>
                 <CardHeader>
-                    <CardTitle>Available Internships</CardTitle>
-                    <CardDescription>Explore and apply for new opportunities.</CardDescription>
+                    <CardTitle>การฝึกงานที่เปิดรับ</CardTitle>
+                    <CardDescription>สำรวจและสมัครโอกาสใหม่ๆ</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
@@ -102,7 +108,7 @@ export default function StudentPage() {
                                 <h3 className="font-semibold">{internship.title}</h3>
                                 <p className="text-sm text-muted-foreground">{internship.company}</p>
                                 <p className="text-sm mt-2 line-clamp-2">{internship.description}</p>
-                                <Button size="sm" variant="outline" className="mt-3">View & Apply</Button>
+                                <Button size="sm" variant="outline" className="mt-3">ดูและสมัคร</Button>
                             </div>
                         ))}
                     </div>

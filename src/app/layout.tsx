@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
   title: 'InternshipFlow',
-  description: 'A streamlined internship application and management system.',
+  description: 'ระบบการสมัครและจัดการฝึกงานที่มีประสิทธิภาพ',
 };
 
 export default function RootLayout({
@@ -13,12 +13,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="th" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>

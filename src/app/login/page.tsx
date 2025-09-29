@@ -35,17 +35,17 @@ export default function LoginPage() {
       </div>
       <Card className="z-10 w-full max-w-md bg-background/80 backdrop-blur-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Welcome Back</CardTitle>
+          <CardTitle className="text-3xl font-bold">ยินดีต้อนรับกลับ</CardTitle>
           <CardDescription>
-            Sign in to access your dashboard
+            เข้าสู่ระบบเพื่อเข้าถึงแดชบอร์ดของคุณ
           </CardDescription>
         </CardHeader>
         <CardContent>
           <LoginForm />
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{' '}
+            ยังไม่มีบัญชี?{' '}
             <Link href="/register" className="font-medium text-primary underline-offset-4 hover:underline">
-              Sign up
+              สมัครสมาชิก
             </Link>
           </div>
         </CardContent>

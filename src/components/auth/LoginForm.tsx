@@ -36,8 +36,8 @@ export function LoginForm() {
 
         if (user) {
             toast({
-                title: 'Login Successful',
-                description: `Welcome back, ${user.name}!`,
+                title: 'เข้าสู่ระบบสำเร็จ',
+                description: `ยินดีต้อนรับกลับ, ${user.name}!`,
             });
             switch (user.role) {
                 case 'student':
@@ -53,8 +53,8 @@ export function LoginForm() {
         } else {
             toast({
                 variant: 'destructive',
-                title: 'Login Failed',
-                description: 'Invalid credentials for the selected role. Please try again.',
+                title: 'เข้าสู่ระบบล้มเหลว',
+                description: 'ข้อมูลรับรองไม่ถูกต้องสำหรับบทบาทที่เลือก โปรดลองอีกครั้ง',
             });
             setIsLoading(false);
         }
@@ -64,7 +64,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="grid gap-4">
       <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">อีเมล</Label>
         <Input
           id="email"
           type="email"
@@ -75,32 +75,32 @@ export function LoginForm() {
         />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">รหัสผ่าน</Label>
         <Input
           id="password"
           type="password"
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder='Enter "password"'
+          placeholder='ป้อน "password"'
         />
-         <p className="text-xs text-muted-foreground">Hint: Use 'password' for any user.</p>
+         <p className="text-xs text-muted-foreground">คำใบ้: ใช้ 'password' สำหรับผู้ใช้ทุกคน</p>
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="role">Role</Label>
+        <Label htmlFor="role">บทบาท</Label>
         <Select value={role} onValueChange={(value) => setRole(value as Role)}>
           <SelectTrigger id="role">
-            <SelectValue placeholder="Select a role" />
+            <SelectValue placeholder="เลือกบทบาท" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="student">Student</SelectItem>
-            <SelectItem value="teacher">Teacher</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="student">นักเรียน</SelectItem>
+            <SelectItem value="teacher">อาจารย์</SelectItem>
+            <SelectItem value="admin">ผู้ดูแลระบบ</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Signing In...' : 'Sign In'}
+        {isLoading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
         <LogIn />
       </Button>
     </form>
