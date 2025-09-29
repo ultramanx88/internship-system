@@ -11,6 +11,12 @@ import {
   SidebarFooter,
   SidebarContent,
   SidebarMenuSkeleton,
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -27,9 +33,11 @@ import {
   Settings,
   UserCheck,
   Star,
+  ChevronDown,
 } from 'lucide-react';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import Image from 'next/image';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 const navConfig = {
   student: [
@@ -57,7 +65,15 @@ const navConfig = {
   admin: [
     { href: '/admin', icon: LayoutDashboard, label: 'แดชบอร์ด' },
     { href: '/admin/users', icon: Users, label: 'จัดการผู้ใช้' },
-    { href: '/admin/applications', icon: FileText, label: 'เอกสารขอฝึกงาน' },
+    { 
+      id: 'applications',
+      icon: FileText, 
+      label: 'เอกสารขอฝึกงาน',
+      subItems: [
+        { href: '/admin/applications', label: 'รายการใบสมัคร'},
+        { href: '/admin/applications/pending', label: 'รอการตรวจสอบ'},
+      ]
+    },
     { href: '/admin/schedules', icon: CalendarClock, label: 'นัดหมายนิเทศ' },
     { href: '/admin/reports', icon: ClipboardList, label: 'รายงานผลการนิเทศ' },
     { href: '/admin/companies', icon: Building, label: 'ข้อมูลสถานประกอบการ' },
@@ -71,18 +87,19 @@ export function DashboardSidebar() {
   const { user, loading } = useAuth();
   const { logo } = useAppTheme();
   const pathname = usePathname();
+  const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
 
   const getNavItems = () => {
     if (!user || !user.roles) return [];
-    // Use a Map to store unique nav items based on their href
     const uniqueNavs = new Map();
 
     user.roles.forEach(role => {
-      const navs = navConfig[role];
+      const navs = navConfig[role as keyof typeof navConfig];
       if (navs) {
         navs.forEach(nav => {
-            if (!uniqueNavs.has(nav.href)) {
-                uniqueNavs.set(nav.href, nav);
+            const key = nav.id || nav.href;
+            if (key && !uniqueNavs.has(key)) {
+                uniqueNavs.set(key, nav);
             }
         })
       }
@@ -90,6 +107,18 @@ export function DashboardSidebar() {
 
     return Array.from(uniqueNavs.values());
   };
+  
+  const toggleMenu = (id: string) => {
+    setOpenMenus(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(id)) {
+            newSet.delete(id);
+        } else {
+            newSet.add(id);
+        }
+        return newSet;
+    })
+  }
 
   const navItems = getNavItems();
 
@@ -114,17 +143,46 @@ export function DashboardSidebar() {
             </>
           ) : (
             navItems.map((item) => (
-              <SidebarMenuItem key={item.label}>
-                <SidebarMenuButton
-                  href={item.href}
-                  asChild
-                  isActive={pathname.startsWith(item.href)}
-                >
-                  <a href={item.href}>
-                    <item.icon />
-                    <span>{item.label}</span>
-                  </a>
-                </SidebarMenuButton>
+              <SidebarMenuItem key={item.id || item.href}>
+                 {item.subItems ? (
+                    <Collapsible open={openMenus.has(item.id)} onOpenChange={() => toggleMenu(item.id)}>
+                        <CollapsibleTrigger asChild>
+                             <SidebarMenuButton 
+                                variant="ghost" 
+                                className="w-full justify-between"
+                                isActive={pathname.startsWith(`/admin/${item.id}`)}
+                            >
+                                <div className="flex items-center gap-2">
+                                    <item.icon />
+                                    <span>{item.label}</span>
+                                </div>
+                                <ChevronDown className={cn("h-4 w-4 transition-transform", openMenus.has(item.id) && "rotate-180")}/>
+                            </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                            <SidebarMenuSub>
+                                {item.subItems.map(subItem => (
+                                    <SidebarMenuSubItem key={subItem.href}>
+                                        <SidebarMenuSubButton href={subItem.href} asChild isActive={pathname === subItem.href}>
+                                            <a href={subItem.href}>{subItem.label}</a>
+                                        </SidebarMenuSubButton>
+                                    </SidebarMenuSubItem>
+                                ))}
+                            </SidebarMenuSub>
+                        </CollapsibleContent>
+                    </Collapsible>
+                 ) : (
+                    <SidebarMenuButton
+                        href={item.href}
+                        asChild
+                        isActive={pathname === item.href}
+                        >
+                        <a href={item.href}>
+                            <item.icon />
+                            <span>{item.label}</span>
+                        </a>
+                    </SidebarMenuButton>
+                 )}
               </SidebarMenuItem>
             ))
           )}

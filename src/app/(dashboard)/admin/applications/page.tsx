@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { applications as mockApplications, users as mockUsers, internships as mockInternships } from '@/lib/data';
 import {
   Table,
@@ -15,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Check, X, Search } from 'lucide-react';
+import { Check, X, Search, Eye } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
 
 export default function AdminApplicationsPage() {
@@ -123,18 +124,23 @@ export default function AdminApplicationsPage() {
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-center">
-                                                {item.status === 'pending' ? (
-                                                    <div className="flex justify-center gap-2">
-                                                        <Button size="icon" variant="outline" className="h-8 w-8 bg-green-100 text-green-600 hover:bg-green-200">
-                                                            <Check className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button size="icon" variant="outline" className="h-8 w-8 bg-red-100 text-red-600 hover:bg-red-200">
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                ) : (
-                                                    <span>-</span>
-                                                )}
+                                                <div className="flex justify-center gap-2">
+                                                    <Button asChild size="icon" variant="outline" className="h-8 w-8">
+                                                        <Link href={`/admin/applications/${item.id}`}>
+                                                            <Eye className="h-4 w-4" />
+                                                        </Link>
+                                                    </Button>
+                                                    {item.status === 'pending' && (
+                                                        <>
+                                                            <Button size="icon" variant="outline" className="h-8 w-8 bg-green-100 text-green-600 hover:bg-green-200">
+                                                                <Check className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button size="icon" variant="outline" className="h-8 w-8 bg-red-100 text-red-600 hover:bg-red-200">
+                                                                <X className="h-4 w-4" />
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     ))
