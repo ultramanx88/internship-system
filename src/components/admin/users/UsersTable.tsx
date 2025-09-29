@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import type { User, Role } from '@/lib/types';
+import type { User } from '@/lib/types';
+import { roles as roleData } from '@/lib/permissions';
 import {
   Table,
   TableBody,
@@ -18,6 +19,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Upload, Trash2, UserPlus, Loader2 } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { AddUserForm } from './AddUserForm';
 
 export function UsersTable() {
     const [users, setUsers] = useState<User[]>([]);
@@ -26,6 +36,7 @@ export function UsersTable() {
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
+    const [isAddUserOpen, setIsAddUserOpen] = useState(false);
     const { toast } = useToast();
 
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -51,14 +62,14 @@ export function UsersTable() {
 
     useEffect(() => {
         fetchUsers();
-    }, [toast]);
+    }, []);
 
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
             const matchesSearch = user.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
                 user.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                user.id.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
-            const matchesRole = roleFilter === 'all' || user.roles.includes(roleFilter as Role);
+                (user.id && user.id.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
+            const matchesRole = roleFilter === 'all' || user.roles.includes(roleFilter as any);
             return matchesSearch && matchesRole;
         });
     }, [users, debouncedSearchTerm, roleFilter]);
@@ -106,7 +117,6 @@ export function UsersTable() {
                 description: `ผู้ใช้จำนวน ${selected.size} คนถูกลบเรียบร้อยแล้ว`,
             });
             
-            // Refresh users list
             await fetchUsers();
             setSelected(new Set());
 
@@ -122,14 +132,18 @@ export function UsersTable() {
         }
     };
     
-    const roleTranslations: { [key: string]: string } = {
-        admin: 'ผู้ดูแลระบบ',
-        staff: 'เจ้าหน้าที่ธุรการ',
-        courseInstructor: 'อาจารย์ประจำวิชา',
-        committee: 'กรรมการ',
-        visitor: 'อาจารย์นิเทศ',
-        student: 'นักศึกษา'
-    };
+    const roleTranslations = useMemo(() => {
+        const translations: { [key: string]: string } = {};
+        roleData.forEach(role => {
+            translations[role.id] = role.label;
+        });
+        return translations;
+    }, []);
+
+    const handleAddUserSuccess = () => {
+      setIsAddUserOpen(false);
+      fetchUsers();
+    }
 
     return (
         <Card>
@@ -146,17 +160,14 @@ export function UsersTable() {
                         className="max-w-sm"
                     />
                     <Select value={roleFilter} onValueChange={setRoleFilter}>
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-[200px]">
                             <SelectValue placeholder="ตำแหน่งทั้งหมด" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">ตำแหน่งทั้งหมด</SelectItem>
-                            <SelectItem value="student">นักศึกษา</SelectItem>
-                            <SelectItem value="staff">เจ้าหน้าที่ธุรการ</SelectItem>
-                            <SelectItem value="courseInstructor">อาจารย์ประจำวิชา</SelectItem>
-                            <SelectItem value="committee">กรรมการ</SelectItem>
-                            <SelectItem value="visitor">อาจารย์นิเทศ</SelectItem>
-                            <SelectItem value="admin">ผู้ดูแลระบบ</SelectItem>
+                            {roleData.map(role => (
+                                <SelectItem key={role.id} value={role.id}>{role.label}</SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                     <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -164,10 +175,26 @@ export function UsersTable() {
                             <Upload className="mr-2 h-4 w-4" />
                             อัปโหลด Excel
                         </Button>
-                        <Button>
-                            <UserPlus className="mr-2 h-4 w-4" />
-                            เพิ่มผู้ใช้
-                        </Button>
+                         <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+                            <DialogTrigger asChild>
+                                <Button>
+                                    <UserPlus className="mr-2 h-4 w-4" />
+                                    เพิ่มผู้ใช้
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[480px]">
+                                <DialogHeader>
+                                <DialogTitle>เพิ่มผู้ใช้ใหม่</DialogTitle>
+                                <DialogDescription>
+                                    กรอกรายละเอียดเพื่อสร้างบัญชีผู้ใช้ใหม่
+                                </DialogDescription>
+                                </DialogHeader>
+                                <AddUserForm 
+                                  onSuccess={handleAddUserSuccess}
+                                  onCancel={() => setIsAddUserOpen(false)}
+                                />
+                            </DialogContent>
+                        </Dialog>
                         <Button
                             variant="destructive"
                             onClick={deleteSelected}
@@ -216,7 +243,7 @@ export function UsersTable() {
                                         <TableCell className="font-medium">{user.name}</TableCell>
                                         <TableCell>{user.email}</TableCell>
                                         <TableCell>{user.id}</TableCell>
-                                        <TableCell>{user.roles.map(r => roleTranslations[r] || r).join(', ')}</TableCell>
+                                        <TableCell>{user.roles.map(r => roleTranslations[r as any] || r).join(', ')}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
