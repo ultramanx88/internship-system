@@ -1,3 +1,4 @@
+
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -11,60 +12,45 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  email      String   @unique
-  name       String?
-  password   String
-  roles      Role[]
-  skills     String?
-  statement  String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String?
+  password    String
+  roles       Role[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  skills      String?
+  statement   String?
 
   applications Application[]
-  reviews      ApplicationReview[] @relation("ReviewerToReview")
 }
 
 model Internship {
-  id          String   @id @default(cuid())
-  title       String
-  company     String
-  description String
-  location    String
-  type        InternshipType
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  id           String        @id @default(cuid())
+  title        String
+  company      String
+  description  String
+  location     String
+  type         InternshipType
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   applications Application[]
 }
 
 model Application {
-  id           String   @id @default(cuid())
-  studentId    String
-  internshipId String
+  id           String            @id @default(cuid())
   status       ApplicationStatus
   dateApplied  DateTime
   feedback     String?
   projectTopic String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
-  student    User                @relation(fields: [studentId], references: [id])
-  internship Internship          @relation(fields: [internshipId], references: [id])
-  reviews    ApplicationReview[] @relation("ApplicationToReview")
-}
+  studentId    String
+  student      User              @relation(fields: [studentId], references: [id])
 
-model ApplicationReview {
-  id            String   @id @default(cuid())
-  applicationId String
-  reviewerId    String
-  recommendation String
-  reason        String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  application Application @relation("ApplicationToReview", fields: [applicationId], references: [id])
-  reviewer    User        @relation("ReviewerToReview", fields: [reviewerId], references: [id])
+  internshipId String
+  internship   Internship        @relation(fields: [internshipId], references: [id])
 }
 
 enum Role {
