@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { users as mockUsers } from '@/lib/data';
+import { useState, useMemo, useEffect } from 'react';
+import type { User, Role } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -15,17 +15,43 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, Trash2, UserPlus } from 'lucide-react';
+import { Upload, Trash2, UserPlus, Loader2 } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
-import { Role } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
 
 export function UsersTable() {
-    const [users, setUsers] = useState(mockUsers);
+    const [users, setUsers] = useState<User[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
+    const { toast } = useToast();
 
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+    const fetchUsers = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/users');
+            if (!response.ok) throw new Error('Failed to fetch users');
+            const data = await response.json();
+            setUsers(data);
+        } catch (error) {
+            console.error(error);
+            toast({
+                variant: 'destructive',
+                title: 'เกิดข้อผิดพลาด',
+                description: 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, [toast]);
 
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
@@ -44,7 +70,8 @@ export function UsersTable() {
         if (isAllSelected) {
             setSelected(new Set());
         } else {
-            setSelected(new Set(filteredUsers.map(u => u.id)));
+            const newSelection = new Set(filteredUsers.map(u => u.id));
+            setSelected(newSelection);
         }
     };
 
@@ -58,10 +85,41 @@ export function UsersTable() {
         setSelected(newSelection);
     };
 
-    const deleteSelected = () => {
+    const deleteSelected = async () => {
+        if (selected.size === 0) return;
         if (!window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้ ${selected.size} คน?`)) return;
-        setUsers(users.filter(u => !selected.has(u.id)));
-        setSelected(new Set());
+        
+        setIsDeleting(true);
+        try {
+            const response = await fetch('/api/users', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: Array.from(selected) }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete users');
+            }
+            
+            toast({
+                title: 'ลบสำเร็จ',
+                description: `ผู้ใช้จำนวน ${selected.size} คนถูกลบเรียบร้อยแล้ว`,
+            });
+            
+            // Refresh users list
+            await fetchUsers();
+            setSelected(new Set());
+
+        } catch (error) {
+            console.error(error);
+            toast({
+                variant: 'destructive',
+                title: 'เกิดข้อผิดพลาด',
+                description: 'ไม่สามารถลบผู้ใช้ได้',
+            });
+        } finally {
+            setIsDeleting(false);
+        }
     };
     
     const roleTranslations: { [key: string]: string } = {
@@ -113,10 +171,10 @@ export function UsersTable() {
                         <Button
                             variant="destructive"
                             onClick={deleteSelected}
-                            disabled={selected.size === 0}
+                            disabled={selected.size === 0 || isDeleting}
                         >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            ลบ ({selected.size})
+                            {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                            {isDeleting ? 'กำลังลบ...' : `ลบ (${selected.size})`}
                         </Button>
                     </div>
                 </div>
@@ -129,6 +187,7 @@ export function UsersTable() {
                                     <Checkbox
                                         checked={isAllSelected || (isSomeSelected ? 'indeterminate' : false)}
                                         onCheckedChange={toggleAll}
+                                        disabled={isLoading}
                                     />
                                 </TableHead>
                                 <TableHead className="text-white">ชื่อ</TableHead>
@@ -138,7 +197,14 @@ export function UsersTable() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredUsers.length > 0 ? (
+                            {isLoading ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="h-24 text-center">
+                                        <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+                                        กำลังโหลดข้อมูล...
+                                    </TableCell>
+                                </TableRow>
+                            ) : filteredUsers.length > 0 ? (
                                 filteredUsers.map((user) => (
                                     <TableRow key={user.id} data-state={selected.has(user.id) && "selected"}>
                                         <TableCell>
@@ -150,7 +216,7 @@ export function UsersTable() {
                                         <TableCell className="font-medium">{user.name}</TableCell>
                                         <TableCell>{user.email}</TableCell>
                                         <TableCell>{user.id}</TableCell>
-                                        <TableCell>{user.roles.map(r => roleTranslations[r]).join(', ')}</TableCell>
+                                        <TableCell>{user.roles.map(r => roleTranslations[r] || r).join(', ')}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
