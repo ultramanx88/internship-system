@@ -27,8 +27,10 @@ export function useAuth() {
     }
   }, []);
 
-  const login = useCallback((email: string, role: string) => {
-    const foundUser = mockUsers.find(u => u.email === email && u.role === role);
+  const login = useCallback((identifier: string, role: string) => {
+    const foundUser = mockUsers.find(u => 
+        (u.email === identifier || u.id === identifier) && u.role === role
+    );
     if (foundUser) {
         const { password, ...userToStore } = foundUser;
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToStore));

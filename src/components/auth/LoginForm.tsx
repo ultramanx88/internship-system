@@ -21,7 +21,7 @@ export function LoginForm() {
   const router = useRouter();
   const { login } = useAuth();
   const { toast } = useToast();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('password'); // Pre-filled for demo
   const [role, setRole] = useState<Role>('student');
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +32,7 @@ export function LoginForm() {
 
     // Simulate network delay
     setTimeout(() => {
-        const user = login(email, role);
+        const user = login(identifier, role);
 
         if (user) {
             toast({
@@ -64,14 +64,14 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="grid gap-4">
       <div className="grid gap-2">
-        <Label htmlFor="email">อีเมล</Label>
+        <Label htmlFor="identifier">อีเมล หรือ รหัสนักศึกษา</Label>
         <Input
-          id="email"
-          type="email"
-          placeholder="student@example.com"
+          id="identifier"
+          type="text"
+          placeholder="student@example.com หรือ รหัสนักศึกษา"
           required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
         />
       </div>
       <div className="grid gap-2">
