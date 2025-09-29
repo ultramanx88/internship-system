@@ -1,4 +1,4 @@
-import type { User, Internship, Application, ProgressReport, AcademicTerm, Holiday } from './types';
+import type { User, Internship, Application, ProgressReport, AcademicTerm, Holiday, UserTitle, UserRoleGroup } from './types';
 
 // Data from DEMO_USERS.md, adapted for multi-role structure
 export let users: User[] = [
@@ -77,4 +77,18 @@ export const academicTerms: AcademicTerm[] = [
 export const holidays: Holiday[] = [
     { id: 'holiday-1', date: new Date('2024-10-13'), name: 'วันคล้ายวันสวรรคต ร.9' },
     { id: 'holiday-2', date: new Date('2024-12-10'), name: 'วันรัฐธรรมนูญ' },
+];
+
+export const userRoleGroups: { id: UserRoleGroup, label: string }[] = [
+    { id: 'student', label: 'นักศึกษา' },
+    { id: 'academic', label: 'บุคลากรสายวิชาการ' }
+];
+
+export const titles: UserTitle[] = [
+    { id: 't-1', nameTh: 'นาย', nameEn: 'Mr.', applicableTo: ['student', 'academic'] },
+    { id: 't-2', nameTh: 'นาง', nameEn: 'Mrs.', applicableTo: ['student', 'academic'] },
+    { id: 't-3', nameTh: 'นางสาว', nameEn: 'Miss', applicableTo: ['student', 'academic'] },
+    { id: 't-4', nameTh: 'ดร.', nameEn: 'Dr.', applicableTo: ['academic'] },
+    { id: 't-5', nameTh: 'รศ.ดร.', nameEn: 'Assoc. Prof. Dr.', applicableTo: ['academic'] },
+    { id: 't-6', nameTh: 'ว่าที่ร้อยตรี', nameEn: 'Acting Sub-Lieutenant', applicableTo: ['student', 'academic'] },
 ];

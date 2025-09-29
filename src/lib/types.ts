@@ -6,6 +6,8 @@ export type Role =
   | 'visitor'
   | 'admin';
 
+export type UserRoleGroup = 'student' | 'academic';
+
 export type User = {
   id: string;
   name: string;
@@ -14,6 +16,7 @@ export type User = {
   roles: Role[];
   skills?: string;
   statement?: string;
+  titleId?: string;
 };
 
 export type Internship = {
@@ -55,3 +58,10 @@ export type Holiday = {
     date: Date;
     name: string;
 };
+
+export type UserTitle = {
+    id: string;
+    nameTh: string;
+    nameEn: string;
+    applicableTo: UserRoleGroup[];
+}

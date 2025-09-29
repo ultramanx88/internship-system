@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Save } from 'lucide-react';
 import { RoleManagementMatrix } from '@/components/admin/settings/RoleManagementMatrix';
 import { AcademicCalendarSettings } from '@/components/admin/settings/AcademicCalendarSettings';
+import { TitleManagement } from '@/components/admin/settings/TitleManagement';
 
 export default function AdminSettingsPage() {
   return (
@@ -17,6 +18,7 @@ export default function AdminSettingsPage() {
         <p>จัดการการตั้งค่าและค่ากำหนดต่างๆ ของแอปพลิเคชัน</p>
       </div>
 
+      <TitleManagement />
       <AcademicCalendarSettings />
       <RoleManagementMatrix />
 
