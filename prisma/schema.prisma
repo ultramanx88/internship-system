@@ -6,11 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("ACCELERATE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
-
 
 // ==============
 //  Core Models
@@ -31,7 +29,7 @@ model User {
   statement String?
 
   // Relations
-  title        UserTitle?         @relation(fields: [titleId], references: [id])
+  title        UserTitle?            @relation(fields: [titleId], references: [id])
   applications Application[]
   reviews      ApplicationReview[] @relation("ReviewerReviews")
 
@@ -127,11 +125,11 @@ model UserTitle {
 }
 
 model Major {
-  id     String     @id @default(cuid())
+  id     String    @id @default(cuid())
   nameTh String
   nameEn String
   type   MajorType // "major" or "minor"
-  order  Int        @default(0)
+  order  Int       @default(0)
 
   @@map("majors")
 }
