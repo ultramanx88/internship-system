@@ -11,13 +11,11 @@ import {
   SidebarFooter,
   SidebarContent,
   SidebarMenuSkeleton,
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import {
   LayoutDashboard,
   FileText,
