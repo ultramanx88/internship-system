@@ -27,9 +27,9 @@ export function useAuth() {
     }
   }, []);
 
-  const login = useCallback((identifier: string, role: string) => {
+  const login = useCallback((identifier: string, password: string, role: string) => {
     const foundUser = mockUsers.find(u => 
-        (u.email === identifier || u.id === identifier) && u.role === role
+        (u.email === identifier || u.id === identifier) && u.role === role && u.password === password
     );
     if (foundUser) {
         const { password, ...userToStore } = foundUser;

@@ -16,13 +16,14 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { LogIn } from 'lucide-react';
 import { Role } from '@/lib/types';
+import { users } from '@/lib/data';
 
 export function LoginForm() {
   const router = useRouter();
   const { login } = useAuth();
   const { toast } = useToast();
   const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('password'); // Pre-filled for demo
+  const [password, setPassword] = useState('');
   const [role, setRole] = useState<Role>('student');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -32,7 +33,7 @@ export function LoginForm() {
 
     // Simulate network delay
     setTimeout(() => {
-        const user = login(identifier, role);
+        const user = login(identifier, password, role);
 
         if (user) {
             toast({
@@ -60,8 +61,18 @@ export function LoginForm() {
         }
     }, 500);
   };
+  
+    const handleUserSelect = (email: string) => {
+        const user = users.find(u => u.email === email);
+        if (user) {
+            setIdentifier(user.email);
+            setPassword(user.password || '');
+            setRole(user.role);
+        }
+    }
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="grid gap-4">
       <div className="grid gap-2">
         <Label htmlFor="identifier">อีเมล หรือ รหัสนักศึกษา</Label>
@@ -82,9 +93,7 @@ export function LoginForm() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder='ป้อน "password"'
         />
-         <p className="text-xs text-muted-foreground">คำใบ้: ใช้ 'password' สำหรับผู้ใช้ทุกคน</p>
       </div>
       <div className="grid gap-2">
         <Label htmlFor="role">บทบาท</Label>
@@ -104,5 +113,21 @@ export function LoginForm() {
         <LogIn />
       </Button>
     </form>
+     <div className="mt-4">
+        <Label htmlFor="user-select">หรือเลือกผู้ใช้สาธิต:</Label>
+        <Select onValueChange={handleUserSelect}>
+          <SelectTrigger id="user-select">
+            <SelectValue placeholder="เลือกผู้ใช้สาธิต" />
+          </SelectTrigger>
+          <SelectContent>
+            {users.map(user => (
+              <SelectItem key={user.id} value={user.email}>
+                {user.name} ({user.role})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </>
   );
 }

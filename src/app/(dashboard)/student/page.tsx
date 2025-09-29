@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 
 // For demo purposes, we'll hardcode the student user
-const STUDENT_ID = 'user-1';
+const STUDENT_ID = 'test001';
 
 const statusIcons: { [key: string]: React.ReactNode } = {
   approved: <CheckCircle className="text-green-500" />,

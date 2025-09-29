@@ -1,10 +1,51 @@
 import type { User, Internship, Application, ProgressReport } from './types';
 
-export const users: User[] = [
-  { id: 'user-1', name: 'Alice Johnson', email: 'student@example.com', password: 'password', role: 'student', skills: 'React, TypeScript, Node.js', statement: 'Eager to apply my web development skills in a real-world setting and contribute to a dynamic team.' },
-  { id: 'user-2', name: 'Bob Williams', email: 'teacher@example.com', password: 'password', role: 'teacher' },
-  { id: 'user-3', name: 'Charlie Brown', email: 'admin@example.com', password: 'password', role: 'admin' },
-  { id: 'user-4', name: 'Diana Prince', email: 'student2@example.com', password: 'password', role: 'student', skills: 'Python, Django, Data Analysis', statement: 'Passionate about data and looking to gain experience in backend development and machine learning.' },
+// Data from DEMO_USERS.md
+export let users: User[] = [
+  // Admin Users
+  { id: 'admin2', name: 'System Administrator', email: 'admin2@smart-solutions.com', password: 'admin123', role: 'admin' },
+  { id: 'demo001', name: 'Demo Admin 001', email: 'demo001@smart-solutions.com', password: '123456', role: 'admin' },
+  { id: 'admin', name: 'System Administrator', email: 'admin@smart-solutions.com', password: '123456', role: 'admin' },
+  { id: 'admin001', name: 'Admin 001', email: 'admin001@smart-solutions.com', password: '123456', role: 'admin' },
+  { id: 'admin002', name: 'Admin 002', email: 'admin002@smart-solutions.com', password: '123456', role: 'admin' },
+  { id: 'admin003', name: 'Admin 003', email: 'admin003@smart-solutions.com', password: '123456', role: 'admin' },
+  
+  // Staff Users (mapped to admin role)
+  { id: 's6800001', name: 'Staff 001', email: 's6800001@smart-solutions.com', password: '123456', role: 'admin' },
+  { id: 's6800002', name: 'Staff 002', email: 's6800002@smart-solutions.com', password: '123456', role: 'admin' },
+
+  // Instructor Users (mapped to teacher role)
+  { id: 't6800001', name: 'Instructor 001', email: 't6800001@smart-solutions.com', password: '123456', role: 'teacher' },
+  { id: 't6800002', name: 'Instructor 002', email: 't6800002@smart-solutions.com', password: '123456', role: 'teacher' },
+  { id: 't6800003', name: 'Instructor 003', email: 't6800003@smart-solutions.com', password: '123456', role: 'teacher' },
+  
+  // Committee Users (mapped to teacher role)
+  { id: 't6800004', name: 'Committee 004', email: 't6800004@smart-solutions.com', password: '123456', role: 'teacher' },
+  { id: 't6800005', name: 'Committee 005', email: 't6800005@smart-solutions.com', password: '123456', role: 'teacher' },
+
+  // Student Users
+  { id: 'test001', name: 'Test User', email: 'test@test.com', password: '123456', role: 'student', skills: 'React, TypeScript, Node.js', statement: 'Eager to apply my web development skills in a real-world setting and contribute to a dynamic team.' },
+  { id: '65010001', name: 'Student User', email: 'student@test.com', password: '123456', role: 'student', skills: 'Python, Django, Data Analysis', statement: 'Passionate about data and looking to gain experience in backend development and machine learning.' },
+  { id: 'u6800001', name: 'Student 001', email: 'u6800001@smart-solutions.com', password: '123456', role: 'student', skills: 'Figma, UI/UX Design', statement: 'Creative student looking for a challenging design internship.' },
+  { id: 'u6800002', name: 'Student 002', email: 'u6800002@smart-solutions.com', password: '123456', role: 'student', skills: 'Java, Spring Boot', statement: 'Detail-oriented student with a passion for robust backend systems.' },
+  { id: 'u6800003', name: 'Student 003', email: 'u6800003@smart-solutions.com', password: '123456', role: 'student', skills: 'JavaScript, Vue.js', statement: 'Frontend enthusiast ready to build beautiful user interfaces.' },
+  { id: 'u6800004', name: 'Student 004', email: 'u6800004@smart-solutions.com', password: '123456', role: 'student', skills: 'C++, Unreal Engine', statement: 'Game development hobbyist seeking to turn passion into a profession.' },
+  { id: 'u6800005', name: 'Student 005', email: 'u6800005@smart-solutions.com', password: '123456', role: 'student', skills: 'Swift, iOS Development', statement: 'Aspiring mobile developer with a focus on Apple ecosystems.' },
+  { id: 'u6800006', name: 'Student 006', email: 'u6800006@smart-solutions.com', password: '123456', role: 'student', skills: 'SQL, PowerBI, Tableau', statement: 'Analytical mind with a knack for data visualization.' },
+  { id: 'u6800007', name: 'Student 007', email: 'u6800007@smart-solutions.com', password: '123456', role: 'student', skills: 'Go, Docker, Kubernetes', statement: 'Interested in DevOps and cloud-native technologies.' },
+  { id: 'u6800008', name: 'Student 008', email: 'u6800008@smart-solutions.com', password: '123456', role: 'student', skills: 'Ruby on Rails', statement: 'Full-stack developer with a love for rapid prototyping.' },
+  { id: 'u6800009', name: 'Student 009', email: 'u6800009@smart-solutions.com', password: '123456', role: 'student', skills: 'PHP, Laravel', statement: 'Experienced with classic web technologies and modern frameworks.' },
+  { id: 'u6800010', name: 'Student 010', email: 'u6800010@smart-solutions.com', password: '123456', role: 'student', skills: 'Marketing, SEO, SEM', statement: 'Digital marketing student ready to drive growth.' },
+  { id: 'u6800011', name: 'Student 011', email: 'u6800011@smart-solutions.com', password: '123456', role: 'student' },
+  { id: 'u6800012', name: 'Student 012', email: 'u6800012@smart-solutions.com', password: '123456', role: 'student' },
+  { id: 'u6800013', name: 'Student 013', email: 'u6800013@smart-solutions.com', password: '123456', role: 'student' },
+  { id: 'u6800014', name: 'Student 014', email: 'u6800014@smart-solutions.com', password: '123456', role: 'student' },
+  { id: 'u6800015', name: 'Student 015', email: 'u6800015@smart-solutions.com', password: '123456', role: 'student' },
+  { id: 'u6800016', name: 'Student 016', email: 'u6800016@smart-solutions.com', password: '123456', role: 'student' },
+  { id: 'u6800017', name: 'Student 017', email: 'u6800017@smart-solutions.com', password: '123456', role: 'student' },
+  { id: 'u6800018', name: 'Student 018', email: 'u6800018@smart-solutions.com', password: '123456', role: 'student' },
+  { id: 'u6800019', name: 'Student 019', email: 'u6800019@smart-solutions.com', password: '123456', role: 'student' },
+  { id: 'u6800020', name: 'Student 020', email: 'u6800020@smart-solutions.com', password: '123456', role: 'student' },
 ];
 
 export const internships: Internship[] = [
@@ -14,10 +55,10 @@ export const internships: Internship[] = [
 ];
 
 export let applications: Application[] = [
-  { id: 'app-1', studentId: 'user-1', internshipId: 'intern-1', status: 'pending', dateApplied: '2024-07-20' },
-  { id: 'app-2', studentId: 'user-4', internshipId: 'intern-2', status: 'approved', dateApplied: '2024-07-18' },
-  { id: 'app-3', studentId: 'user-1', internshipId: 'intern-3', status: 'rejected', dateApplied: '2024-07-15', feedback: 'Lacks required portfolio experience in UX/UI design.' },
-  { id: 'app-4', studentId: 'user-4', internshipId: 'intern-1', status: 'pending', dateApplied: '2024-07-21' },
+  { id: 'app-1', studentId: 'test001', internshipId: 'intern-1', status: 'pending', dateApplied: '2024-07-20' },
+  { id: 'app-2', studentId: '65010001', internshipId: 'intern-2', status: 'approved', dateApplied: '2024-07-18' },
+  { id: 'app-3', studentId: 'test001', internshipId: 'intern-3', status: 'rejected', dateApplied: '2024-07-15', feedback: 'Lacks required portfolio experience in UX/UI design.' },
+  { id: 'app-4', studentId: '65010001', internshipId: 'intern-1', status: 'pending', dateApplied: '2024-07-21' },
 ];
 
 export let progressReports: ProgressReport[] = [
