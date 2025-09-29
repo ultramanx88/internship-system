@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AddRounded, DeleteForeverRounded, FilterAlt, FileUploadRounded, UserPlus } from 'lucide-react';
+import { Upload, Trash2, UserPlus } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
 
 export function UsersTable() {
@@ -96,7 +96,7 @@ export function UsersTable() {
                     </Select>
                     <div className="ml-auto flex flex-wrap items-center gap-2">
                         <Button variant="outline">
-                            <FileUploadRounded className="mr-2 h-4 w-4" />
+                            <Upload className="mr-2 h-4 w-4" />
                             อัปโหลด Excel
                         </Button>
                         <Button>
@@ -108,7 +108,7 @@ export function UsersTable() {
                             onClick={deleteSelected}
                             disabled={selected.size === 0}
                         >
-                            <DeleteForeverRounded className="mr-2 h-4 w-4" />
+                            <Trash2 className="mr-2 h-4 w-4" />
                             ลบ ({selected.size})
                         </Button>
                     </div>
