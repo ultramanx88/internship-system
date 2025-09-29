@@ -78,10 +78,7 @@ const createUserSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters'),
     email: z.string().email('Invalid email address'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
-    roles: z.array(z.string()).min(1, 'At least one role is required').refine(
-        (roles) => roles.every((role) => validRoleIds.includes(role as Role)),
-        { message: 'Invalid role provided' }
-    ),
+    roles: z.array(z.string()).min(1, 'At least one role is required'),
 });
 
 export async function POST(request: Request) {
@@ -94,6 +91,11 @@ export async function POST(request: Request) {
         }
 
         const { name, email, password, roles } = result.data;
+
+        const invalidRoles = roles.filter(r => !validRoleIds.includes(r as Role));
+        if (invalidRoles.length > 0) {
+            return NextResponse.json({ message: `Invalid roles provided: ${invalidRoles.join(', ')}` }, { status: 400 });
+        }
 
         const existingUser = await prisma.user.findUnique({
             where: { email },
