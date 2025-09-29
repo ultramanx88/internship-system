@@ -4,6 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { type Role } from '@/lib/types';
+import { roles as validRolesList } from '@/lib/permissions';
+
+const validRoleIds = validRolesList.map(r => r.id);
 
 export async function GET(request: NextRequest) {
   try {
@@ -75,7 +78,10 @@ const createUserSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters'),
     email: z.string().email('Invalid email address'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
-    roles: z.array(z.string()).min(1, 'At least one role is required'),
+    roles: z.array(z.string()).min(1, 'At least one role is required').refine(
+        (roles) => roles.every((role) => validRoleIds.includes(role as Role)),
+        { message: 'Invalid role provided' }
+    ),
 });
 
 export async function POST(request: Request) {
