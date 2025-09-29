@@ -19,7 +19,8 @@ export function MajorManagement() {
       ...majors,
       {
         id: `major-${Date.now()}`,
-        name: '',
+        nameTh: '',
+        nameEn: '',
         type: 'major',
       },
     ]);
@@ -29,7 +30,7 @@ export function MajorManagement() {
     setMajors(majors.filter(m => m.id !== id));
   };
   
-  const handleMajorChange = (id: string, field: 'name' | 'type', value: string) => {
+  const handleMajorChange = (id: string, field: 'nameTh' | 'nameEn' | 'type', value: string) => {
     setMajors(majors.map(m => m.id === id ? { ...m, [field]: value } : m));
   };
 
@@ -58,7 +59,8 @@ export function MajorManagement() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">จัดลำดับ</TableHead>
-                <TableHead>ชื่อวิชา</TableHead>
+                <TableHead>ชื่อวิชา (ไทย)</TableHead>
+                <TableHead>ชื่อวิชา (อังกฤษ)</TableHead>
                 <TableHead className="w-[180px]">ประเภท</TableHead>
                 <TableHead className="w-[100px] text-right">ดำเนินการ</TableHead>
               </TableRow>
@@ -76,9 +78,16 @@ export function MajorManagement() {
                   </TableCell>
                   <TableCell>
                     <Input 
-                      value={major.name}
-                      onChange={(e) => handleMajorChange(major.id, 'name', e.target.value)}
+                      value={major.nameTh}
+                      onChange={(e) => handleMajorChange(major.id, 'nameTh', e.target.value)}
                       placeholder="เช่น เทคโนโลยีสารสนเทศ"
+                    />
+                  </TableCell>
+                   <TableCell>
+                    <Input 
+                      value={major.nameEn}
+                      onChange={(e) => handleMajorChange(major.id, 'nameEn', e.target.value)}
+                      placeholder="e.g. Information Technology"
                     />
                   </TableCell>
                   <TableCell>

@@ -1,3 +1,4 @@
+
 export type Role =
   | 'student'
   | 'staff'
@@ -68,6 +69,7 @@ export type UserTitle = {
 
 export type Major = {
     id: string;
-    name: string;
+    nameTh: string;
+    nameEn: string;
     type: 'major' | 'minor';
 };

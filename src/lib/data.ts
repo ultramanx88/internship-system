@@ -1,3 +1,4 @@
+
 import type { User, Internship, Application, ProgressReport, AcademicTerm, Holiday, UserTitle, UserRoleGroup, Major } from './types';
 
 // Data from DEMO_USERS.md, adapted for multi-role structure
@@ -94,9 +95,9 @@ export const titles: UserTitle[] = [
 ];
 
 export const majors: Major[] = [
-    { id: 'major-1', name: 'เทคโนโลยีสารสนเทศ', type: 'major' },
-    { id: 'major-2', name: 'วิทยาการคอมพิวเตอร์', type: 'major' },
-    { id: 'major-3', name: 'วิศวกรรมซอฟต์แวร์', type: 'major' },
-    { id: 'major-4', name: 'การตลาดดิจิทัล', type: 'minor' },
-    { id: 'major-5', name: 'การจัดการธุรกิจ', type: 'minor' },
+    { id: 'major-1', nameTh: 'เทคโนโลยีสารสนเทศ', nameEn: 'Information Technology', type: 'major' },
+    { id: 'major-2', nameTh: 'วิทยาการคอมพิวเตอร์', nameEn: 'Computer Science', type: 'major' },
+    { id: 'major-3', nameTh: 'วิศวกรรมซอฟต์แวร์', nameEn: 'Software Engineering', type: 'major' },
+    { id: 'major-4', nameTh: 'การตลาดดิจิทัล', nameEn: 'Digital Marketing', type: 'minor' },
+    { id: 'major-5', nameTh: 'การจัดการธุรกิจ', nameEn: 'Business Management', type: 'minor' },
 ];
