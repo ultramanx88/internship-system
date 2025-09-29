@@ -6,137 +6,83 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
 }
 
-// ==============
-//  Core Models
-// ==============
-
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String // อย่าลืม Hash รหัสผ่านก่อนบันทึก!
-  roles     Role[]   @default([])
-  titleId   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String        @id @default(cuid())
+  email           String        @unique
+  name            String
+  password        String
+  roles           Role[]
+  skills          String?
+  statement       String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
-  // Student-specific fields
-  skills    String?
-  statement String?
+  applications    Application[]
 
-  // Relations
-  title        UserTitle?            @relation(fields: [titleId], references: [id])
-  applications Application[]
-  reviews      ApplicationReview[] @relation("ReviewerReviews")
-
-  @@map("users")
+  // A user can review many applications
+  reviews         ApplicationReview[] @relation("ReviewerToReview")
+  // A user can be the creator of many reviews
+  createdReviews  ApplicationReview[] @relation("CreatorOfReview")
 }
 
 model Internship {
-  id          String   @id @default(cuid())
-  title       String
-  companyName String
-  description String
-  location    String
-  type        InternshipType
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
+  id           String        @id @default(cuid())
+  title        String
+  company      String
+  description  String
+  location     String
+  type         InternshipType
   applications Application[]
-
-  @@map("internships")
 }
 
 model Application {
-  id           String            @id @default(cuid())
-  dateApplied  DateTime          @default(now())
-  status       ApplicationStatus @default(PENDING)
+  id           String              @id @default(cuid())
+  student      User                @relation(fields: [studentId], references: [id])
+  studentId    String
+  internship   Internship          @relation(fields: [internshipId], references: [id])
+  internshipId String
+  status       ApplicationStatus
+  dateApplied  DateTime
   feedback     String?
   projectTopic String?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-
-  // Relations
-  studentId String
-  student   User   @relation(fields: [studentId], references: [id])
-
-  internshipId String
-  internship   Internship @relation(fields: [internshipId], references: [id])
-
-  reviews ApplicationReview[]
-
-  @@map("applications")
+  reviews      ApplicationReview[]
+  progress     ProgressReport[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
 }
 
 model ApplicationReview {
-  id            String   @id @default(cuid())
-  decision      String // "approve" or "reject"
-  reason        String?
-  reviewerRole  Role
-  createdAt     DateTime @default(now())
-
-  // Relations
-  reviewerId    String
-  reviewer      User    @relation("ReviewerReviews", fields: [reviewerId], references: [id])
+  id            String             @id @default(cuid())
+  application   Application        @relation(fields: [applicationId], references: [id])
   applicationId String
+  
+  // The user who is performing the review
+  reviewer      User               @relation("ReviewerToReview", fields: [reviewerId], references: [id])
+  reviewerId    String
+  
+  // The user who created this review entry (might be an admin or staff)
+  createdBy     User               @relation("CreatorOfReview", fields: [createdById], references: [id])
+  createdById   String
+  
+  status        ApplicationStatus
+  comments      String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+model ProgressReport {
+  id            String      @id @default(cuid())
   application   Application @relation(fields: [applicationId], references: [id])
-
-  @@map("application_reviews")
+  applicationId String
+  report        String
+  date          DateTime
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
-
-
-// ==================
-//  Settings Models
-// ==================
-
-model AcademicTerm {
-  id        String   @id @default(cuid())
-  year      Int
-  semester  String // "1", "2", "summer"
-  startDate DateTime
-  endDate   DateTime
-
-  @@map("academic_terms")
-}
-
-model Holiday {
-  id   String   @id @default(cuid())
-  name String
-  date DateTime
-
-  @@map("holidays")
-}
-
-model UserTitle {
-  id           String         @id @default(cuid())
-  nameTh       String
-  nameEn       String
-  applicableTo UserRoleGroup[] @default([])
-
-  // Relations
-  users User[]
-
-  @@map("user_titles")
-}
-
-model Major {
-  id     String    @id @default(cuid())
-  nameTh String
-  nameEn String
-  type   MajorType // "major" or "minor"
-  order  Int       @default(0)
-
-  @@map("majors")
-}
-
-// ==================
-//      Enums
-// ==================
 
 enum Role {
   STUDENT
@@ -149,21 +95,11 @@ enum Role {
 
 enum InternshipType {
   INTERNSHIP
-  COOP
+  CO_OP
 }
 
 enum ApplicationStatus {
   PENDING
   APPROVED
   REJECTED
-}
-
-enum UserRoleGroup {
-  STUDENT
-  ACADEMIC
-}
-
-enum MajorType {
-  MAJOR
-  MINOR
 }
