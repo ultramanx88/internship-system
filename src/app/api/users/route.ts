@@ -1,11 +1,33 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
+import { type Role } from '@/lib/types';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search') || '';
+    const role = searchParams.get('role') || 'all';
+
+    const whereClause: any = {};
+
+    if (search) {
+      whereClause.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { id: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (role && role !== 'all') {
+      whereClause.roles = {
+        has: role as Role,
+      };
+    }
+
     const users = await prisma.user.findMany({
+      where: whereClause,
       orderBy: {
         name: 'asc',
       },
@@ -13,8 +35,6 @@ export async function GET() {
     return NextResponse.json(users);
   } catch (error) {
     console.error('Failed to fetch users:', error);
-    // In case of a DB connection error, return an empty array
-    // to prevent the client-side from crashing.
     return NextResponse.json([]);
   }
 }

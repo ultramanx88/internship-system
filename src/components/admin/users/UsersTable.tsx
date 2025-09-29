@@ -43,12 +43,12 @@ export function UsersTable() {
 
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-    const fetchUsers = useCallback(async () => {
+    const fetchUsers = useCallback(async (search: string, role: string) => {
         setIsLoading(true);
         try {
-            const response = await fetch('/api/users');
+            const url = `/api/users?search=${encodeURIComponent(search)}&role=${encodeURIComponent(role)}`;
+            const response = await fetch(url);
             if (!response.ok) {
-                // We throw an error here to be caught by the catch block
                 throw new Error(`Failed to fetch users: ${response.statusText}`);
             }
             const data = await response.json();
@@ -60,35 +60,24 @@ export function UsersTable() {
                 title: 'เกิดข้อผิดพลาด',
                 description: 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้ อาจเกิดจากปัญหาการเชื่อมต่อฐานข้อมูล',
             });
-            setUsers([]); // Set to empty array on error
+            setUsers([]);
         } finally {
             setIsLoading(false);
         }
     }, [toast]);
 
     useEffect(() => {
-        fetchUsers();
-    }, [fetchUsers]);
+        fetchUsers(debouncedSearchTerm, roleFilter);
+    }, [fetchUsers, debouncedSearchTerm, roleFilter]);
 
-    const filteredUsers = useMemo(() => {
-        if (isLoading) return [];
-        return users.filter(user => {
-            const matchesSearch = user.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                user.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                (user.id && user.id.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
-            const matchesRole = roleFilter === 'all' || user.roles.includes(roleFilter as any);
-            return matchesSearch && matchesRole;
-        });
-    }, [users, debouncedSearchTerm, roleFilter, isLoading]);
-
-    const isAllSelected = !isLoading && filteredUsers.length > 0 && selected.size === filteredUsers.length;
-    const isSomeSelected = !isLoading && selected.size > 0 && selected.size < filteredUsers.length;
+    const isAllSelected = !isLoading && users.length > 0 && selected.size === users.length;
+    const isSomeSelected = !isLoading && selected.size > 0 && selected.size < users.length;
 
     const toggleAll = () => {
         if (isAllSelected) {
             setSelected(new Set());
         } else {
-            const newSelection = new Set(filteredUsers.map(u => u.id));
+            const newSelection = new Set(users.map(u => u.id));
             setSelected(newSelection);
         }
     };
@@ -124,7 +113,7 @@ export function UsersTable() {
                 description: `ผู้ใช้จำนวน ${selected.size} คนถูกลบเรียบร้อยแล้ว`,
             });
             
-            await fetchUsers();
+            fetchUsers(debouncedSearchTerm, roleFilter);
             setSelected(new Set());
 
         } catch (error) {
@@ -150,7 +139,7 @@ export function UsersTable() {
     const handleSuccess = () => {
       setIsAddUserOpen(false);
       setIsUploadOpen(false);
-      fetchUsers();
+      fetchUsers(debouncedSearchTerm, roleFilter);
     }
 
     return (
@@ -247,8 +236,8 @@ export function UsersTable() {
                                         กำลังโหลดข้อมูล...
                                     </TableCell>
                                 </TableRow>
-                            ) : filteredUsers.length > 0 ? (
-                                filteredUsers.map((user) => (
+                            ) : users.length > 0 ? (
+                                users.map((user) => (
                                     <TableRow key={user.id} data-state={selected.has(user.id) && "selected"}>
                                         <TableCell>
                                             <Checkbox
