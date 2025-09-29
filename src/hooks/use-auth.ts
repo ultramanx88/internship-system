@@ -1,8 +1,7 @@
 'use client';
 import { useContext, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { AuthContext } from './use-auth-provider';
-import { Skeleton } from '@/components/ui/skeleton';
 
 export function useAuth() {
   const context = useContext(AuthContext);
@@ -12,29 +11,21 @@ export function useAuth() {
   return context;
 }
 
-
 export function AuthRedirect({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && pathname !== '/login' && pathname !== '/register') {
       router.replace('/login');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, pathname]);
 
+  // The loading skeleton is now handled in the layout, so we just return children or null.
   if (loading || !user) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="flex items-center space-x-4">
-          <Skeleton className="h-12 w-12 rounded-full" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-[250px]" />
-            <Skeleton className="h-4 w-[200px]" />
-          </div>
-        </div>
-      </div>
-    );
+    // For protected routes, we prevent rendering children if not authenticated.
+    return null;
   }
 
   return children;
