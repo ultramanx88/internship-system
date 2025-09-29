@@ -90,7 +90,7 @@ export default function AdminSchedulesPage() {
                                 <SelectItem value="ยังไม่มอบหมาย">ยังไม่มอบหมาย</SelectItem>
                             </SelectContent>
                         </Select>
-                         <Button className="ml-auto">
+                         <Button className="ml-auto" onClick={() => alert('ฟังก์ชันยังไม่ถูกใช้งาน')}>
                             <Calendar className="mr-2 h-4 w-4" />
                             สร้างนัดหมายใหม่
                         </Button>
