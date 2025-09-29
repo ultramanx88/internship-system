@@ -1,4 +1,4 @@
-import { applications, users, internships } from '@/lib/data';
+import type { Application } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -10,8 +10,25 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminDashboard from '@/components/dashboard/admin/AdminDashboard';
 import { Badge } from '@/components/ui/badge';
+import { users, internships } from '@/lib/data';
+
+async function getApplications() {
+    // In a real app, you'd fetch from your API endpoint.
+    // For now, we'll simulate it by returning the mock data.
+    // To see the real implementation, you would use:
+    // const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/applications`, { cache: 'no-store' });
+    // if (!res.ok) {
+    //   throw new Error('Failed to fetch applications');
+    // }
+    // return res.json();
+    const { applications } = await import('@/lib/data');
+    return applications;
+}
+
 
 export default async function AdminPage() {
+    const applications: Application[] = await getApplications();
+    
     const statusColors: { [key: string]: string } = {
         approved: "bg-[#2f7b69] text-white",
         pending: "bg-[#f4a79d] text-secondary-foreground",
@@ -45,8 +62,8 @@ export default async function AdminPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>ใบสมัครทั้งหมด</CardTitle>
-                    <CardDescription>บันทึกใบสมัครของนักเรียนทั้งหมด</CardDescription>
+                    <CardTitle>ใบสมัครล่าสุด</CardTitle>
+                    <CardDescription>ภาพรวม 10 ใบสมัครล่าสุด</CardDescription>
                 </CardHeader>
                 <CardContent>
                 <Table>
@@ -59,11 +76,11 @@ export default async function AdminPage() {
                     </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {tableData.map(app => (
+                    {tableData.slice(0, 10).map(app => (
                         <TableRow key={app.id}>
                         <TableCell className="font-medium">{app.studentName}</TableCell>
                         <TableCell>{app.internshipTitle}</TableCell>
-                        <TableCell>{new Date(app.dateApplied).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(app.dateApplied).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
                         <TableCell className="text-right">
                             <Badge className={`capitalize ${statusColors[app.status]}`}>
                                 {statusTranslations[app.status]}

@@ -44,6 +44,11 @@
     --sidebar-ring: 15 90% 55%;
 
     --success: 165 47% 33%; /* #2f7b69 */
+
+    /* Chart Colors */
+    --chart-approved: 165 47% 33%; /* success */
+    --chart-pending: 19 89% 79%; /* a bit lighter than #f4a79d */
+    --chart-rejected: 0 72% 51%; /* destructive */
   }
 
   .dark {
@@ -76,6 +81,11 @@
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 215 28% 22%;
     --sidebar-ring: 15 90% 55%;
+
+    /* Chart Colors */
+    --chart-approved: 165 47% 33%;
+    --chart-pending: 19 89% 79%;
+    --chart-rejected: 0 72% 51%;
   }
 }
 

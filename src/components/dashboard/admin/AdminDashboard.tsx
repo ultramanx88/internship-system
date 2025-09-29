@@ -2,8 +2,9 @@
 
 import type { Application } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
-import { Users, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { Users, CheckCircle, Clock, BarChart2 } from 'lucide-react';
+import { ChartConfig, ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
 type AdminDashboardProps = {
   applications: Application[];
@@ -16,10 +17,23 @@ export default function AdminDashboard({ applications }: AdminDashboardProps) {
   const rejectedApps = applications.filter(app => app.status === 'rejected').length;
 
   const chartData = [
-    { name: 'รอตรวจสอบ', count: pendingApps, fill: 'var(--color-pending)' },
-    { name: 'อนุมัติ', count: approvedApps, fill: 'var(--color-approved)' },
-    { name: 'ปฏิเสธ', count: rejectedApps, fill: 'var(--color-rejected)' },
+    { name: 'สถานะ', pending: pendingApps, approved: approvedApps, rejected: rejectedApps },
   ];
+  
+  const chartConfig = {
+    approved: {
+      label: 'อนุมัติ',
+      color: 'hsl(var(--chart-approved))',
+    },
+    pending: {
+      label: 'รอตรวจสอบ',
+      color: 'hsl(var(--chart-pending))',
+    },
+    rejected: {
+      label: 'ปฏิเสธ',
+      color: 'hsl(var(--chart-rejected))',
+    },
+  } satisfies ChartConfig;
   
   const approvalRate = totalApps > 0 ? ((approvedApps / totalApps) * 100).toFixed(0) : 0;
 
@@ -33,15 +47,7 @@ export default function AdminDashboard({ applications }: AdminDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalApps}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">อนุมัติแล้ว</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{approvedApps}</div>
+            <p className="text-xs text-muted-foreground">ใบสมัครในระบบทั้งหมด</p>
           </CardContent>
         </Card>
         <Card>
@@ -51,15 +57,27 @@ export default function AdminDashboard({ applications }: AdminDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{pendingApps}</div>
+            <p className="text-xs text-muted-foreground">ที่ต้องดำเนินการ</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">อนุมัติแล้ว</CardTitle>
+            <CheckCircle className="h-4 w-4 text-success" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{approvedApps}</div>
+             <p className="text-xs text-muted-foreground">จากใบสมัครทั้งหมด</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">อัตราการอนุมัติ</CardTitle>
-            <div className="h-4 w-4 text-green-500 font-bold">%</div>
+            <div className="h-4 w-4 text-success font-bold">%</div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{approvalRate}%</div>
+            <p className="text-xs text-muted-foreground">เทียบกับใบสมัครทั้งหมด</p>
           </CardContent>
         </Card>
       </div>
@@ -69,36 +87,25 @@ export default function AdminDashboard({ applications }: AdminDashboardProps) {
           <CardTitle>ภาพรวมสถานะใบสมัคร</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <style>
-              {`
-                :root {
-                    --color-pending: #F4A79D;
-                    --color-approved: #2F7B69;
-                    --color-rejected: #A01F38;
-                }
-                .dark {
-                    --color-pending: #F4A79D;
-                    --color-approved: #2F7B69;
-                    --color-rejected: #A01F38;
-                }
-              `}
-            </style>
-            <BarChart data={chartData}>
-              <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  borderColor: 'hsl(var(--border))',
-                  color: 'hsl(var(--card-foreground))'
-                }}
-                itemStyle={{ color: 'hsl(var(--card-foreground))' }}
-                labelStyle={{ color: 'hsl(var(--card-foreground))' }}
+          <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+            <BarChart accessibilityLayer data={chartData} layout="vertical" margin={{ left: 10 }}>
+               <YAxis
+                dataKey="name"
+                type="category"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+                tickFormatter={(value) => value.slice(0, 3)}
+                className="fill-muted-foreground"
               />
-              <Bar dataKey="count" radius={[4, 4, 0, 0]} />
+              <XAxis dataKey="count" type="number" hide />
+              <Tooltip cursor={{ fill: "hsl(var(--muted))" }} content={<ChartTooltipContent hideLabel />} />
+               <Legend />
+              <Bar dataKey="pending" stackId="a" fill="var(--color-pending)" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="approved" stackId="a" fill="var(--color-approved)" radius={[0, 4, 4, 0]} />
+               <Bar dataKey="rejected" stackId="a" fill="var(--color-rejected)" radius={[0, 4, 4, 0]} />
             </BarChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         </CardContent>
       </Card>
     </>
