@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Save, Upload } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { RoleManagementMatrix } from '@/components/admin/settings/RoleManagementMatrix';
 import { AcademicCalendarSettings } from '@/components/admin/settings/AcademicCalendarSettings';
 import { TitleManagement } from '@/components/admin/settings/TitleManagement';
