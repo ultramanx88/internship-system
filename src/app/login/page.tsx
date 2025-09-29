@@ -36,7 +36,7 @@ export default function LoginPage() {
           <div className="flex justify-center">
              <Icons.logo className="h-12 w-12 text-primary" logoUrl={logo} />
           </div>
-          <CardTitle className="text-3xl font-bold">ยินดีต้อนรับ</CardTitle>
+          <CardTitle className="text-3xl font-bold">ระบบสหกิจศึกษา</CardTitle>
           <CardDescription>
             เข้าสู่ระบบเพื่อเข้าถึงแดชบอร์ดของคุณ
           </CardDescription>
