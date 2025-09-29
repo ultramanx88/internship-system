@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,46 +12,47 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
+  name      String?
   email     String   @unique
-  name      String
-  password  String?
-  roles     String[] @default([]) // Changed from Role[]
+  password  String
+  roles     String[]
   skills    String?
   statement String?
 
-  applications Application[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  applications Application[]
 }
 
 model Internship {
-  id           String        @id @default(cuid())
-  title        String
-  company      String
-  description  String
-  location     String
-  type         String // Changed from InternshipType
+  id          String   @id @default(cuid())
+  title       String
+  company     String
+  description String
+  location    String
+  type        String // "internship" or "co-op"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   applications Application[]
-
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
 }
 
 model Application {
-  id           String    @id @default(cuid())
-  status       String // Changed from ApplicationStatus
+  id           String   @id @default(cuid())
+  status       String // "pending", "approved", "rejected"
   dateApplied  DateTime
   feedback     String?
   projectTopic String?
 
+  student      User       @relation(fields: [studentId], references: [id])
   studentId    String
+  internship   Internship @relation(fields: [internshipId], references: [id])
   internshipId String
 
-  student      User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  internship   Internship @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  @@unique([studentId, internshipId])
 }

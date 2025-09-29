@@ -1,101 +1,5 @@
-
-// Re-defining types here for simplicity as `types.ts` is being removed.
-export type Role =
-  | 'student'
-  | 'staff'
-  | 'courseInstructor'
-  | 'committee'
-  | 'visitor'
-  | 'admin';
-
-export type UserRoleGroup = 'student' | 'academic';
-
-export type User = {
-  id: string;
-  name: string;
-  email: string;
-  password?: string;
-  roles: Role[];
-  skills?: string;
-  statement?: string;
-  titleId?: string;
-};
-
-export type InternshipType = 'internship' | 'co-op';
-
-export type Internship = {
-  id: string;
-  title: string;
-  company: string;
-  description: string;
-  location: string;
-  type: InternshipType;
-};
-
-export type ApplicationStatus = 'pending' | 'approved' | 'rejected';
-
-export type Application = {
-  id: string;
-  studentId: string;
-  internshipId: string;
-  status: ApplicationStatus;
-  dateApplied: string;
-  feedback?: string;
-  projectTopic?: string;
-};
-
-export type ProgressReport = {
-  id: string;
-  applicationId: string;
-  report: string;
-  date: string;
-};
-
-export type AcademicTerm = {
-  id: string;
-  year: number;
-  semester: string;
-  startDate: Date;
-  endDate: Date;
-};
-
-export type Holiday = {
-    id: string;
-    date: Date;
-    name: string;
-};
-
-export type UserTitle = {
-    id: string;
-    nameTh: string;
-    nameEn: string;
-    applicableTo: UserRoleGroup[];
-}
-
-export type Major = {
-    id: string;
-    nameTh: string;
-    nameEn: string;
-    type: 'major' | 'minor';
-};
-
-export type CompanyEvaluationQuestion = {
-    id: string;
-    question: string;
-    score: number | null;
-}
-
-export type CompanyEvaluation = {
-    internshipId: string;
-    companyName: string;
-    isEvaluated: boolean;
-    evaluationDate: string | null;
-    questions: CompanyEvaluationQuestion[];
-}
-
-
 // Data from DEMO_USERS.md, adapted for multi-role structure
-export let users: User[] = [
+export const users = [
   // Admin Users
   { id: 'admin2', name: 'System Administrator', email: 'admin2@smart-solutions.com', password: 'admin123', roles: ['admin'] },
   { id: 'demo001', name: 'Demo Admin 001', email: 'demo001@smart-solutions.com', password: '123456', roles: ['admin'] },
@@ -146,40 +50,40 @@ export let users: User[] = [
   { id: 'u6800020', name: 'Student 020', email: 'u6800020@smart-solutions.com', password: '123456', roles: ['student'] },
 ];
 
-export const internships: Internship[] = [
+export const internships = [
   { id: 'intern-1', title: 'Frontend Developer (ฝึกงาน)', company: 'Innovate Inc.', location: 'Remote', description: 'Work with our frontend team to build and maintain our React-based web applications. Experience with TypeScript and Tailwind CSS is a plus.', type: 'internship' },
   { id: 'intern-2', title: 'Backend Developer (สหกิจ)', company: 'DataCorp', location: 'New York, NY', description: 'Join our backend team to develop and optimize our Python/Django services. Focus on API design, database management, and performance.', type: 'co-op' },
   { id: 'intern-3', title: 'UX/UI Design (ฝึกงาน)', company: 'Creative Solutions', location: 'San Francisco, CA', description: 'Help shape the user experience of our products. Create wireframes, mockups, and prototypes. Proficiency in Figma is required.', type: 'internship' },
 ];
 
-export let applications: Application[] = [
-  { id: 'app-1', studentId: 'test001', internshipId: 'intern-2', status: 'approved', dateApplied: '2024-07-20' },
-  { id: 'app-2', studentId: '65010001', internshipId: 'intern-1', status: 'approved', dateApplied: '2024-07-18' },
-  { id: 'app-3', studentId: 'test001', internshipId: 'intern-3', status: 'rejected', dateApplied: '2024-07-15', feedback: 'Lacks required portfolio experience in UX/UI design.' },
-  { id: 'app-4', studentId: '65010001', internshipId: 'intern-2', status: 'pending', dateApplied: '2024-07-21' },
+export let applications = [
+  { id: 'app-1', studentId: 'test001', internshipId: 'intern-2', status: 'approved', dateApplied: '2024-07-20', projectTopic: 'Performance Analysis of Database Indexing Strategies' },
+  { id: 'app-2', studentId: '65010001', internshipId: 'intern-1', status: 'approved', dateApplied: '2024-07-18', projectTopic: undefined },
+  { id: 'app-3', studentId: 'test001', internshipId: 'intern-3', status: 'rejected', dateApplied: '2024-07-15', feedback: 'Lacks required portfolio experience in UX/UI design.', projectTopic: undefined },
+  { id: 'app-4', studentId: '65010001', internshipId: 'intern-2', status: 'pending', dateApplied: '2024-07-21', projectTopic: undefined },
 ];
 
-export let progressReports: ProgressReport[] = [
+export let progressReports = [
   { id: 'report-1', applicationId: 'app-1', report: 'Week 1: Onboarding complete. Started research for the co-op project on performance optimization.', date: '2024-07-25' },
   { id: 'report-2', applicationId: 'app-2', report: 'Week 1: Onboarding complete. Met the team and set up my development environment. Started working on my first ticket for a new UI component.', date: '2024-07-25' }
 ];
 
-export const academicTerms: AcademicTerm[] = [
+export const academicTerms = [
   { id: 'term-1', year: 2567, semester: '1', startDate: new Date('2024-08-01'), endDate: new Date('2024-12-20') },
-  { id: 'term-2', year: 2567, semester: '2', startDate: new Date('2025-01-10'), endDate: new Date('2025-05-30') },
+  { id: 'term-2', year: 2567, semester: '2', startDate: new Date('2025-01-10'), endDate: new Date('2525-05-30') },
 ];
 
-export const holidays: Holiday[] = [
+export const holidays = [
     { id: 'holiday-1', date: new Date('2024-10-13'), name: 'วันคล้ายวันสวรรคต ร.9' },
     { id: 'holiday-2', date: new Date('2024-12-10'), name: 'วันรัฐธรรมนูญ' },
 ];
 
-export const userRoleGroups: { id: UserRoleGroup, label: string }[] = [
+export const userRoleGroups = [
     { id: 'student', label: 'นักศึกษา' },
     { id: 'academic', label: 'บุคลากรสายวิชาการ' }
 ];
 
-export const titles: UserTitle[] = [
+export const titles = [
     { id: 't-1', nameTh: 'นาย', nameEn: 'Mr.', applicableTo: ['student', 'academic'] },
     { id: 't-2', nameTh: 'นาง', nameEn: 'Mrs.', applicableTo: ['student', 'academic'] },
     { id: 't-3', nameTh: 'นางสาว', nameEn: 'Miss', applicableTo: ['student', 'academic'] },
@@ -188,7 +92,7 @@ export const titles: UserTitle[] = [
     { id: 't-6', nameTh: 'ว่าที่ร้อยตรี', nameEn: 'Acting Sub-Lieutenant', applicableTo: ['student', 'academic'] },
 ];
 
-export const majors: Major[] = [
+export const majors = [
     { id: 'major-1', nameTh: 'เทคโนโลยีสารสนเทศ', nameEn: 'Information Technology', type: 'major' },
     { id: 'major-2', nameTh: 'วิทยาการคอมพิวเตอร์', nameEn: 'Computer Science', type: 'major' },
     { id: 'major-3', nameTh: 'วิศวกรรมซอฟต์แวร์', nameEn: 'Software Engineering', type: 'major' },
@@ -196,7 +100,7 @@ export const majors: Major[] = [
     { id: 'major-5', nameTh: 'การจัดการธุรกิจ', nameEn: 'Business Management', type: 'minor' },
 ];
 
-export const companyEvaluations: CompanyEvaluation[] = [
+export const companyEvaluations = [
     {
         internshipId: 'intern-2', // DataCorp
         companyName: 'DataCorp',
@@ -220,4 +124,8 @@ export const companyEvaluations: CompanyEvaluation[] = [
             { id: 'q5', question: 'ด้านความชัดเจนของเนื้องานและเป้าหมาย', score: null },
         ]
     }
-]
+];
+
+export const applicationReviews = [
+    // This data can be populated later
+];
