@@ -30,7 +30,7 @@ export default async function ApplicationReviewPage({ params }: { params: { appl
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 text-secondary-600">
        <div>
         <Button asChild variant="outline" size="sm" className="mb-4">
             <Link href="/teacher">
@@ -38,8 +38,8 @@ export default async function ApplicationReviewPage({ params }: { params: { appl
                 กลับไปที่แดชบอร์ด
             </Link>
         </Button>
-        <h1 className="text-3xl font-bold">ตรวจสอบใบสมัคร</h1>
-        <p className="text-muted-foreground">กำลังตรวจสอบใบสมัครจาก {student.name} สำหรับตำแหน่ง {internship.title}</p>
+        <h1 className="text-3xl font-bold gradient-text">ตรวจสอบใบสมัคร</h1>
+        <p>กำลังตรวจสอบใบสมัครจาก {student.name} สำหรับตำแหน่ง {internship.title}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">

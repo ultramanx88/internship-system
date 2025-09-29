@@ -13,9 +13,9 @@ import { Badge } from '@/components/ui/badge';
 
 export default async function AdminPage() {
     const statusColors: { [key: string]: string } = {
-        approved: "bg-green-100 text-green-800 border-green-200",
-        pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-        rejected: "bg-red-100 text-red-800 border-red-200",
+        approved: "bg-[#2f7b69] text-white",
+        pending: "bg-[#f4a79d] text-secondary-foreground",
+        rejected: "bg-[#a01f38] text-white",
     };
 
     const tableData = applications.map(app => {
@@ -27,12 +27,18 @@ export default async function AdminPage() {
             internshipTitle: internship?.title || 'N/A',
         };
     });
+    
+    const statusTranslations: { [key: string]: string } = {
+      approved: "อนุมัติ",
+      pending: "รอการตรวจสอบ",
+      rejected: "ปฏิเสธ",
+    };
 
     return (
-        <div className="grid gap-8">
+        <div className="grid gap-8 text-secondary-600">
             <div>
-                <h1 className="text-3xl font-bold">แดชบอร์ดผู้ดูแลระบบ</h1>
-                <p className="text-muted-foreground">ภาพรวมโปรแกรมการฝึกงานทั้งหมดในที่เดียว</p>
+                <h1 className="text-3xl font-bold gradient-text">แดชบอร์ดผู้ดูแลระบบ</h1>
+                <p>ภาพรวมโปรแกรมการฝึกงานทั้งหมดในที่เดียว</p>
             </div>
 
             <AdminDashboard applications={applications} />
@@ -45,11 +51,11 @@ export default async function AdminPage() {
                 <CardContent>
                 <Table>
                     <TableHeader>
-                    <TableRow>
-                        <TableHead>นักเรียน</TableHead>
-                        <TableHead>การฝึกงาน</TableHead>
-                        <TableHead>วันที่สมัคร</TableHead>
-                        <TableHead className="text-right">สถานะ</TableHead>
+                    <TableRow className="bg-primary-600 hover:bg-primary-600">
+                        <TableHead className="text-white">นักเรียน</TableHead>
+                        <TableHead className="text-white">การฝึกงาน</TableHead>
+                        <TableHead className="text-white">วันที่สมัคร</TableHead>
+                        <TableHead className="text-right text-white">สถานะ</TableHead>
                     </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -59,8 +65,8 @@ export default async function AdminPage() {
                         <TableCell>{app.internshipTitle}</TableCell>
                         <TableCell>{new Date(app.dateApplied).toLocaleDateString()}</TableCell>
                         <TableCell className="text-right">
-                            <Badge variant="outline" className={`capitalize ${statusColors[app.status]}`}>
-                                {app.status === 'approved' ? 'อนุมัติ' : app.status === 'pending' ? 'รอการตรวจสอบ' : 'ปฏิเสธ'}
+                            <Badge className={`capitalize ${statusColors[app.status]}`}>
+                                {statusTranslations[app.status]}
                             </Badge>
                         </TableCell>
                         </TableRow>

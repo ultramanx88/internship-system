@@ -7,10 +7,10 @@
     --background: 220 13% 97%; /* #f3f3f3 */
     --foreground: 225 3% 36%; /* #575860 */
 
-    --card: 220 13% 100%;
+    --card: 0 0% 100%;
     --card-foreground: 225 3% 36%;
 
-    --popover: 220 13% 100%;
+    --popover: 0 0% 100%;
     --popover-foreground: 225 3% 36%;
 
     --primary: 15 90% 55%; /* #f45626 */
@@ -34,7 +34,7 @@
 
     --radius: 0.5rem;
     
-    --sidebar-background: 220 13% 100%;
+    --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 225 3% 36%;
     --sidebar-primary: 15 90% 55%;
     --sidebar-primary-foreground: 0 0% 100%;

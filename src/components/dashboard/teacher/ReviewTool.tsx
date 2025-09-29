@@ -77,6 +77,11 @@ export function ReviewTool({ student, internship, application }: ReviewToolProps
     approve: "อนุมัติ",
     reject: "ปฏิเสธ",
   };
+  
+  const badgeColors: { [key: string]: string } = {
+    approve: "bg-[#2f7b69] text-white",
+    reject: "bg-[#a01f38] text-white",
+  };
 
   return (
     <Card>
@@ -94,10 +99,10 @@ export function ReviewTool({ student, internship, application }: ReviewToolProps
         </div>
 
         {recommendation && (
-          <Alert variant={recommendation.recommendation === 'approve' ? 'default' : 'destructive'} className={recommendation.recommendation === 'approve' ? 'bg-green-50 border-green-200' : ''}>
+           <Alert variant={recommendation.recommendation === 'approve' ? 'default' : 'destructive'} className={recommendation.recommendation === 'approve' ? 'border-green-200' : ''}>
              <AlertTitle className="flex items-center gap-2">
                 {recommendation.recommendation === 'approve' ? <Check className="h-5 w-5 text-green-600"/> : <X className="h-5 w-5"/>}
-                คำแนะนำจาก AI: <Badge variant="outline" className="capitalize">{recommendationTranslations[recommendation.recommendation]}</Badge>
+                คำแนะนำจาก AI: <Badge className={`capitalize ${badgeColors[recommendation.recommendation]}`}>{recommendationTranslations[recommendation.recommendation]}</Badge>
             </AlertTitle>
             <AlertDescription className="mt-2 pl-7">
                 <strong>เหตุผล:</strong> {recommendation.reason}

@@ -73,14 +73,14 @@ export default function AdminDashboard({ applications }: AdminDashboardProps) {
             <style>
               {`
                 :root {
-                    --color-pending: #f59e0b;
-                    --color-approved: #22c55e;
-                    --color-rejected: #ef4444;
+                    --color-pending: #F4A79D;
+                    --color-approved: #2F7B69;
+                    --color-rejected: #A01F38;
                 }
                 .dark {
-                    --color-pending: #f59e0b;
-                    --color-approved: #22c55e;
-                    --color-rejected: #ef4444;
+                    --color-pending: #F4A79D;
+                    --color-approved: #2F7B69;
+                    --color-rejected: #A01F38;
                 }
               `}
             </style>
@@ -89,9 +89,12 @@ export default function AdminDashboard({ applications }: AdminDashboardProps) {
               <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'hsl(var(--background))',
+                  backgroundColor: 'hsl(var(--card))',
                   borderColor: 'hsl(var(--border))',
+                  color: 'hsl(var(--card-foreground))'
                 }}
+                itemStyle={{ color: 'hsl(var(--card-foreground))' }}
+                labelStyle={{ color: 'hsl(var(--card-foreground))' }}
               />
               <Bar dataKey="count" radius={[4, 4, 0, 0]} />
             </BarChart>

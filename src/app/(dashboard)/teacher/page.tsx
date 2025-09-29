@@ -16,10 +16,10 @@ export default async function TeacherPage() {
   const pendingApplications = applications.filter(app => app.status === 'pending');
 
   return (
-    <div className="grid gap-8">
+    <div className="grid gap-8 text-secondary-600">
       <div>
-        <h1 className="text-3xl font-bold">แดชบอร์ดอาจารย์</h1>
-        <p className="text-muted-foreground">ตรวจสอบและจัดการใบสมัครฝึกงานของนักเรียน</p>
+        <h1 className="text-3xl font-bold gradient-text">แดชบอร์ดอาจารย์</h1>
+        <p>ตรวจสอบและจัดการใบสมัครฝึกงานของนักเรียน</p>
       </div>
 
       <Card>
@@ -30,11 +30,11 @@ export default async function TeacherPage() {
         <CardContent>
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>นักเรียน</TableHead>
-                <TableHead>การฝึกงาน</TableHead>
-                <TableHead>วันที่สมัคร</TableHead>
-                <TableHead className="text-right">ดำเนินการ</TableHead>
+              <TableRow className="bg-primary-600 hover:bg-primary-600">
+                <TableHead className="text-white">นักเรียน</TableHead>
+                <TableHead className="text-white">การฝึกงาน</TableHead>
+                <TableHead className="text-white">วันที่สมัคร</TableHead>
+                <TableHead className="text-right text-white">ดำเนินการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -48,7 +48,7 @@ export default async function TeacherPage() {
                       <TableCell>{internship?.title}</TableCell>
                       <TableCell>{new Date(app.dateApplied).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
-                        <Button asChild variant="outline" size="sm">
+                        <Button asChild size="sm" className="bg-gradient text-white">
                           <Link href={`/teacher/${app.id}`}>ตรวจสอบ</Link>
                         </Button>
                       </TableCell>

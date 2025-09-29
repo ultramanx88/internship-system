@@ -10,15 +10,15 @@ import { Textarea } from '@/components/ui/textarea';
 const STUDENT_ID = 'test001';
 
 const statusIcons: { [key: string]: React.ReactNode } = {
-  approved: <CheckCircle className="text-green-500" />,
-  pending: <Clock className="text-yellow-500" />,
-  rejected: <XCircle className="text-red-500" />,
+  approved: <CheckCircle className="text-white" />,
+  pending: <Clock className="text-secondary-foreground" />,
+  rejected: <XCircle className="text-white" />,
 };
 
 const statusColors: { [key: string]: string } = {
-    approved: "bg-green-100 text-green-800 border-green-200",
-    pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    rejected: "bg-red-100 text-red-800 border-red-200",
+    approved: "bg-[#2f7b69] text-white",
+    pending: "bg-[#f4a79d] text-secondary-foreground",
+    rejected: "bg-[#a01f38] text-white",
 };
 
 
@@ -35,10 +35,10 @@ export default function StudentPage() {
   };
 
   return (
-    <div className="grid gap-8">
+    <div className="grid gap-8 text-secondary-600">
       <div>
-        <h1 className="text-3xl font-bold">ยินดีต้อนรับ, {student?.name}!</h1>
-        <p className="text-muted-foreground">นี่คือสิ่งที่เกิดขึ้นกับการเดินทางฝึกงานของคุณ</p>
+        <h1 className="text-3xl font-bold gradient-text">ยินดีต้อนรับ, {student?.name}!</h1>
+        <p>นี่คือสิ่งที่เกิดขึ้นกับการเดินทางฝึกงานของคุณ</p>
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -58,7 +58,7 @@ export default function StudentPage() {
                                         <h3 className="font-semibold">{internship?.title}</h3>
                                         <p className="text-sm text-muted-foreground">{internship?.company}</p>
                                     </div>
-                                    <Badge variant="outline" className={`capitalize ${statusColors[app.status]}`}>
+                                    <Badge className={`capitalize ${statusColors[app.status]}`}>
                                         {statusIcons[app.status]}
                                         <span className="ml-2">{statusTranslations[app.status]}</span>
                                     </Badge>
