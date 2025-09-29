@@ -1,5 +1,7 @@
+import type { User, Internship, Application, ProgressReport, AcademicTerm, Holiday, UserRoleGroup, UserTitle, Major, CompanyEvaluation } from './types';
+
 // Data from DEMO_USERS.md, adapted for multi-role structure
-export const users = [
+export const users: User[] = [
   // Admin Users
   { id: 'admin2', name: 'System Administrator', email: 'admin2@smart-solutions.com', password: 'admin123', roles: ['admin'] },
   { id: 'demo001', name: 'Demo Admin 001', email: 'demo001@smart-solutions.com', password: '123456', roles: ['admin'] },
@@ -50,82 +52,83 @@ export const users = [
   { id: 'u6800020', name: 'Student 020', email: 'u6800020@smart-solutions.com', password: '123456', roles: ['student'] },
 ];
 
-export const internships = [
-  { id: 'intern-1', title: 'Frontend Developer (ฝึกงาน)', company: 'Innovate Inc.', location: 'Remote', description: 'Work with our frontend team to build and maintain our React-based web applications. Experience with TypeScript and Tailwind CSS is a plus.', type: 'internship' },
-  { id: 'intern-2', title: 'Backend Developer (สหกิจ)', company: 'DataCorp', location: 'New York, NY', description: 'Join our backend team to develop and optimize our Python/Django services. Focus on API design, database management, and performance.', type: 'co-op' },
-  { id: 'intern-3', title: 'UX/UI Design (ฝึกงาน)', company: 'Creative Solutions', location: 'San Francisco, CA', description: 'Help shape the user experience of our products. Create wireframes, mockups, and prototypes. Proficiency in Figma is required.', type: 'internship' },
+export const internships: Internship[] = [
+    { id: 'int001', title: 'Frontend Developer', company: 'Tech Innovators Inc.', location: 'กรุงเทพฯ', description: 'พัฒนาและดูแลเว็บแอปพลิเคชันโดยใช้ React และ TypeScript สร้างส่วนประกอบที่นำกลับมาใช้ใหม่ได้และไลบรารีส่วนหน้าเพื่อใช้ในอนาคต', type: 'internship' },
+    { id: 'int002', title: 'Backend Developer (Co-op)', company: 'Data Systems Ltd.', location: 'เชียงใหม่', description: 'ออกแบบและใช้งาน API ของฝั่งเซิร์ฟเวอร์ ทำงานกับฐานข้อมูล และรับรองประสิทธิภาพของแอปพลิเคชัน', type: 'co-op' },
+    { id: 'int003', title: 'UI/UX Designer', company: 'Creative Solutions', location: 'กรุงเทพฯ', description: 'สร้าง wireframes, storyboards, user flows, process flows และ site maps เพื่อสื่อสารแนวคิดการออกแบบและการมีปฏิสัมพันธ์อย่างมีประสิทธิภาพ', type: 'internship' },
+    { id: 'int004', title: 'Data Analyst Intern', company: 'Insightful Analytics', location: 'ทำงานทางไกล', description: 'ตีความข้อมูล วิเคราะห์ผลลัพธ์โดยใช้เทคนิคทางสถิติ และจัดทำรายงานต่อเนื่อง', type: 'internship' },
+    { id: 'int005', title: 'Full Stack Developer (Co-op)', company: 'Agile Coders', location: 'กรุงเทพฯ', description: 'ทำงานทั้งส่วนหน้าและส่วนหลังของเว็บแอปพลิเคชัน มีส่วนร่วมในทุกขั้นตอนของวงจรการพัฒนาซอฟต์แวร์', type: 'co-op' },
 ];
 
-export let applications = [
-  { id: 'app-1', studentId: 'test001', internshipId: 'intern-2', status: 'approved', dateApplied: '2024-07-20', projectTopic: 'Performance Analysis of Database Indexing Strategies' },
-  { id: 'app-2', studentId: '65010001', internshipId: 'intern-1', status: 'approved', dateApplied: '2024-07-18', projectTopic: undefined },
-  { id: 'app-3', studentId: 'test001', internshipId: 'intern-3', status: 'rejected', dateApplied: '2024-07-15', feedback: 'Lacks required portfolio experience in UX/UI design.', projectTopic: undefined },
-  { id: 'app-4', studentId: '65010001', internshipId: 'intern-2', status: 'pending', dateApplied: '2024-07-21', projectTopic: undefined },
+export let applications: Application[] = [
+    { id: 'app001', studentId: 'test001', internshipId: 'int001', status: 'pending', dateApplied: '2024-05-01' },
+    { id: 'app002', studentId: '65010001', internshipId: 'int002', status: 'approved', dateApplied: '2024-05-02', projectTopic: 'การพัฒนาระบบแนะนำสินค้าด้วย Machine Learning' },
+    { id: 'app003', studentId: 'u6800001', internshipId: 'int003', status: 'rejected', dateApplied: '2024-05-03', feedback: 'ขาดประสบการณ์ในเครื่องมือออกแบบที่ต้องการ' },
+    { id: 'app004', studentId: 'u6800002', internshipId: 'int004', status: 'pending', dateApplied: '2024-05-04' },
+    { id: 'app005', studentId: 'test001', internshipId: 'int005', status: 'approved', dateApplied: '2024-05-05', projectTopic: 'การสร้างแดชบอร์ดวิเคราะห์ข้อมูลแบบ Real-time' },
+    { id: 'app006', studentId: 'u6800003', internshipId: 'int001', status: 'pending', dateApplied: '2024-05-06' },
 ];
 
-export let progressReports = [
-  { id: 'report-1', applicationId: 'app-1', report: 'Week 1: Onboarding complete. Started research for the co-op project on performance optimization.', date: '2024-07-25' },
-  { id: 'report-2', applicationId: 'app-2', report: 'Week 1: Onboarding complete. Met the team and set up my development environment. Started working on my first ticket for a new UI component.', date: '2024-07-25' }
+
+export const progressReports: ProgressReport[] = [
+    { id: 'rep001', applicationId: 'app002', report: 'สัปดาห์ที่ 1: ตั้งค่าสภาพแวดล้อมการพัฒนาและเริ่มทำความเข้าใจ codebase', date: '2024-06-10' },
+    { id: 'rep002', applicationId: 'app002', report: 'สัปดาห์ที่ 2: ใช้ API endpoint แรกสำหรับโปรไฟล์ผู้ใช้', date: '2024-06-17' },
+    { id: 'rep003', applicationId: 'app005', report: 'สัปดาห์ที่ 1: รวบรวมข้อกำหนดสำหรับแดชบอร์ด', date: '2024-06-12' },
 ];
 
-export const academicTerms = [
-  { id: 'term-1', year: 2567, semester: '1', startDate: new Date('2024-08-01'), endDate: new Date('2024-12-20') },
-  { id: 'term-2', year: 2567, semester: '2', startDate: new Date('2025-01-10'), endDate: new Date('2525-05-30') },
+export const academicTerms: AcademicTerm[] = [
+    { id: 'term-1', year: 2567, semester: '1', startDate: new Date('2024-08-05'), endDate: new Date('2024-12-06') },
+    { id: 'term-2', year: 2567, semester: '2', startDate: new Date('2025-01-06'), endDate: new Date('2025-05-09') },
 ];
 
-export const holidays = [
-    { id: 'holiday-1', date: new Date('2024-10-13'), name: 'วันคล้ายวันสวรรคต ร.9' },
-    { id: 'holiday-2', date: new Date('2024-12-10'), name: 'วันรัฐธรรมนูญ' },
+export const holidays: Holiday[] = [
+    { id: 'holiday-1', date: new Date('2025-01-01'), name: 'วันขึ้นปีใหม่' },
+    { id: 'holiday-2', date: new Date('2025-04-14'), name: 'วันสงกรานต์' },
 ];
 
-export const userRoleGroups = [
+export const userRoleGroups: { id: UserRoleGroup; label: string }[] = [
     { id: 'student', label: 'นักศึกษา' },
-    { id: 'academic', label: 'บุคลากรสายวิชาการ' }
+    { id: 'academic', label: 'บุคลากรทางการศึกษา' }
 ];
 
-export const titles = [
+export const titles: UserTitle[] = [
     { id: 't-1', nameTh: 'นาย', nameEn: 'Mr.', applicableTo: ['student', 'academic'] },
-    { id: 't-2', nameTh: 'นาง', nameEn: 'Mrs.', applicableTo: ['student', 'academic'] },
-    { id: 't-3', nameTh: 'นางสาว', nameEn: 'Miss', applicableTo: ['student', 'academic'] },
-    { id: 't-4', nameTh: 'ดร.', nameEn: 'Dr.', applicableTo: ['academic'] },
-    { id: 't-5', nameTh: 'รศ.ดร.', nameEn: 'Assoc. Prof. Dr.', applicableTo: ['academic'] },
-    { id: 't-6', nameTh: 'ว่าที่ร้อยตรี', nameEn: 'Acting Sub-Lieutenant', applicableTo: ['student', 'academic'] },
+    { id: 't-2', nameTh: 'นางสาว', nameEn: 'Ms.', applicableTo: ['student'] },
+    { id: 't-3', nameTh: 'นาง', nameEn: 'Mrs.', applicableTo: ['academic'] },
+    { id: 't-4', nameTh: 'ผศ.ดร.', nameEn: 'Asst. Prof. Dr.', applicableTo: ['academic'] },
 ];
 
-export const majors = [
-    { id: 'major-1', nameTh: 'เทคโนโลยีสารสนเทศ', nameEn: 'Information Technology', type: 'major' },
-    { id: 'major-2', nameTh: 'วิทยาการคอมพิวเตอร์', nameEn: 'Computer Science', type: 'major' },
-    { id: 'major-3', nameTh: 'วิศวกรรมซอฟต์แวร์', nameEn: 'Software Engineering', type: 'major' },
-    { id: 'major-4', nameTh: 'การตลาดดิจิทัล', nameEn: 'Digital Marketing', type: 'minor' },
-    { id: 'major-5', nameTh: 'การจัดการธุรกิจ', nameEn: 'Business Management', type: 'minor' },
+export const majors: Major[] = [
+    { id: 'm-1', nameTh: 'เทคโนโลยีสารสนเทศ', nameEn: 'Information Technology', type: 'major'},
+    { id: 'm-2', nameTh: 'วิทยาการคอมพิวเตอร์', nameEn: 'Computer Science', type: 'major'},
+    { id: 'm-3', nameTh: 'การจัดการสารสนเทศ', nameEn: 'Information Management', type: 'minor'},
 ];
 
-export const companyEvaluations = [
-    {
-        internshipId: 'intern-2', // DataCorp
-        companyName: 'DataCorp',
-        isEvaluated: true,
-        evaluationDate: '2024-08-01T10:00:00Z',
-        questions: [
-            { id: 'q1', question: 'ด้านการสนับสนุนและการให้คำปรึกษาจากพี่เลี้ยง', score: 5 },
-            { id: 'q2', question: 'ด้านการมอบหมายงานที่ท้าทายและส่งเสริมการเรียนรู้', score: 4 },
-        ]
-    },
-    {
-        internshipId: 'intern-1', // Innovate Inc.
-        companyName: 'Innovate Inc.',
+export const companyEvaluations: CompanyEvaluation[] = [
+    { 
+        internshipId: 'int002',
+        companyName: 'Data Systems Ltd.',
         isEvaluated: false,
         evaluationDate: null,
         questions: [
-            { id: 'q1', question: 'ด้านการสนับสนุนและการให้คำปรึกษาจากพี่เลี้ยง', score: null },
-            { id: 'q2', question: 'ด้านการมอบหมายงานที่ท้าทายและส่งเสริมการเรียนรู้', score: null },
-            { id: 'q3', question: 'ด้านสภาพแวดล้อมในการทำงานและวัฒนธรรมองค์กร', score: null },
-            { id: 'q4', question: 'ด้านโอกาสในการพัฒนาทักษะและความรู้เพิ่มเติม', score: null },
-            { id: 'q5', question: 'ด้านความชัดเจนของเนื้องานและเป้าหมาย', score: null },
+            { id: 'q1', question: 'การสนับสนุนจากพี่เลี้ยง (Supervisor/Mentor Support)' },
+            { id: 'q2', question: 'ความเหมาะสมของงานที่ได้รับมอบหมาย (Task Appropriateness)' },
+            { id: 'q3', question: 'สภาพแวดล้อมและวัฒนธรรมองค์กร (Work Environment & Culture)' },
+            { id: 'q4', question: 'โอกาสในการเรียนรู้และพัฒนา (Learning & Development Opportunities)' },
+            { id: 'q5', question: 'ความพึงพอใจโดยรวม (Overall Satisfaction)' },
+        ]
+    },
+    { 
+        internshipId: 'int005',
+        companyName: 'Agile Coders',
+        isEvaluated: true,
+        evaluationDate: '2024-07-20T10:00:00Z',
+        questions: [
+            { id: 'q1', question: 'การสนับสนุนจากพี่เลี้ยง (Supervisor/Mentor Support)', score: 5 },
+            { id: 'q2', question: 'ความเหมาะสมของงานที่ได้รับมอบหมาย (Task Appropriateness)', score: 4 },
+            { id: 'q3', question: 'สภาพแวดล้อมและวัฒนธรรมองค์กร (Work Environment & Culture)', score: 5 },
+            { id: 'q4', question: 'โอกาสในการเรียนรู้และพัฒนา (Learning & Development Opportunities)', score: 5 },
+            { id: 'q5', question: 'ความพึงพอใจโดยรวม (Overall Satisfaction)', score: 5 },
         ]
     }
-];
-
-export const applicationReviews = [
-    // This data can be populated later
 ];
