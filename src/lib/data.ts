@@ -1,5 +1,98 @@
 
-import type { User, Internship, Application, ProgressReport, AcademicTerm, Holiday, UserTitle, UserRoleGroup, Major, CompanyEvaluation } from './types';
+// Re-defining types here for simplicity as `types.ts` is being removed.
+export type Role =
+  | 'student'
+  | 'staff'
+  | 'courseInstructor'
+  | 'committee'
+  | 'visitor'
+  | 'admin';
+
+export type UserRoleGroup = 'student' | 'academic';
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  password?: string;
+  roles: Role[];
+  skills?: string;
+  statement?: string;
+  titleId?: string;
+};
+
+export type InternshipType = 'internship' | 'co-op';
+
+export type Internship = {
+  id: string;
+  title: string;
+  company: string;
+  description: string;
+  location: string;
+  type: InternshipType;
+};
+
+export type ApplicationStatus = 'pending' | 'approved' | 'rejected';
+
+export type Application = {
+  id: string;
+  studentId: string;
+  internshipId: string;
+  status: ApplicationStatus;
+  dateApplied: string;
+  feedback?: string;
+  projectTopic?: string;
+};
+
+export type ProgressReport = {
+  id: string;
+  applicationId: string;
+  report: string;
+  date: string;
+};
+
+export type AcademicTerm = {
+  id: string;
+  year: number;
+  semester: string;
+  startDate: Date;
+  endDate: Date;
+};
+
+export type Holiday = {
+    id: string;
+    date: Date;
+    name: string;
+};
+
+export type UserTitle = {
+    id: string;
+    nameTh: string;
+    nameEn: string;
+    applicableTo: UserRoleGroup[];
+}
+
+export type Major = {
+    id: string;
+    nameTh: string;
+    nameEn: string;
+    type: 'major' | 'minor';
+};
+
+export type CompanyEvaluationQuestion = {
+    id: string;
+    question: string;
+    score: number | null;
+}
+
+export type CompanyEvaluation = {
+    internshipId: string;
+    companyName: string;
+    isEvaluated: boolean;
+    evaluationDate: string | null;
+    questions: CompanyEvaluationQuestion[];
+}
+
 
 // Data from DEMO_USERS.md, adapted for multi-role structure
 export let users: User[] = [
