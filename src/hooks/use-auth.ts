@@ -17,7 +17,12 @@ export function useAuth() {
     try {
       const userItem = localStorage.getItem(USER_STORAGE_KEY);
       if (userItem) {
-        setUser(JSON.parse(userItem));
+        const parsedUser = JSON.parse(userItem);
+        // Ensure roles is always an array
+        if (parsedUser && !Array.isArray(parsedUser.roles)) {
+            parsedUser.roles = [parsedUser.role];
+        }
+        setUser(parsedUser);
       }
     } catch (error) {
       console.error('Failed to parse user from localStorage', error);
@@ -32,7 +37,12 @@ export function useAuth() {
         (u.email === identifier || u.id === identifier) && u.roles.includes(role) && u.password === password
     );
     if (foundUser) {
-        const { password, ...userToStore } = foundUser;
+        const userToStore = {
+            id: foundUser.id,
+            name: foundUser.name,
+            email: foundUser.email,
+            roles: foundUser.roles,
+        };
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToStore));
         setUser(userToStore);
         return userToStore;
