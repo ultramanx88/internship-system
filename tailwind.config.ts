@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Sarabun', 'sans-serif'],
-        headline: ['Sarabun', 'sans-serif'],
+        body: ['Bai Jamjuree', 'sans-serif'],
+        headline: ['Bai Jamjuree', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
@@ -48,6 +48,7 @@ export default {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
+        success: 'hsl(var(--success))',
         chart: {
           '1': 'hsl(var(--chart-1))',
           '2': 'hsl(var(--chart-2))',
