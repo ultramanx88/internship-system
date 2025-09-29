@@ -10,6 +10,7 @@ import { RoleManagementMatrix } from '@/components/admin/settings/RoleManagement
 import { AcademicCalendarSettings } from '@/components/admin/settings/AcademicCalendarSettings';
 import { TitleManagement } from '@/components/admin/settings/TitleManagement';
 import { MajorManagement } from '@/components/admin/settings/MajorManagement';
+import { FacultyManagement } from '@/components/admin/settings/FacultyManagement';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import Image from 'next/image';
 
@@ -24,6 +25,7 @@ export default function AdminSettingsPage() {
       </div>
 
       <TitleManagement />
+      <FacultyManagement />
       <MajorManagement />
       <AcademicCalendarSettings />
       <RoleManagementMatrix />

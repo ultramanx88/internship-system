@@ -88,6 +88,13 @@ export interface Major {
     parentId?: string | null;
 }
 
+// Faculty type
+export interface Faculty {
+    id: string;
+    nameTh: string;
+    nameEn: string;
+}
+
 // Company Evaluation type
 export interface CompanyEvaluation {
     internshipId: string;
