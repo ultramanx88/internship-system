@@ -19,6 +19,11 @@ import {
   Users,
   BarChart2,
   CheckSquare,
+  Building,
+  CalendarClock,
+  BookUser,
+  GraduationCap,
+  ClipboardList,
 } from 'lucide-react';
 
 const studentNav = [
@@ -34,8 +39,12 @@ const teacherNav = [
 
 const adminNav = [
   { href: '/admin', icon: LayoutDashboard, label: 'แดชบอร์ด' },
-  { href: '/admin/applications', icon: Users, label: 'ใบสมัครทั้งหมด' },
-  { href: '/admin/stats', icon: BarChart2, label: 'สถิติ' },
+  { href: '/admin/users', icon: Users, label: 'จัดการผู้ใช้' },
+  { href: '/admin/applications', icon: FileText, label: 'เอกสารขอฝึกงาน' },
+  { href: '/admin/schedules', icon: CalendarClock, label: 'นัดหมายนิเทศ' },
+  { href: '/admin/reports', icon: ClipboardList, label: 'รายงานผลการนิเทศ' },
+  { href: '/admin/companies', icon: Building, label: 'ข้อมูลสถานประกอบการ' },
+  { href: '/admin/summary', icon: BarChart2, label: 'รายงานสรุป' },
 ];
 
 export function DashboardSidebar() {
@@ -45,14 +54,11 @@ export function DashboardSidebar() {
   const getNavItems = () => {
     switch (user?.role) {
       case 'student':
-        // For this demo, we'll map all student pages to /student
-        return studentNav.map(item => ({...item, href: '/student'}));
+        return studentNav;
       case 'teacher':
-        // Map all teacher pages to /teacher
-         return teacherNav.map(item => ({...item, href: '/teacher'}));
+         return teacherNav;
       case 'admin':
-        // Map all admin pages to /admin
-         return adminNav.map(item => ({...item, href: '/admin'}));
+         return adminNav;
       default:
         return [];
     }
@@ -77,6 +83,7 @@ export function DashboardSidebar() {
               <SidebarMenuSkeleton showIcon />
               <SidebarMenuSkeleton showIcon />
               <SidebarMenuSkeleton showIcon />
+              <SidebarMenuSkeleton showIcon />
             </>
           ) : (
             navItems.map((item) => (
@@ -84,7 +91,7 @@ export function DashboardSidebar() {
                 <SidebarMenuButton
                   href={item.href}
                   asChild
-                  isActive={pathname === item.href}
+                  isActive={pathname.startsWith(item.href)}
                 >
                   <a href={item.href}>
                     <item.icon />
