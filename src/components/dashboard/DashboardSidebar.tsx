@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { Icons } from '@/components/icons';
 import {
@@ -85,7 +86,7 @@ export function DashboardSidebar() {
   const { user, loading } = useAuth();
   const { logo } = useAppTheme();
   const pathname = usePathname();
-  const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
+  const [openMenus, setOpenMenus] = useState<Set<string>>(new Set(['applications']));
 
   const getNavItems = () => {
     if (!user || !user.roles) return [];
@@ -161,8 +162,8 @@ export function DashboardSidebar() {
                             <SidebarMenuSub>
                                 {item.subItems.map(subItem => (
                                     <SidebarMenuSubItem key={subItem.href}>
-                                        <SidebarMenuSubButton href={subItem.href} asChild isActive={pathname === subItem.href}>
-                                            <a href={subItem.href}>{subItem.label}</a>
+                                        <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
+                                            <Link href={subItem.href}>{subItem.label}</Link>
                                         </SidebarMenuSubButton>
                                     </SidebarMenuSubItem>
                                 ))}
@@ -171,14 +172,13 @@ export function DashboardSidebar() {
                     </Collapsible>
                  ) : (
                     <SidebarMenuButton
-                        href={item.href}
                         asChild
                         isActive={pathname === item.href}
                         >
-                        <a href={item.href}>
+                        <Link href={item.href}>
                             <item.icon />
                             <span>{item.label}</span>
-                        </a>
+                        </Link>
                     </SidebarMenuButton>
                  )}
               </SidebarMenuItem>
