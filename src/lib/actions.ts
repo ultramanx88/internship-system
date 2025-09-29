@@ -2,10 +2,13 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import { applications, users } from './data';
+import { applications } from './data';
 import { reviewApplication } from '@/ai/flows/teacher-application-review';
 import type { ReviewApplicationInput } from '@/ai/flows/teacher-application-review';
 import { ApplicationStatus } from './types';
+
+// This is a temporary in-memory store for users until DB is set up again.
+const tempUsers: any[] = [];
 
 const RegisterSchema = z.object({
   name: z.string(),
@@ -24,13 +27,13 @@ export async function registerStudent(values: z.infer<typeof RegisterSchema>) {
   
   const { name, email, password, studentSkills, studentStatement } = validatedFields.data;
 
-  const existingUser = users.find((user) => user.email === email);
+  const existingUser = tempUsers.find((user) => user.email === email);
   if (existingUser) {
     return { success: false, message: 'มีบัญชีที่ใช้อีเมลนี้อยู่แล้ว' };
   }
 
   const newUser = {
-    id: `user-${users.length + 1}`,
+    id: `user-${tempUsers.length + 1}`,
     name,
     email,
     password, // In a real app, hash this!
@@ -39,7 +42,7 @@ export async function registerStudent(values: z.infer<typeof RegisterSchema>) {
     statement: studentStatement,
   };
 
-  users.push(newUser);
+  tempUsers.push(newUser);
   console.log('New user registered:', newUser);
 
   return { success: true, message: 'ลงทะเบียนสำเร็จ!' };
