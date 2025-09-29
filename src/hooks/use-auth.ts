@@ -22,9 +22,7 @@ export function AuthRedirect({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, router, pathname]);
 
-  // The loading skeleton is now handled in the layout, so we just return children or null.
-  if (loading || !user) {
-    // For protected routes, we prevent rendering children if not authenticated.
+  if (loading || (!user && pathname !== '/login' && pathname !== '/register')) {
     return null;
   }
 
