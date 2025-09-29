@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Save } from 'lucide-react';
+import { RoleManagementMatrix } from '@/components/admin/settings/RoleManagementMatrix';
 
 export default function AdminSettingsPage() {
   return (
@@ -14,6 +15,8 @@ export default function AdminSettingsPage() {
         <h1 className="text-3xl font-bold gradient-text">ตั้งค่าระบบ</h1>
         <p>จัดการการตั้งค่าและค่ากำหนดต่างๆ ของแอปพลิเคชัน</p>
       </div>
+
+      <RoleManagementMatrix />
 
       <Card>
         <CardHeader>
