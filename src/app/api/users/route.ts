@@ -1,9 +1,10 @@
+'use server';
+
 import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { type Role } from '@/lib/types';
-import { createId } from '@paralleldrive/cuid2';
+import { Role } from '@prisma/client';
 
 const createUserSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -43,48 +44,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(users);
   } catch (error) {
     console.error('Failed to fetch users:', error);
+    // Return an empty array to prevent the client from crashing.
     return NextResponse.json([]);
   }
 }
-
-const deleteUsersSchema = z.object({
-  ids: z.array(z.string()).min(1),
-});
-
-export async function DELETE(request: Request) {
-  try {
-    const body = await request.json();
-    const result = deleteUsersSchema.safeParse(body);
-
-    if (!result.success) {
-      return NextResponse.json({ message: 'Invalid request body', errors: result.error.errors }, { status: 400 });
-    }
-
-    const { ids } = result.data;
-
-    // Prevent deletion of critical demo users if needed, though not strictly required by user
-    // const protectedIds = ['admin2', 'test001'];
-    // const finalIds = ids.filter(id => !protectedIds.includes(id));
-
-    if (ids.length === 0) {
-        return NextResponse.json({ message: 'No users to delete or selected users are protected.' });
-    }
-
-    await prisma.user.deleteMany({
-      where: {
-        id: {
-          in: ids,
-        },
-      },
-    });
-
-    return NextResponse.json({ message: `${ids.length} user(s) deleted successfully.` });
-  } catch (error) {
-    console.error('Failed to delete users:', error);
-    return NextResponse.json({ message: 'Failed to delete users' }, { status: 500 });
-  }
-}
-
 
 export async function POST(request: Request) {
     try {
@@ -109,11 +72,10 @@ export async function POST(request: Request) {
         
         const newUser = await prisma.user.create({
             data: {
-                id: createId(), // Generate a new CUID
                 name,
                 email,
                 password: hashedPassword,
-                roles, // This is now a validated enum array
+                roles,
             },
         });
 
@@ -125,4 +87,35 @@ export async function POST(request: Request) {
         console.error('Failed to create user:', error);
         return NextResponse.json({ message: 'ไม่สามารถสร้างผู้ใช้ได้' }, { status: 500 });
     }
+}
+
+
+const deleteUsersSchema = z.object({
+  ids: z.array(z.string()).min(1),
+});
+
+export async function DELETE(request: Request) {
+  try {
+    const body = await request.json();
+    const result = deleteUsersSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json({ message: 'Invalid request body', errors: result.error.errors }, { status: 400 });
+    }
+
+    const { ids } = result.data;
+
+    await prisma.user.deleteMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
+
+    return NextResponse.json({ message: `${ids.length} user(s) deleted successfully.` });
+  } catch (error) {
+    console.error('Failed to delete users:', error);
+    return NextResponse.json({ message: 'Failed to delete users' }, { status: 500 });
+  }
 }

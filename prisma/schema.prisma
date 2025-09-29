@@ -11,37 +11,39 @@ datasource db {
 }
 
 model User {
-  id        String   @id
-  name      String?
+  id        String   @id @default(cuid())
+  name      String
   email     String   @unique
   password  String
   roles     Role[]
   skills    String?
   statement String?
+
   applications Application[]
 
   @@map("users")
 }
 
 model Internship {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   title       String
   company     String
   location    String
   description String
-  type        String
+  type        InternshipType
+
   applications Application[]
 
   @@map("internships")
 }
 
 model Application {
-  id           String    @id @default(cuid())
-  student      User      @relation(fields: [studentId], references: [id])
+  id           String            @id @default(cuid())
+  student      User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
   studentId    String
-  internship   Internship @relation(fields: [internshipId], references: [id])
+  internship   Internship        @relation(fields: [internshipId], references: [id], onDelete: Cascade)
   internshipId String
-  status       String
+  status       ApplicationStatus
   dateApplied  DateTime
   feedback     String?
   projectTopic String?
@@ -50,11 +52,9 @@ model Application {
 }
 
 model Faculty {
-  id      String @id @default(cuid())
+  id      String   @id @default(cuid())
   nameTh  String
-  nameEn  String
-
-  @@map("faculties")
+  nameEn  String?
 }
 
 enum Role {
@@ -64,4 +64,15 @@ enum Role {
   committee
   visitor
   student
+}
+
+enum ApplicationStatus {
+  pending
+  approved
+  rejected
+}
+
+enum InternshipType {
+  internship
+  co_op
 }
