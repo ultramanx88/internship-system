@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import type { User } from '@/lib/types';
 import { roles as roleData } from '@/lib/permissions';
 import {
@@ -41,11 +41,14 @@ export function UsersTable() {
 
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         setIsLoading(true);
         try {
             const response = await fetch('/api/users');
-            if (!response.ok) throw new Error('Failed to fetch users');
+            if (!response.ok) {
+                // We throw an error here to be caught by the catch block
+                throw new Error(`Failed to fetch users: ${response.statusText}`);
+            }
             const data = await response.json();
             setUsers(data);
         } catch (error) {
@@ -53,18 +56,20 @@ export function UsersTable() {
             toast({
                 variant: 'destructive',
                 title: 'เกิดข้อผิดพลาด',
-                description: 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้',
+                description: 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้ อาจเกิดจากปัญหาการเชื่อมต่อฐานข้อมูล',
             });
+            setUsers([]); // Set to empty array on error
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [toast]);
 
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [fetchUsers]);
 
     const filteredUsers = useMemo(() => {
+        if (isLoading) return [];
         return users.filter(user => {
             const matchesSearch = user.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
                 user.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
@@ -72,10 +77,10 @@ export function UsersTable() {
             const matchesRole = roleFilter === 'all' || user.roles.includes(roleFilter as any);
             return matchesSearch && matchesRole;
         });
-    }, [users, debouncedSearchTerm, roleFilter]);
+    }, [users, debouncedSearchTerm, roleFilter, isLoading]);
 
-    const isAllSelected = filteredUsers.length > 0 && selected.size === filteredUsers.length;
-    const isSomeSelected = selected.size > 0 && selected.size < filteredUsers.length;
+    const isAllSelected = !isLoading && filteredUsers.length > 0 && selected.size === filteredUsers.length;
+    const isSomeSelected = !isLoading && selected.size > 0 && selected.size < filteredUsers.length;
 
     const toggleAll = () => {
         if (isAllSelected) {
@@ -249,7 +254,7 @@ export function UsersTable() {
                             ) : (
                                 <TableRow>
                                     <TableCell colSpan={5} className="h-24 text-center">
-                                        ไม่พบข้อมูล
+                                        ไม่พบข้อมูล (อาจเกิดจากปัญหาการเชื่อมต่อฐานข้อมูล)
                                     </TableCell>
                                 </TableRow>
                             )}

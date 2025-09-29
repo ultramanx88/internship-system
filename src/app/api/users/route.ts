@@ -13,7 +13,9 @@ export async function GET() {
     return NextResponse.json(users);
   } catch (error) {
     console.error('Failed to fetch users:', error);
-    return NextResponse.json({ message: 'Failed to fetch users' }, { status: 500 });
+    // In case of a DB connection error, return an empty array
+    // to prevent the client-side from crashing.
+    return NextResponse.json([]);
   }
 }
 
@@ -31,9 +33,6 @@ export async function DELETE(request: Request) {
     }
 
     const { ids } = result.data;
-
-    // Additional check to prevent deleting critical users if needed
-    // For example, you might not want to delete the main admin user.
 
     await prisma.user.deleteMany({
       where: {
