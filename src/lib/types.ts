@@ -88,7 +88,7 @@ export interface Major {
     parentId?: string | null;
 }
 
-// Faculty type
+// Faculty type from Prisma
 export interface Faculty {
     id: string;
     nameTh: string;
