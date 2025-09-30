@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { applications as mockApplications, users as mockUsers, internships as mockInternships } from '@/lib/data';
 import {
   Table,
@@ -154,12 +155,12 @@ export default function AdminReportsPage() {
                                             </TableCell>
                                             <TableCell className="text-center">
                                                 <Button 
+                                                    asChild
                                                     size="sm" 
                                                     variant="outline" 
                                                     disabled={item.reportStatus === 'ยังไม่มีรายงาน'}
-                                                    onClick={() => alert('ฟังก์ชันยังไม่ถูกใช้งาน')}
                                                 >
-                                                    ดูรายงาน
+                                                    <Link href={`/admin/reports/${item.id}`}>ดูรายงาน</Link>
                                                 </Button>
                                             </TableCell>
                                         </TableRow>
