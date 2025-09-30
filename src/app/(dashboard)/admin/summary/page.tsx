@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, BarChart, Users, Building, CheckCircle } from 'lucide-react';
+import { users, internships } from '@/lib/data';
 
 export default function AdminSummaryPage() {
   // Mock data for summary, in a real app this would be fetched
@@ -11,6 +12,42 @@ export default function AdminSummaryPage() {
     totalCompanies: 15,
     totalApplications: 50,
     approvedRate: 85,
+  };
+
+  const createCsvContent = (headers: string[], data: any[], keys: string[]) => {
+    const headerRow = headers.join(',');
+    const dataRows = data.map(row => 
+      keys.map(key => `"${row[key] || ''}"`).join(',')
+    );
+    return "\uFEFF" + [headerRow, ...dataRows].join('\n');
+  };
+
+  const downloadCsv = (csvContent: string, fileName: string) => {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.href) {
+      URL.revokeObjectURL(link.href);
+    }
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownloadStudents = () => {
+    const headers = ["ID", "Name", "Email", "Roles"];
+    const studentData = users.filter(u => u.roles.includes('student'));
+    const csvContent = createCsvContent(headers, studentData, ['id', 'name', 'email', 'roles']);
+    downloadCsv(csvContent, 'student_data.csv');
+  };
+
+  const handleDownloadCompanies = () => {
+    const headers = ["Company", "Location", "Title", "Type"];
+    const companyData = internships;
+    const csvContent = createCsvContent(headers, companyData, ['company', 'location', 'title', 'type']);
+    downloadCsv(csvContent, 'company_data.csv');
   };
 
   return (
@@ -71,15 +108,15 @@ export default function AdminSummaryPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-4">
-          <Button variant="outline">
+          <Button variant="outline" disabled>
             <Download className="mr-2 h-4 w-4" />
             ดาวน์โหลดรายงานสรุป (PDF)
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleDownloadStudents}>
             <Download className="mr-2 h-4 w-4" />
             ดาวน์โหลดข้อมูลนักศึกษา (Excel)
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleDownloadCompanies}>
             <Download className="mr-2 h-4 w-4" />
             ดาวน์โหลดข้อมูลบริษัท (Excel)
           </Button>
