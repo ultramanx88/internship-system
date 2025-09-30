@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { users as mockUsers, applications as mockApplications, internships as mockInternships } from '@/lib/data';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   studentId: z.string({ required_error: 'กรุณาเลือกนักศึกษา' }),
@@ -34,9 +35,20 @@ const formSchema = z.object({
   visitDate: z.date({ required_error: 'กรุณาเลือกวันที่' }),
 });
 
+type ScheduleData = {
+    id: string;
+    studentName: string;
+    studentId: string;
+    companyName: string;
+    teacherName: string;
+    visitDate: string;
+    scheduleStatus: string;
+};
+
 type CreateScheduleFormProps = {
   onSuccess: () => void;
   onCancel: () => void;
+  schedule?: ScheduleData | null;
 };
 
 // Prepare mock data for form selects
@@ -47,21 +59,42 @@ const approvedStudents = mockApplications
 
 const visitors = mockUsers.filter(u => u.roles.includes('visitor'));
 
-export function CreateScheduleForm({ onSuccess, onCancel }: CreateScheduleFormProps) {
+export function CreateScheduleForm({ onSuccess, onCancel, schedule }: CreateScheduleFormProps) {
   const { toast } = useToast();
+  const isEditMode = !!schedule;
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
 
-  const { formState, handleSubmit, control } = form;
+  const { formState, handleSubmit, control, reset } = form;
+
+  useEffect(() => {
+    if (isEditMode && schedule) {
+        // Find the visitor associated with the teacherName
+        const visitorUser = visitors.find(v => v.name === schedule.teacherName);
+        reset({
+            studentId: schedule.studentId,
+            visitorId: visitorUser?.id,
+            visitDate: schedule.visitDate !== 'ยังไม่ได้นัดหมาย' ? new Date(schedule.visitDate) : undefined,
+        });
+    } else {
+        reset({
+            studentId: undefined,
+            visitorId: undefined,
+            visitDate: undefined,
+        });
+    }
+  }, [schedule, isEditMode, reset]);
+
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     // Simulate API call
-    console.log('Creating schedule:', values);
+    console.log(isEditMode ? 'Updating schedule:' : 'Creating schedule:', values);
 
     toast({
-        title: 'สร้างนัดหมายสำเร็จ',
-        description: `ได้สร้างนัดหมายสำหรับวันที่ ${format(values.visitDate, 'PPP', { locale: th })} เรียบร้อยแล้ว`,
+        title: isEditMode ? 'อัปเดตนัดหมายสำเร็จ' : 'สร้างนัดหมายสำเร็จ',
+        description: `ได้บันทึกนัดหมายสำหรับวันที่ ${format(values.visitDate, 'PPP', { locale: th })} เรียบร้อยแล้ว`,
     });
     onSuccess();
   }
@@ -75,7 +108,7 @@ export function CreateScheduleForm({ onSuccess, onCancel }: CreateScheduleFormPr
           render={({ field }) => (
             <FormItem>
               <FormLabel>นักศึกษา</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value} disabled={isEditMode}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="เลือกนักศึกษาที่ต้องการนัดหมาย" />
@@ -97,7 +130,7 @@ export function CreateScheduleForm({ onSuccess, onCancel }: CreateScheduleFormPr
           render={({ field }) => (
             <FormItem>
               <FormLabel>อาจารย์นิเทศ</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="เลือกอาจารย์ที่จะไปนิเทศ" />
@@ -160,7 +193,7 @@ export function CreateScheduleForm({ onSuccess, onCancel }: CreateScheduleFormPr
             </Button>
             <Button type="submit" disabled={formState.isSubmitting}>
                 {formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                {formState.isSubmitting ? 'กำลังบันทึก...' : 'บันทึกนัดหมาย'}
+                {formState.isSubmitting ? 'กำลังบันทึก...' : isEditMode ? 'บันทึกการเปลี่ยนแปลง' : 'บันทึกนัดหมาย'}
             </Button>
         </div>
       </form>

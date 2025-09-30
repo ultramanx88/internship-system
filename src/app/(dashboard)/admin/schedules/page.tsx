@@ -20,13 +20,26 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CreateScheduleForm } from '@/components/admin/schedules/CreateScheduleForm';
 
+type ScheduleData = {
+    id: string;
+    studentName: string;
+    studentId: string;
+    companyName: string;
+    teacherName: string;
+    visitDate: string;
+    scheduleStatus: string;
+};
+
 export default function AdminSchedulesPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [editingSchedule, setEditingSchedule] = useState<ScheduleData | null>(null);
+
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-    const scheduleData = useMemo(() => {
+    const scheduleData: ScheduleData[] = useMemo(() => {
         // Mock data for schedules - combining applications, users, and internships
         return mockApplications
             .filter(app => app.status === 'approved') // Only show schedules for approved applications
@@ -60,10 +73,21 @@ export default function AdminSchedulesPage() {
         });
     }, [scheduleData, debouncedSearchTerm, statusFilter]);
 
-    const handleSuccess = () => {
-        setIsDialogOpen(false);
+    const handleCreateSuccess = () => {
+        setIsCreateDialogOpen(false);
         // Here you would typically refetch the data
-    }
+    };
+
+    const handleEditSuccess = () => {
+        setIsEditDialogOpen(false);
+        setEditingSchedule(null);
+        // Here you would typically refetch the data
+    };
+
+    const openEditDialog = (schedule: ScheduleData) => {
+        setEditingSchedule(schedule);
+        setIsEditDialogOpen(true);
+    };
 
     return (
         <div className="grid gap-8 text-secondary-600">
@@ -98,7 +122,7 @@ export default function AdminSchedulesPage() {
                                 <SelectItem value="ยังไม่มอบหมาย">ยังไม่มอบหมาย</SelectItem>
                             </SelectContent>
                         </Select>
-                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                             <DialogTrigger asChild>
                                 <Button className="ml-auto">
                                     <Calendar className="mr-2 h-4 w-4" />
@@ -113,8 +137,8 @@ export default function AdminSchedulesPage() {
                                     </DialogDescription>
                                 </DialogHeader>
                                 <CreateScheduleForm 
-                                    onSuccess={handleSuccess}
-                                    onCancel={() => setIsDialogOpen(false)}
+                                    onSuccess={handleCreateSuccess}
+                                    onCancel={() => setIsCreateDialogOpen(false)}
                                 />
                             </DialogContent>
                         </Dialog>
@@ -149,7 +173,7 @@ export default function AdminSchedulesPage() {
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-center">
-                                                <Button size="sm" variant="outline">
+                                                <Button size="sm" variant="outline" onClick={() => openEditDialog(item)}>
                                                     จัดการ
                                                 </Button>
                                             </TableCell>
@@ -165,6 +189,24 @@ export default function AdminSchedulesPage() {
                             </TableBody>
                         </Table>
                     </div>
+
+                    {/* Edit Dialog */}
+                    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                        <DialogContent className="sm:max-w-[480px]">
+                            <DialogHeader>
+                                <DialogTitle>จัดการนัดหมายการนิเทศ</DialogTitle>
+                                <DialogDescription>
+                                    อัปเดตข้อมูลสำหรับ: {editingSchedule?.studentName}
+                                </DialogDescription>
+                            </DialogHeader>
+                            <CreateScheduleForm 
+                                onSuccess={handleEditSuccess}
+                                onCancel={() => setIsEditDialogOpen(false)}
+                                schedule={editingSchedule}
+                            />
+                        </DialogContent>
+                    </Dialog>
+
                 </CardContent>
             </Card>
         </div>
