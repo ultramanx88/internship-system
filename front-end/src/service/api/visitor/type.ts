@@ -81,6 +81,7 @@ export type VisitorInterface = {
 };
 
 export type VisitorScheduleDTO = {
+  id?: number;
   visitor_training_id: number;
   visit_no: number;
   visit_at: string;
