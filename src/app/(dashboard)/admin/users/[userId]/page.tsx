@@ -6,10 +6,10 @@ import { users as mockUsers, roles as mockRoles } from '@/lib/data';
 import { User, Role } from '@prisma/client';
 
 import {
-  CancelRounded,
-  EditNoteRounded,
+  X as CancelIcon,
+  Edit,
   Save,
-} from "@mui/icons-material";
+} from "lucide-react";
 import { PROTECTED_PATH } from "../../../../../constant/path.route";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -53,10 +53,10 @@ export default function UserProfilePage() {
           Login_id: foundUser.id,
           password: foundUser.password || '',
           role_id: foundUser.roles.length > 0 ? foundUser.roles[0] : '',
-          t_name: nameParts[0],
-          t_surname: nameParts[1],
-          e_name: nameParts[0],
-          e_surname: nameParts[1],
+          t_name: foundUser.t_name || nameParts[0],
+          t_surname: foundUser.t_surname || nameParts[1],
+          e_name: foundUser.e_name || nameParts[0],
+          e_surname: foundUser.e_surname || nameParts[1],
           email: foundUser.email,
           t_title: '',
           t_middlename: '',
@@ -112,12 +112,12 @@ export default function UserProfilePage() {
                 </>
               ) : (
                 <Button onClick={() => setIsEdit(true)}>
-                  <EditNoteRounded className="mr-2" />
+                  <Edit className="mr-2" />
                   แก้ไขข้อมูล
                 </Button>
               )}
                <Button variant="ghost" size="icon" onClick={() => router.push(PROTECTED_PATH.UPLOAD_LIST)}>
-                  <CancelRounded fontSize="medium" className="text-gray-500" />
+                  <CancelIcon className="text-gray-500" />
                </Button>
             </div>
           </div>
