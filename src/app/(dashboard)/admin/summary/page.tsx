@@ -108,7 +108,7 @@ export default function AdminSummaryPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-4">
-          <Button variant="outline" disabled>
+          <Button variant="outline" onClick={() => window.print()}>
             <Download className="mr-2 h-4 w-4" />
             ดาวน์โหลดรายงานสรุป (PDF)
           </Button>
