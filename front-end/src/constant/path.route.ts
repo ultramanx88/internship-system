@@ -36,10 +36,10 @@ export const PROTECTED_PATH = {
   VISITOR_VISITS_PERSON: "/visitor/visits/person",
 
   VISITOR_EVALUATE: "/visitor/evaluate",
-  VISITOR_EVALUATE_STUDENT: "/visitor/evaluate/student",
-  VISITOR_EVALUATE_STUDENT_PERSON: "/visitor/evaluate/student/person",
   VISITOR_EVALUATE_COMPANY: "/visitor/evaluate/company",
   VISITOR_EVALUATE_COMPANY_PERSON: "/visitor/evaluate/company/person",
+  VISITOR_EVALUATE_STUDENT: "/visitor/evaluate/student",
+  VISITOR_EVALUATE_STUDENT_PERSON: "/visitor/evaluate/student/person",
 
   ATTEND_TRAINING: "/attend_training",
   ATTEND_TRAINING_PERSON: "/attend_training/person",
