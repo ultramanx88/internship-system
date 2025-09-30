@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, Trash2, UserPlus, Loader2 } from 'lucide-react';
+import { Upload, Trash2, UserPlus, Loader2, Edit } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog"
 import { AddUserForm } from './AddUserForm';
 import { UploadUsersDialog } from './UploadUsersDialog';
+import { EditUserForm } from './EditUserForm';
 
 export function UsersTable() {
     const [users, setUsers] = useState<User[]>([]);
@@ -39,6 +40,8 @@ export function UsersTable() {
     const [roleFilter, setRoleFilter] = useState('all');
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
     const [isUploadOpen, setIsUploadOpen] = useState(false);
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+    
     const { toast } = useToast();
 
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -58,7 +61,7 @@ export function UsersTable() {
             toast({
                 variant: 'destructive',
                 title: 'เกิดข้อผิดพลาด',
-                description: 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้ อาจเกิดจากปัญหาการเชื่อมต่อฐานข้อมูล',
+                description: 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้',
             });
             setUsers([]);
         } finally {
@@ -139,6 +142,7 @@ export function UsersTable() {
     const handleSuccess = () => {
       setIsAddUserOpen(false);
       setIsUploadOpen(false);
+      setEditingUser(null);
       fetchUsers(debouncedSearchTerm, roleFilter);
     }
 
@@ -224,8 +228,8 @@ export function UsersTable() {
                                 </TableHead>
                                 <TableHead className="text-white">ชื่อ</TableHead>
                                 <TableHead className="text-white">อีเมล</TableHead>
-                                <TableHead className="text-white">รหัส</TableHead>
                                 <TableHead className="text-white">ตำแหน่ง</TableHead>
+                                <TableHead className="text-white text-center">ดำเนินการ</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -247,8 +251,12 @@ export function UsersTable() {
                                         </TableCell>
                                         <TableCell className="font-medium">{user.name}</TableCell>
                                         <TableCell>{user.email}</TableCell>
-                                        <TableCell>{user.id}</TableCell>
                                         <TableCell>{user.roles.map(r => roleTranslations[r as any] || r).join(', ')}</TableCell>
+                                        <TableCell className="text-center">
+                                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setEditingUser(user)}>
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                        </TableCell>
                                     </TableRow>
                                 ))
                             ) : (
@@ -261,6 +269,25 @@ export function UsersTable() {
                         </TableBody>
                     </Table>
                 </div>
+                
+                {/* Edit User Dialog */}
+                <Dialog open={!!editingUser} onOpenChange={(isOpen) => !isOpen && setEditingUser(null)}>
+                     <DialogContent className="sm:max-w-[480px]">
+                        <DialogHeader>
+                        <DialogTitle>แก้ไขข้อมูลผู้ใช้</DialogTitle>
+                        <DialogDescription>
+                            อัปเดตรายละเอียดสำหรับ {editingUser?.name}
+                        </DialogDescription>
+                        </DialogHeader>
+                        {editingUser && (
+                             <EditUserForm 
+                                user={editingUser}
+                                onSuccess={handleSuccess}
+                                onCancel={() => setEditingUser(null)}
+                            />
+                        )}
+                    </DialogContent>
+                </Dialog>
             </CardContent>
         </Card>
     );

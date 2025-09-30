@@ -4,16 +4,13 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createId } from '@paralleldrive/cuid2';
 import { users } from '@/lib/data';
-
-// Define roles as a string array for validation without Prisma enum
-const rolesEnum = z.enum(["admin", "staff", "courseInstructor", "committee", "visitor", "student"]);
-type Role = z.infer<typeof rolesEnum>;
+import { Role } from '@prisma/client';
 
 const createUserSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  roles: z.array(rolesEnum).min(1, 'At least one role is required'),
+  roles: z.array(z.string()).min(1, 'At least one role is required'),
 });
 
 export async function GET(request: NextRequest) {
@@ -68,7 +65,7 @@ export async function POST(request: Request) {
             name,
             email,
             password, // In a real app, this would be hashed
-            roles,
+            roles: roles as Role[],
             skills: null,
             statement: null
         };
@@ -103,11 +100,15 @@ export async function DELETE(request: Request) {
     
     const initialLength = users.length;
     const idsToDelete = new Set(ids);
-    const newUsers = users.filter(user => !idsToDelete.has(user.id));
     
     // This is a hack for the mock data. In a real DB, you'd just delete.
-    users.length = 0;
-    Array.prototype.push.apply(users, newUsers);
+    const originalUsers = [...users];
+    users.length = 0; 
+    originalUsers.forEach(user => {
+        if(!idsToDelete.has(user.id)) {
+            users.push(user);
+        }
+    });
 
     const deletedCount = initialLength - users.length;
 
