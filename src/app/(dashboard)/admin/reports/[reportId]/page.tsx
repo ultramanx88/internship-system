@@ -1,3 +1,5 @@
+'use client';
+
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { applications, users, internships, progressReports } from '@/lib/data';
@@ -6,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, User, Building, GraduationCap, Calendar, FileText, Printer } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
-export default async function ReportDetailsPage({ params }: { params: { reportId: string } }) {
+export default function ReportDetailsPage({ params }: { params: { reportId: string } }) {
   const { reportId } = params;
   const application = applications.find(app => app.id === reportId);
 
