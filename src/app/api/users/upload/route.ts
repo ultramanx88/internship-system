@@ -1,16 +1,13 @@
 'use server';
 
 import { NextResponse } from 'next/server';
-import * as xlsx from 'xlsx';
 import { z } from 'zod';
 import { roles as validRolesData } from '@/lib/permissions';
 import { createId } from '@paralleldrive/cuid2';
 import { users } from '@/lib/data'; // Import mock data
 
-// Define valid roles from permissions lib
 const validRoles = validRolesData.map(r => r.id);
 
-// Define a schema without Prisma's Role enum
 const userSchema = z.object({
   id: z.string().optional(),
   email: z.string().email({ message: 'อีเมลไม่ถูกต้อง' }),
@@ -37,35 +34,24 @@ const userSchema = z.object({
   }),
 });
 
+const uploadSchema = z.array(z.any());
 
 export async function POST(request: Request) {
   try {
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-
-    if (!file) {
-      return NextResponse.json({ message: 'ไม่พบไฟล์' }, { status: 400 });
-    }
-
-    const buffer = await file.arrayBuffer();
-    const workbook = xlsx.read(buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const data = xlsx.utils.sheet_to_json(sheet) as any[];
+    const body = await request.json();
+    const data = uploadSchema.parse(body);
 
     let createdCount = 0;
-    let updatedCount = 0; // Not implementing updates for now
+    let updatedCount = 0;
     let skippedCount = 0;
     const errors: string[] = [];
 
-    // Use existing mock data for checks
     const existingEmails = new Set(users.map(u => u.email));
     const existingIds = new Set(users.map(u => u.id));
 
     for (const [index, row] of data.entries()) {
-      const rowIndex = index + 2; // Excel rows are 1-based, plus header
-      
-      // Ensure password is a string
+      const rowIndex = index + 2;
+
       if (row.password !== undefined && typeof row.password !== 'string') {
         row.password = String(row.password);
       }
@@ -73,7 +59,7 @@ export async function POST(request: Request) {
       const validation = userSchema.safeParse(row);
 
       if (!validation.success) {
-        const errorMessages = validation.error.issues.map(issue => `แถวที่ ${rowIndex}: ${issue.message} (ข้อมูล: ${JSON.stringify(row)})`);
+        const errorMessages = validation.error.issues.map(issue => `แถวที่ ${rowIndex}: ${issue.message}`);
         errors.push(...errorMessages);
         skippedCount++;
         continue;
@@ -82,32 +68,29 @@ export async function POST(request: Request) {
       const { id, email, name, password, roles } = validation.data;
       
       if (existingEmails.has(email)) {
+        errors.push(`แถวที่ ${rowIndex}: อีเมล '${email}' มีอยู่แล้วในระบบ`);
         skippedCount++;
-        errors.push(`แถวที่ ${rowIndex}: อีเมล '${email}' มีอยู่แล้วในระบบ (ถูกข้าม)`);
         continue;
       }
 
       if (id && existingIds.has(id)) {
+        errors.push(`แถวที่ ${rowIndex}: ID '${id}' มีอยู่แล้วในระบบ`);
         skippedCount++;
-        errors.push(`แถวที่ ${rowIndex}: ID '${id}' มีอยู่แล้วในระบบ (ถูกข้าม)`);
         continue;
       }
-      
-      // In a real app, you would hash the password. Here we store it as is or hash it.
-      // Let's stick to the convention of storing it plain for the mock data for now.
       
       users.push({
           id: id || createId(),
           name,
           email,
-          password, // Storing plain text password for mock data consistency
-          roles: roles as any, // Cast to any to match mock data type
+          password,
+          roles: roles as any,
           skills: null,
           statement: null,
       });
 
       createdCount++;
-      existingEmails.add(email); // Add to set to handle duplicates within the same file
+      existingEmails.add(email);
       if (id) existingIds.add(id);
     }
 
@@ -121,6 +104,9 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('Failed to process upload:', error);
-    return NextResponse.json({ message: 'เกิดข้อผิดพลาดในการประมวลผลไฟล์', error: error.message }, { status: 500 });
+    if (error instanceof z.ZodError) {
+        return NextResponse.json({ message: 'ข้อมูลที่ส่งมาไม่ถูกต้อง', errors: error.errors }, { status: 400 });
+    }
+    return NextResponse.json({ message: 'เกิดข้อผิดพลาดในการประมวลผลข้อมูล', error: error.message }, { status: 500 });
   }
 }

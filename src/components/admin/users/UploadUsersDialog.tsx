@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import * as xlsx from 'xlsx';
 import { useDropzone } from 'react-dropzone';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -53,36 +54,43 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
     setIsUploading(true);
     setResult(null);
 
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    try {
-        const response = await fetch('/api/users/upload', {
-            method: 'POST',
-            body: formData,
-        });
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+        try {
+            const data = event.target?.result;
+            const workbook = xlsx.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const json = xlsx.utils.sheet_to_json(worksheet);
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to upload file');
+            const response = await fetch('/api/users/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(json),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to upload data');
+            }
+
+            const resultData = await response.json();
+            setResult(resultData);
+            toast({
+                title: 'อัปโหลดสำเร็จ',
+                description: 'ข้อมูลผู้ใช้ได้รับการประมวลผลแล้ว',
+            });
+        } catch (error: any) {
+            toast({
+                variant: 'destructive',
+                title: 'เกิดข้อผิดพลาดในการอัปโหลด',
+                description: error.message || 'ไม่สามารถประมวลผลไฟล์ได้',
+            });
+        } finally {
+            setIsUploading(false);
         }
-
-        const resultData = await response.json();
-        setResult(resultData);
-        toast({
-            title: 'อัปโหลดสำเร็จ',
-            description: 'ข้อมูลผู้ใช้ได้รับการประมวลผลแล้ว',
-        });
-        
-    } catch (error: any) {
-        toast({
-            variant: 'destructive',
-            title: 'เกิดข้อผิดพลาดในการอัปโหลด',
-            description: error.message || 'ไม่สามารถประมวลผลไฟล์ได้',
-        });
-    } finally {
-        setIsUploading(false);
-    }
+    };
+    reader.readAsArrayBuffer(file);
   }
   
   const handleDone = () => {
@@ -145,7 +153,7 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
             <AlertDescription className="space-y-2">
                 <p>สร้างใหม่: {result.createdCount} รายการ</p>
                 <p>อัปเดต: {result.updatedCount} รายการ</p>
-                <p>ข้าม (อีเมลซ้ำ): {result.skippedCount} รายการ</p>
+                <p>ข้าม: {result.skippedCount} รายการ</p>
                 {result.errors.length > 0 && (
                     <div>
                         <p className="font-semibold text-destructive">ข้อผิดพลาด ({result.errors.length} รายการ):</p>
