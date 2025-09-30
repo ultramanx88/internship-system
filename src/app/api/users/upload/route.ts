@@ -1,7 +1,6 @@
 'use server';
 
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
 import * as xlsx from 'xlsx';
 import { z } from 'zod';
 import { roles as validRolesData } from '@/lib/permissions';
