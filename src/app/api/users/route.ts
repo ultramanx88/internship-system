@@ -2,15 +2,18 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
-import { Role } from '@prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import { users } from '@/lib/data';
+
+// Define roles as a string array for validation without Prisma enum
+const rolesEnum = z.enum(["admin", "staff", "courseInstructor", "committee", "visitor", "student"]);
+type Role = z.infer<typeof rolesEnum>;
 
 const createUserSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  roles: z.array(z.nativeEnum(Role)).min(1, 'At least one role is required'),
+  roles: z.array(rolesEnum).min(1, 'At least one role is required'),
 });
 
 export async function GET(request: NextRequest) {
