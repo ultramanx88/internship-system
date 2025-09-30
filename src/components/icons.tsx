@@ -3,12 +3,14 @@ import Image from 'next/image';
 
 type IconProps = SVGProps<SVGSVGElement> & {
   logoUrl?: string | null;
+  width?: number;
+  height?: number;
 };
 
 export const Icons = {
-  logo: ({ logoUrl, ...props }: IconProps) => {
+  logo: ({ logoUrl, width = 32, height = 32, ...props }: IconProps) => {
     if (logoUrl) {
-      return <Image src={logoUrl} alt="Logo" width={32} height={32} {...props} />;
+      return <Image src={logoUrl} alt="Logo" width={width} height={height} />;
     }
     return (
       <svg

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { users as mockUsers } from '@/lib/data';
 import { roles as mockRoles } from '@/lib/permissions';
 import { titles as mockTitles } from '@/lib/data';
 import { User, Role } from '@prisma/client';
@@ -50,28 +49,52 @@ export default function UserProfilePage() {
   });
 
   useEffect(() => {
-    // In a real app, you would fetch the user from the API
-    // For demo purposes, we find the user in the mock data
-    const foundUser: any = mockUsers.find(u => u.id === userId);
-    if (foundUser) {
-      setUser(foundUser as User);
-      setFormData({
-          Login_id: foundUser.id,
-          password: '', // Password should not be pre-filled for security
-          role_id: foundUser.roles.length > 0 ? (foundUser.roles[0] as string) : '',
-          t_name: foundUser.t_name || '',
-          t_surname: foundUser.t_surname || '',
-          e_name: foundUser.e_name || '',
-          e_surname: foundUser.e_surname || '',
-          email: foundUser.email,
-          t_title: foundUser.t_title || '',
-          t_middlename: foundUser.t_middlename || '',
-          e_title: foundUser.e_title || '',
-          e_middle_name: foundUser.e_middle_name || '',
-      });
+    const fetchUser = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/users/${userId}`);
+        if (response.ok) {
+          const foundUser = await response.json();
+          setUser(foundUser as User);
+          const userRoles = Array.isArray(foundUser.roles) ? foundUser.roles : JSON.parse(foundUser.roles || '[]');
+          setFormData({
+            Login_id: foundUser.id,
+            password: '', // Password should not be pre-filled for security
+            role_id: userRoles.length > 0 ? userRoles[0] : '',
+            t_name: foundUser.t_name || '',
+            t_surname: foundUser.t_surname || '',
+            e_name: foundUser.e_name || '',
+            e_surname: foundUser.e_surname || '',
+            email: foundUser.email,
+            t_title: foundUser.t_title || '',
+            t_middlename: foundUser.t_middle_name || '',
+            e_title: foundUser.e_title || '',
+            e_middle_name: foundUser.e_middle_name || '',
+          });
+        } else {
+          toast({
+            variant: 'destructive',
+            title: 'ไม่พบผู้ใช้งาน',
+            description: 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้',
+          });
+          router.push('/admin/users');
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        toast({
+          variant: 'destructive',
+          title: 'เกิดข้อผิดพลาด',
+          description: 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchUser();
     }
-    setIsLoading(false);
-  }, [userId]);
+  }, [userId, toast, router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -85,10 +108,26 @@ export default function UserProfilePage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+        // แปลงข้อมูลให้ตรงกับ API
+        const apiData = {
+            newId: formData.Login_id,
+            email: formData.email,
+            password: formData.password || undefined,
+            roles: formData.role_id ? [formData.role_id] : [],
+            t_title: formData.t_title,
+            t_name: formData.t_name,
+            t_middle_name: formData.t_middlename,
+            t_surname: formData.t_surname,
+            e_title: formData.e_title,
+            e_name: formData.e_name,
+            e_middle_name: formData.e_middle_name,
+            e_surname: formData.e_surname,
+        };
+
         const response = await fetch(`/api/users/${userId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData),
+            body: JSON.stringify(apiData),
         });
 
         if (!response.ok) {
@@ -96,12 +135,27 @@ export default function UserProfilePage() {
             throw new Error(errorData.message || 'Failed to update user');
         }
         
+        const result = await response.json();
+        
         toast({
             title: "บันทึกสำเร็จ",
-            description: "ข้อมูลผู้ใช้ได้รับการอัปเดตเรียบร้อยแล้ว",
+            description: formData.Login_id !== userId 
+              ? `เปลี่ยน Login ID จาก ${userId} เป็น ${formData.Login_id} และอัปเดตข้อมูลเรียบร้อยแล้ว`
+              : "ข้อมูลผู้ใช้ได้รับการอัปเดตเรียบร้อยแล้ว",
         });
         setIsEdit(false);
-        // Here you might want to refetch the user data or update the local state
+        
+        // ถ้าเปลี่ยน Login ID ให้ redirect ไปหน้าใหม่
+        if (formData.Login_id !== userId) {
+          router.push(`/admin/users/${formData.Login_id}`);
+        } else {
+          // Refresh ข้อมูลผู้ใช้
+          const refreshResponse = await fetch(`/api/users/${userId}`);
+          if (refreshResponse.ok) {
+            const updatedUser = await refreshResponse.json();
+            setUser(updatedUser);
+          }
+        }
     } catch (error: any) {
         toast({
             variant: 'destructive',
@@ -159,7 +213,12 @@ export default function UserProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
                         <Label htmlFor="Login_id">Login ID (รหัสนักศึกษา/ผู้ใช้)</Label>
-                        <Input id="Login_id" value={formData.Login_id} onChange={handleInputChange} disabled />
+                        <Input id="Login_id" value={formData.Login_id} onChange={handleInputChange} disabled={!isEdit} />
+                        {isEdit && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            สามารถแก้ไข Login ID ได้ แต่ต้องไม่ซ้ำกับผู้ใช้อื่น
+                          </p>
+                        )}
                     </div>
                      <div>
                         <Label htmlFor="email">อีเมล</Label>

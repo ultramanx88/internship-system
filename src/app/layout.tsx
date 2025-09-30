@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/use-auth-provider';
 
 export const metadata: Metadata = {
-  title: 'InternshipFlow',
+  title: 'Internship',
   description: 'ระบบจัดการการฝึกงานและสหกิจศึกษา',
 };
 

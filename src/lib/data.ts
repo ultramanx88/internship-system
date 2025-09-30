@@ -1,11 +1,52 @@
-import { User, Internship, Application, ProgressReport, AcademicTerm, Holiday, Major, CompanyEvaluation, Faculty, Role } from '@prisma/client';
+import { User, Internship, Application, Faculty, Role } from '@prisma/client';
 
-type DemoUser = Omit<User, 'createdAt' | 'updatedAt'> & {
+// Define missing types locally
+type ProgressReport = {
+  id: string;
+  applicationId: string;
+  report: string;
+  date: Date;
+};
+
+type AcademicTerm = {
+  id: string;
+  year: number;
+  semester: string;
+  startDate: Date;
+  endDate: Date;
+};
+
+type Holiday = {
+  id: string;
+  date: Date;
+  name: string;
+};
+
+type Major = {
+  id: string;
+  nameTh: string;
+  nameEn: string;
+  parentId: string | null;
+};
+
+// Remove duplicate CompanyEvaluation type
+
+type DemoUser = {
+    id: string;
+    name: string;
+    email: string;
     password?: string;
+    roles: string[]; // Keep as array for easier handling
+    skills?: string | null;
+    statement?: string | null;
     t_name?: string | null;
     t_surname?: string | null;
     e_name?: string | null;
     e_surname?: string | null;
+    t_title?: string | null;
+    t_middle_name?: string | null;
+    e_title?: string | null;
+    e_middle_name?: string | null;
 };
 
 // Data from DEMO_USERS.md, adapted for multi-role structure
@@ -69,7 +110,7 @@ export const internships: Omit<Internship, 'createdAt' | 'updatedAt'>[] = [
 ];
 
 export let applications: Omit<Application, 'createdAt' | 'updatedAt'>[] = [
-    { id: 'app001', studentId: 'test001', internshipId: 'int001', status: 'pending', dateApplied: new Date('2024-05-01') },
+    { id: 'app001', studentId: 'test001', internshipId: 'int001', status: 'pending', dateApplied: new Date('2024-05-01'), feedback: null, projectTopic: null },
     { id: 'app002', studentId: '65010001', internshipId: 'int002', status: 'approved', dateApplied: new Date('2024-05-02'), projectTopic: 'การพัฒนาระบบแนะนำสินค้าด้วย Machine Learning', feedback: null },
     { id: 'app003', studentId: 'u6800001', internshipId: 'int003', status: 'rejected', dateApplied: new Date('2024-05-03'), feedback: 'ขาดประสบการณ์ในเครื่องมือออกแบบที่ต้องการ', projectTopic: null },
     { id: 'app004', studentId: 'u6800002', internshipId: 'int004', status: 'pending', dateApplied: new Date('2024-05-04'), feedback: null, projectTopic: null },

@@ -30,7 +30,7 @@ export default function InternshipDetailsPage() {
   
   const typeTranslations: { [key: string]: string } = {
     'internship': 'ฝึกงาน',
-    'co-op': 'สหกิจศึกษา'
+    'co_op': 'สหกิจศึกษา'
   };
 
   return (
@@ -54,7 +54,7 @@ export default function InternshipDetailsPage() {
                     {internship.location}
                 </p>
             </div>
-             <Badge variant={internship.type === 'co-op' ? 'default' : 'secondary'} className="text-base">
+             <Badge variant={internship.type === 'co_op' ? 'default' : 'secondary'} className="text-base">
                 {typeTranslations[internship.type]}
             </Badge>
         </div>

@@ -52,7 +52,7 @@ export default function StudentPage() {
     rejected: "ปฏิเสธ",
   };
 
-  const isCoop = approvedInternship?.type === 'co-op';
+  const isCoop = approvedInternship?.type === 'co_op';
 
   const handleSaveProjectTopic = () => {
     if (!approvedApplication) return;

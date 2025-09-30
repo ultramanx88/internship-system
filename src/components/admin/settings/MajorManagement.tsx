@@ -8,7 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PlusCircle, Save, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { majors as initialMajors } from '@/lib/data';
-import { Major } from '@prisma/client';
+// Remove this import since Major is not in Prisma schema
+// import { Major } from '@prisma/client';
+
+type Major = {
+  id: string;
+  nameTh: string;
+  nameEn: string;
+  parentId: string | null;
+};
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
@@ -77,7 +85,7 @@ export function MajorManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {majorGroups.map(group => (
+              {majorGroups.map((group: any) => (
                 <React.Fragment key={group.id}>
                     {/* Major Row */}
                     <TableRow className="bg-muted/50">
@@ -108,7 +116,7 @@ export function MajorManagement() {
                     </TableRow>
                     
                     {/* Minor Rows */}
-                    {group.minors.map(minor => (
+                    {group.minors.map((minor: any) => (
                         <TableRow key={minor.id}>
                             <TableCell className="pl-12">
                                 <Input 

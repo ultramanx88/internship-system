@@ -26,7 +26,7 @@ export default function EvaluationFormPage() {
   useEffect(() => {
     if (evaluation) {
       const initialScores: Record<string, number | null> = {};
-      evaluation.questions.forEach(q => {
+      evaluation.questions.forEach((q: any) => {
         initialScores[q.id] = q.score ?? null;
       });
       setScores(initialScores);
@@ -58,7 +58,7 @@ export default function EvaluationFormPage() {
         if (evalIndex !== -1) {
             companyEvaluations[evalIndex].isEvaluated = true;
             companyEvaluations[evalIndex].evaluationDate = new Date().toISOString();
-            companyEvaluations[evalIndex].questions.forEach(q => {
+            companyEvaluations[evalIndex].questions.forEach((q: any) => {
                 q.score = scores[q.id] ?? null;
             });
         }
@@ -97,7 +97,7 @@ export default function EvaluationFormPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-8">
-            {evaluation.questions.map((q, index) => (
+            {evaluation.questions.map((q: any, index: number) => (
               <div key={q.id} className="space-y-3">
                 <Label htmlFor={`q-${q.id}`} className="text-base">
                   {index + 1}. {q.question}

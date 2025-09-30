@@ -37,7 +37,7 @@ export default function StudentInternshipsPage() {
 
     const typeTranslations: { [key: string]: string } = {
         'internship': 'ฝึกงาน',
-        'co-op': 'สหกิจศึกษา'
+        'co_op': 'สหกิจศึกษา'
     };
 
     return (
@@ -66,7 +66,7 @@ export default function StudentInternshipsPage() {
                             <SelectContent>
                                 <SelectItem value="all">ประเภททั้งหมด</SelectItem>
                                 <SelectItem value="internship">ฝึกงาน</SelectItem>
-                                <SelectItem value="co-op">สหกิจศึกษา</SelectItem>
+                                <SelectItem value="co_op">สหกิจศึกษา</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -79,7 +79,7 @@ export default function StudentInternshipsPage() {
                                     <CardHeader>
                                         <div className="flex justify-between items-start">
                                             <CardTitle className="text-xl">{internship.title}</CardTitle>
-                                            <Badge variant={internship.type === 'co-op' ? 'default' : 'secondary'}>
+                                            <Badge variant={internship.type === 'co_op' ? 'default' : 'secondary'}>
                                                 {typeTranslations[internship.type]}
                                             </Badge>
                                         </div>

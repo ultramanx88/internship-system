@@ -106,7 +106,7 @@ export default async function ApplicationDetailsPage({ params }: { params: { app
                             <h3 className="text-xl font-semibold">{internship.title}</h3>
                             <p className="text-muted-foreground">{internship.company}</p>
                         </div>
-                        <Badge variant={internship.type === 'co-op' ? 'default' : 'secondary'}>{internship.type === 'co-op' ? 'สหกิจศึกษา' : 'ฝึกงาน'}</Badge>
+                        <Badge variant={internship.type === 'co_op' ? 'default' : 'secondary'}>{internship.type === 'co_op' ? 'สหกิจศึกษา' : 'ฝึกงาน'}</Badge>
                     </div>
                     <div className="space-y-1">
                         <p className="font-medium">ที่ตั้ง</p>

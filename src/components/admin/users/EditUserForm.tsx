@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -62,7 +63,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
     defaultValues: {
       newId: user.id ?? '',
       email: user.email ?? '',
-      roles: user.roles as string[] ?? [],
+      roles: Array.isArray(user.roles) ? user.roles : JSON.parse(user.roles || '[]'),
       password: '',
       t_title: (user as any).t_title ?? '',
       t_name: (user as any).t_name ?? '',
@@ -74,6 +75,24 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
       e_surname: (user as any).e_surname ?? '',
     },
   });
+
+  // Reset form values when user prop changes
+  React.useEffect(() => {
+    form.reset({
+      newId: user.id ?? '',
+      email: user.email ?? '',
+      roles: Array.isArray(user.roles) ? user.roles : JSON.parse(user.roles || '[]'),
+      password: '',
+      t_title: (user as any).t_title ?? '',
+      t_name: (user as any).t_name ?? '',
+      t_middle_name: (user as any).t_middle_name ?? '',
+      t_surname: (user as any).t_surname ?? '',
+      e_title: (user as any).e_title ?? '',
+      e_name: (user as any).e_name ?? '',
+      e_middle_name: (user as any).e_middle_name ?? '',
+      e_surname: (user as any).e_surname ?? '',
+    });
+  }, [user, form]);
 
   const { formState, handleSubmit, control } = form;
 
@@ -102,7 +121,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
         title: 'อัปเดตผู้ใช้สำเร็จ',
         description: values.newId !== user.id 
           ? `เปลี่ยน Login ID จาก ${user.id} เป็น ${values.newId} และอัปเดตข้อมูลเรียบร้อยแล้ว`
-          : `ข้อมูลของ ${values.name} ได้รับการอัปเดตเรียบร้อยแล้ว`,
+          : `ข้อมูลของ ${values.newId} ได้รับการอัปเดตเรียบร้อยแล้ว`,
       });
       onSuccess();
     } catch (error: any) {

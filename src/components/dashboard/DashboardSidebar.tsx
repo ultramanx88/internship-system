@@ -92,11 +92,12 @@ export function DashboardSidebar() {
     if (!user || !user.roles) return [];
     const uniqueNavs = new Map();
 
-    user.roles.forEach(role => {
+    const userRoles = Array.isArray(user.roles) ? user.roles : JSON.parse(user.roles || '[]');
+    userRoles.forEach((role: any) => {
       const navs = navConfig[role as keyof typeof navConfig];
       if (navs) {
         navs.forEach(nav => {
-            const key = nav.id || nav.href;
+            const key = (nav as any).id || nav.href;
             if (key && !uniqueNavs.has(key)) {
                 uniqueNavs.set(key, nav);
             }
@@ -147,7 +148,7 @@ export function DashboardSidebar() {
                     <Collapsible open={openMenus.has(item.id)} onOpenChange={() => toggleMenu(item.id)}>
                         <CollapsibleTrigger asChild>
                              <SidebarMenuButton 
-                                variant="ghost" 
+                                variant="outline" 
                                 className="w-full justify-between"
                                 isActive={pathname.startsWith(`/admin/${item.id}`)}
                             >
@@ -160,7 +161,7 @@ export function DashboardSidebar() {
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                             <SidebarMenuSub>
-                                {item.subItems.map(subItem => (
+                                {item.subItems.map((subItem: any) => (
                                     <SidebarMenuSubItem key={subItem.href}>
                                         <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
                                             <Link href={subItem.href}>{subItem.label}</Link>

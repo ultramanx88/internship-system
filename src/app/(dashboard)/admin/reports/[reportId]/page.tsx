@@ -81,7 +81,7 @@ export default function ReportDetailsPage() {
                     <p><strong>บริษัท:</strong> {internship.company}</p>
                     <p><strong>ตำแหน่ง:</strong> {internship.title}</p>
                     <p><strong>ที่ตั้ง:</strong> {internship.location}</p>
-                    <p><strong>ประเภท:</strong> {internship.type === 'co-op' ? 'สหกิจศึกษา' : 'ฝึกงาน'}</p>
+                    <p><strong>ประเภท:</strong> {internship.type === 'co_op' ? 'สหกิจศึกษา' : 'ฝึกงาน'}</p>
                 </CardContent>
             </Card>
         </div>

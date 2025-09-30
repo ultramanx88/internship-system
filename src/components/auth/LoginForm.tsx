@@ -127,7 +127,7 @@ export function LoginForm() {
       if (user) {
           setIdentifier(user.email);
           setPassword(user.password || '123456');
-          setRole(user.roles[0]); // Select the first role for simplicity
+          // setRole(user.roles[0]); // Remove this line since we don't have setRole anymore
       }
   }
 
@@ -182,7 +182,7 @@ export function LoginForm() {
           <SelectContent>
             {users.map(user => (
               <SelectItem key={user.id} value={user.email}>
-                {user.name} ({user.roles.join(', ')})
+                {user.name} ({Array.isArray(user.roles) ? user.roles.join(', ') : user.roles})
               </SelectItem>
             ))}
           </SelectContent>

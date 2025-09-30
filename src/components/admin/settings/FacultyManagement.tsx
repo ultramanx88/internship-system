@@ -128,7 +128,7 @@ export function FacultyManagement() {
                   </TableCell>
                   <TableCell>
                     <Input 
-                      value={faculty.nameEn}
+                      value={faculty.nameEn || ''}
                       onChange={(e) => handleFacultyChange(faculty.id, 'nameEn', e.target.value)}
                       placeholder="e.g. School of Information Technology"
                     />

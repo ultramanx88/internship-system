@@ -55,8 +55,9 @@ export function RoleSwitcher() {
     return null;
   }
 
-  const currentRole = user.currentRole || user.roles[0];
-  const currentConfig = roleConfig[currentRole];
+  const userRoles = Array.isArray(user.roles) ? user.roles : JSON.parse(user.roles || '[]');
+  const currentRole = user.currentRole || userRoles[0];
+  const currentConfig = roleConfig[currentRole as keyof typeof roleConfig];
   const CurrentIcon = currentConfig?.icon || User;
 
   return (
@@ -76,8 +77,8 @@ export function RoleSwitcher() {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>เปลี่ยนบทบาท</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {user.roles.map((role) => {
-          const config = roleConfig[role];
+        {userRoles.map((role: any) => {
+          const config = roleConfig[role as keyof typeof roleConfig];
           if (!config) return null;
           
           const Icon = config.icon;

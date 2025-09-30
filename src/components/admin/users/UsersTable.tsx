@@ -258,7 +258,7 @@ export function UsersTable() {
                                         <TableCell className="font-medium">{`${user.t_name || ''} ${user.t_surname || ''}`.trim()}</TableCell>
                                         <TableCell>{`${user.e_name || ''} ${user.e_surname || ''}`.trim()}</TableCell>
                                         <TableCell>{user.email}</TableCell>
-                                        <TableCell>{user.roles.map(r => roleTranslations[r as any] || r).join(', ')}</TableCell>
+                                        <TableCell>{Array.isArray(user.roles) ? user.roles.map((r: any) => roleTranslations[r as any] || r).join(', ') : user.roles}</TableCell>
                                         <TableCell className="text-center">
                                             <Button asChild variant="outline" size="icon" className="h-8 w-8">
                                                 <Link href={`/admin/users/${user.id}`}>

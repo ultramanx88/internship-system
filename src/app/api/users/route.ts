@@ -40,7 +40,7 @@ const excelUserSchema = z.object({
         return ['student']; // default role
     }
     const roles = val.split(',').map(r => r.trim().toLowerCase()).filter(Boolean);
-    const invalidRoles = roles.filter(r => !validRoles.includes(r));
+    const invalidRoles = roles.filter(r => !validRoles.includes(r as any));
     if (invalidRoles.length > 0) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
