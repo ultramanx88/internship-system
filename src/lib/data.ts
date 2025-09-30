@@ -2,58 +2,62 @@ import { User, Internship, Application, ProgressReport, AcademicTerm, Holiday, M
 
 type DemoUser = Omit<User, 'createdAt' | 'updatedAt'> & {
     password?: string;
+    t_name?: string | null;
+    t_surname?: string | null;
+    e_name?: string | null;
+    e_surname?: string | null;
 };
 
 // Data from DEMO_USERS.md, adapted for multi-role structure
 export let users: DemoUser[] = [
   // Admin Users
-  { id: 'user_admin2', name: 'System Administrator', email: 'admin2@smart-solutions.com', password: 'admin123', roles: ['admin'], skills: null, statement: null },
-  { id: 'user_demo001', name: 'Demo Admin 001', email: 'demo001@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null },
-  { id: 'user_admin', name: 'System Administrator', email: 'admin@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null },
-  { id: 'user_admin001', name: 'Admin 001', email: 'admin001@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null },
-  { id: 'user_admin002', name: 'Admin 002', email: 'admin002@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null },
-  { id: 'user_admin003', name: 'Admin 003', email: 'admin003@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null },
+  { id: 'user_admin2', name: 'System Administrator', email: 'admin2@smart-solutions.com', password: 'admin123', roles: ['admin'], skills: null, statement: null, t_name: 'System', t_surname: 'Administrator', e_name: 'System', e_surname: 'Administrator' },
+  { id: 'user_demo001', name: 'Demo Admin 001', email: 'demo001@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null, t_name: 'เดโม่', t_surname: 'แอดมิน 001', e_name: 'Demo', e_surname: 'Admin 001' },
+  { id: 'user_admin', name: 'System Administrator', email: 'admin@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null, t_name: 'System', t_surname: 'Administrator', e_name: 'System', e_surname: 'Administrator' },
+  { id: 'user_admin001', name: 'Admin 001', email: 'admin001@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null, t_name: 'แอดมิน', t_surname: '001', e_name: 'Admin', e_surname: '001' },
+  { id: 'user_admin002', name: 'Admin 002', email: 'admin002@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null, t_name: 'แอดมิน', t_surname: '002', e_name: 'Admin', e_surname: '002' },
+  { id: 'user_admin003', name: 'Admin 003', email: 'admin003@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null, t_name: 'แอดมิน', t_surname: '003', e_name: 'Admin', e_surname: '003' },
   
   // Staff Users
-  { id: 'user_s6800001', name: 'Staff 001', email: 's6800001@smart-solutions.com', password: '123456', roles: ['staff'], skills: null, statement: null },
-  { id: 'user_s6800002', name: 'Staff 002', email: 's6800002@smart-solutions.com', password: '123456', roles: ['staff'], skills: null, statement: null },
+  { id: 'user_s6800001', name: 'Staff 001', email: 's6800001@smart-solutions.com', password: '123456', roles: ['staff'], skills: null, statement: null, t_name: 'เจ้าหน้าที่', t_surname: '001', e_name: 'Staff', e_surname: '001' },
+  { id: 'user_s6800002', name: 'Staff 002', email: 's6800002@smart-solutions.com', password: '123456', roles: ['staff'], skills: null, statement: null, t_name: 'เจ้าหน้าที่', t_surname: '002', e_name: 'Staff', e_surname: '002' },
 
   // Instructor Users
-  { id: 'user_t6800001', name: 'Instructor 001', email: 't6800001@smart-solutions.com', password: '123456', roles: ['courseInstructor'], skills: null, statement: null },
+  { id: 'user_t6800001', name: 'Instructor 001', email: 't6800001@smart-solutions.com', password: '123456', roles: ['courseInstructor'], skills: null, statement: null, t_name: 'อาจารย์', t_surname: '001', e_name: 'Instructor', e_surname: '001' },
   
   // Multi-role User (Instructor and Visitor)
-  { id: 'user_t6800002', name: 'Instructor 002 (and Visitor)', email: 't6800002@smart-solutions.com', password: '123456', roles: ['courseInstructor', 'visitor'], skills: null, statement: null },
+  { id: 'user_t6800002', name: 'Instructor 002 (and Visitor)', email: 't6800002@smart-solutions.com', password: '123456', roles: ['courseInstructor', 'visitor'], skills: null, statement: null, t_name: 'อาจารย์', t_surname: '002', e_name: 'Instructor', e_surname: '002' },
   
   // Multi-role User (Instructor, Committee, Visitor)
-  { id: 'user_t6800003', name: 'Instructor 003 (and Committee, Visitor)', email: 't6800003@smart-solutions.com', password: '123456', roles: ['courseInstructor', 'committee', 'visitor'], skills: null, statement: null },
+  { id: 'user_t6800003', name: 'Instructor 003 (and Committee, Visitor)', email: 't6800003@smart-solutions.com', password: '123456', roles: ['courseInstructor', 'committee', 'visitor'], skills: null, statement: null, t_name: 'อาจารย์', t_surname: '003', e_name: 'Instructor', e_surname: '003' },
   
   // Committee Users
-  { id: 'user_t6800004', name: 'Committee 004', email: 't6800004@smart-solutions.com', password: '123456', roles: ['committee'], skills: null, statement: null },
-  { id: 'user_t6800005', name: 'Committee 005 (and Visitor)', email: 't6800005@smart-solutions.com', password: '123456', roles: ['committee', 'visitor'], skills: null, statement: null },
+  { id: 'user_t6800004', name: 'Committee 004', email: 't6800004@smart-solutions.com', password: '123456', roles: ['committee'], skills: null, statement: null, t_name: 'กรรมการ', t_surname: '004', e_name: 'Committee', e_surname: '004' },
+  { id: 'user_t6800005', name: 'Committee 005 (and Visitor)', email: 't6800005@smart-solutions.com', password: '123456', roles: ['committee', 'visitor'], skills: null, statement: null, t_name: 'กรรมการ', t_surname: '005', e_name: 'Committee', e_surname: '005' },
 
   // Student Users
-  { id: 'test001', name: 'Test User', email: 'test@test.com', password: '123456', roles: ['student'], skills: 'React, TypeScript, Node.js', statement: 'Eager to apply my web development skills in a real-world setting and contribute to a dynamic team.' },
-  { id: '65010001', name: 'Student User', email: 'student@test.com', password: '123456', roles: ['student'], skills: 'Python, Django, Data Analysis', statement: 'Passionate about data and looking to gain experience in backend development and machine learning.' },
-  { id: 'u6800001', name: 'Student 001', email: 'u6800001@smart-solutions.com', password: '123456', roles: ['student'], skills: 'Figma, UI/UX Design', statement: 'Creative student looking for a challenging design internship.' },
-  { id: 'u6800002', name: 'Student 002', email: 'u6800002@smart-solutions.com', password: '123456', roles: ['student'], skills: 'Java, Spring Boot', statement: 'Detail-oriented student with a passion for robust backend systems.' },
-  { id: 'u6800003', name: 'Student 003', email: 'u6800003@smart-solutions.com', password: '123456', roles: ['student'], skills: 'JavaScript, Vue.js', statement: 'Frontend enthusiast ready to build beautiful user interfaces.' },
-  { id: 'u6800004', name: 'Student 004', email: 'u6800004@smart-solutions.com', password: '123456', roles: ['student'], skills: 'C++, Unreal Engine', statement: 'Game development hobbyist seeking to turn passion into a profession.' },
-  { id: 'u6800005', name: 'Student 005', email: 'u6800005@smart-solutions.com', password: '123456', roles: ['student'], skills: 'Swift, iOS Development', statement: 'Aspiring mobile developer with a focus on Apple ecosystems.' },
-  { id: 'u6800006', name: 'Student 006', email: 'u6800006@smart-solutions.com', password: '123456', roles: ['student'], skills: 'SQL, PowerBI, Tableau', statement: 'Analytical mind with a knack for data visualization.' },
-  { id: 'u6800007', name: 'Student 007', email: 'u6800007@smart-solutions.com', password: '123456', roles: ['student'], skills: 'Go, Docker, Kubernetes', statement: 'Interested in DevOps and cloud-native technologies.' },
-  { id: 'u6800008', name: 'Student 008', email: 'u6800008@smart-solutions.com', password: '123456', roles: ['student'], skills: 'Ruby on Rails', statement: 'Full-stack developer with a love for rapid prototyping.' },
-  { id: 'u6800009', name: 'Student 009', email: 'u6800009@smart-solutions.com', password: '123456', roles: ['student'], skills: 'PHP, Laravel', statement: 'Experienced with classic web technologies and modern frameworks.' },
-  { id: 'u6800010', name: 'Student 010', email: 'u6800010@smart-solutions.com', password: '123456', roles: ['student'], skills: 'Marketing, SEO, SEM', statement: 'Digital marketing student ready to drive growth.' },
-  { id: 'u6800011', name: 'Student 011', email: 'u6800011@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
-  { id: 'u6800012', name: 'Student 012', email: 'u6800012@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
-  { id: 'u6800013', name: 'Student 013', email: 'u6800013@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
-  { id: 'u6800014', name: 'Student 014', email: 'u6800014@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
-  { id: 'u6800015', name: 'Student 015', email: 'u6800015@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
-  { id: 'u6800016', name: 'Student 016', email: 'u6800016@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
-  { id: 'u6800017', name: 'Student 017', email: 'u6800017@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
-  { id: 'u6800018', name: 'Student 018', email: 'u6800018@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
-  { id: 'u6800019', name: 'Student 019', email: 'u6800019@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
-  { id: 'u6800020', name: 'Student 020', email: 'u6800020@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null },
+  { id: 'test001', name: 'Test User', email: 'test@test.com', password: '123456', roles: ['student'], skills: 'React, TypeScript, Node.js', statement: 'Eager to apply my web development skills in a real-world setting and contribute to a dynamic team.', t_name: 'ทดสอบ', t_surname: 'ระบบ', e_name: 'Test', e_surname: 'User' },
+  { id: '65010001', name: 'Student User', email: 'student@test.com', password: '123456', roles: ['student'], skills: 'Python, Django, Data Analysis', statement: 'Passionate about data and looking to gain experience in backend development and machine learning.', t_name: 'นักศึกษา', t_surname: 'ทดสอบ', e_name: 'Student', e_surname: 'User' },
+  { id: 'u6800001', name: 'Student 001', email: 'u6800001@smart-solutions.com', password: '123456', roles: ['student'], skills: 'Figma, UI/UX Design', statement: 'Creative student looking for a challenging design internship.', t_name: 'นักศึกษา', t_surname: '001', e_name: 'Student', e_surname: '001' },
+  { id: 'u6800002', name: 'Student 002', email: 'u6800002@smart-solutions.com', password: '123456', roles: ['student'], skills: 'Java, Spring Boot', statement: 'Detail-oriented student with a passion for robust backend systems.', t_name: 'นักศึกษา', t_surname: '002', e_name: 'Student', e_surname: '002' },
+  { id: 'u6800003', name: 'Student 003', email: 'u6800003@smart-solutions.com', password: '123456', roles: ['student'], skills: 'JavaScript, Vue.js', statement: 'Frontend enthusiast ready to build beautiful user interfaces.', t_name: 'นักศึกษา', t_surname: '003', e_name: 'Student', e_surname: '003' },
+  { id: 'u6800004', name: 'Student 004', email: 'u6800004@smart-solutions.com', password: '123456', roles: ['student'], skills: 'C++, Unreal Engine', statement: 'Game development hobbyist seeking to turn passion into a profession.', t_name: 'นักศึกษา', t_surname: '004', e_name: 'Student', e_surname: '004' },
+  { id: 'u6800005', name: 'Student 005', email: 'u6800005@smart-solutions.com', password: '123456', roles: ['student'], skills: 'Swift, iOS Development', statement: 'Aspiring mobile developer with a focus on Apple ecosystems.', t_name: 'นักศึกษา', t_surname: '005', e_name: 'Student', e_surname: '005' },
+  { id: 'u6800006', name: 'Student 006', email: 'u6800006@smart-solutions.com', password: '123456', roles: ['student'], skills: 'SQL, PowerBI, Tableau', statement: 'Analytical mind with a knack for data visualization.', t_name: 'นักศึกษา', t_surname: '006', e_name: 'Student', e_surname: '006' },
+  { id: 'u6800007', name: 'Student 007', email: 'u6800007@smart-solutions.com', password: '123456', roles: ['student'], skills: 'Go, Docker, Kubernetes', statement: 'Interested in DevOps and cloud-native technologies.', t_name: 'นักศึกษา', t_surname: '007', e_name: 'Student', e_surname: '007' },
+  { id: 'u6800008', name: 'Student 008', email: 'u6800008@smart-solutions.com', password: '123456', roles: ['student'], skills: 'Ruby on Rails', statement: 'Full-stack developer with a love for rapid prototyping.', t_name: 'นักศึกษา', t_surname: '008', e_name: 'Student', e_surname: '008' },
+  { id: 'u6800009', name: 'Student 009', email: 'u6800009@smart-solutions.com', password: '123456', roles: ['student'], skills: 'PHP, Laravel', statement: 'Experienced with classic web technologies and modern frameworks.', t_name: 'นักศึกษา', t_surname: '009', e_name: 'Student', e_surname: '009' },
+  { id: 'u6800010', name: 'Student 010', email: 'u6800010@smart-solutions.com', password: '123456', roles: ['student'], skills: 'Marketing, SEO, SEM', statement: 'Digital marketing student ready to drive growth.', t_name: 'นักศึกษา', t_surname: '010', e_name: 'Student', e_surname: '010' },
+  { id: 'u6800011', name: 'Student 011', email: 'u6800011@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null, t_name: 'นักศึกษา', t_surname: '011', e_name: 'Student', e_surname: '011' },
+  { id: 'u6800012', name: 'Student 012', email: 'u6800012@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null, t_name: 'นักศึกษา', t_surname: '012', e_name: 'Student', e_surname: '012' },
+  { id: 'u6800013', name: 'Student 013', email: 'u6800013@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null, t_name: 'นักศึกษา', t_surname: '013', e_name: 'Student', e_surname: '013' },
+  { id: 'u6800014', name: 'Student 014', email: 'u6800014@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null, t_name: 'นักศึกษา', t_surname: '014', e_name: 'Student', e_surname: '014' },
+  { id: 'u6800015', name: 'Student 015', email: 'u6800015@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null, t_name: 'นักศึกษา', t_surname: '015', e_name: 'Student', e_surname: '015' },
+  { id: 'u6800016', name: 'Student 016', email: 'u6800016@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null, t_name: 'นักศึกษา', t_surname: '016', e_name: 'Student', e_surname: '016' },
+  { id: 'u6800017', name: 'Student 017', email: 'u6800017@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null, t_name: 'นักศึกษา', t_surname: '017', e_name: 'Student', e_surname: '017' },
+  { id: 'u6800018', name: 'Student 018', email: 'u6800018@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null, t_name: 'นักศึกษา', t_surname: '018', e_name: 'Student', e_surname: '018' },
+  { id: 'u6800019', name: 'Student 019', email: 'u6800019@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null, t_name: 'นักศึกษา', t_surname: '019', e_name: 'Student', e_surname: '019' },
+  { id: 'u6800020', name: 'Student 020', email: 'u6800020@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null, t_name: 'นักศึกษา', t_surname: '020', e_name: 'Student', e_surname: '020' },
 ];
 
 export const internships: Omit<Internship, 'createdAt' | 'updatedAt'>[] = [

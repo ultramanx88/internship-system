@@ -136,7 +136,7 @@ async function handleUserUpload(data: any[]) {
         continue;
       }
       
-      const { Login_id, email, password, roles, e_name, e_surname, e_title } = validation.data;
+      const { Login_id, email, password, roles, t_name, t_surname, e_name, e_surname } = validation.data;
       
        if (!Login_id && !email) {
           errors.push(`แถวที่ ${rowIndex}: ต้องระบุ Login_id หรือ email`);
@@ -147,13 +147,22 @@ async function handleUserUpload(data: any[]) {
       const existingUserByEmail = email ? users.find(u => u.email === email) : undefined;
       const existingUserById = Login_id ? users.find(u => u.id === Login_id) : undefined;
 
+      const fullName = [e_name, e_surname].filter(Boolean).join(' ');
+
       if (Login_id && existingUserById) {
         // Update user
-        const fullName = [e_title, e_name, e_surname].filter(Boolean).join(' ');
         existingUserById.name = fullName || existingUserById.name;
         if(email) existingUserById.email = email;
         if(password) existingUserById.password = password;
         existingUserById.roles = roles as any[];
+        // @ts-ignore
+        existingUserById.t_name = t_name;
+        // @ts-ignore
+        existingUserById.t_surname = t_surname;
+        // @ts-ignore
+        existingUserById.e_name = e_name;
+        // @ts-ignore
+        existingUserById.e_surname = e_surname;
         updatedCount++;
       } else if (existingUserByEmail) {
          errors.push(`แถวที่ ${rowIndex}: อีเมล '${email}' มีอยู่แล้วในระบบ`);
@@ -167,8 +176,6 @@ async function handleUserUpload(data: any[]) {
             continue;
         }
 
-        const fullName = [e_title, e_name, e_surname].filter(Boolean).join(' ');
-
         users.push({
             id: Login_id || createId(),
             name: fullName,
@@ -177,6 +184,11 @@ async function handleUserUpload(data: any[]) {
             roles: roles as any,
             skills: null,
             statement: null,
+            // @ts-ignore
+            t_name: t_name,
+            t_surname: t_surname,
+            e_name: e_name,
+            e_surname: e_surname,
         });
 
         createdCount++;

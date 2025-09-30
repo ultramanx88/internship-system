@@ -31,8 +31,15 @@ import {
 import { AddUserForm } from './AddUserForm';
 import { UploadUsersDialog } from './UploadUsersDialog';
 
+type DisplayUser = User & {
+    t_name?: string | null;
+    t_surname?: string | null;
+    e_name?: string | null;
+    e_surname?: string | null;
+}
+
 export function UsersTable() {
-    const [users, setUsers] = useState<User[]>([]);
+    const [users, setUsers] = useState<DisplayUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState(false);
     const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -224,7 +231,8 @@ export function UsersTable() {
                                         disabled={isLoading}
                                     />
                                 </TableHead>
-                                <TableHead className="text-white">ชื่อ</TableHead>
+                                <TableHead className="text-white">ชื่อ (ไทย)</TableHead>
+                                <TableHead className="text-white">ชื่อ (อังกฤษ)</TableHead>
                                 <TableHead className="text-white">อีเมล</TableHead>
                                 <TableHead className="text-white">ตำแหน่ง</TableHead>
                                 <TableHead className="text-white text-center">ดำเนินการ</TableHead>
@@ -233,7 +241,7 @@ export function UsersTable() {
                         <TableBody>
                             {isLoading ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center">
+                                    <TableCell colSpan={6} className="h-24 text-center">
                                         <Loader2 className="mx-auto h-6 w-6 animate-spin" />
                                         กำลังโหลดข้อมูล...
                                     </TableCell>
@@ -247,7 +255,8 @@ export function UsersTable() {
                                                 onCheckedChange={() => toggleRow(user.id)}
                                             />
                                         </TableCell>
-                                        <TableCell className="font-medium">{user.name}</TableCell>
+                                        <TableCell className="font-medium">{`${user.t_name || ''} ${user.t_surname || ''}`.trim()}</TableCell>
+                                        <TableCell>{`${user.e_name || ''} ${user.e_surname || ''}`.trim()}</TableCell>
                                         <TableCell>{user.email}</TableCell>
                                         <TableCell>{user.roles.map(r => roleTranslations[r as any] || r).join(', ')}</TableCell>
                                         <TableCell className="text-center">
@@ -261,7 +270,7 @@ export function UsersTable() {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center">
+                                    <TableCell colSpan={6} className="h-24 text-center">
                                         ไม่พบข้อมูล
                                     </TableCell>
                                 </TableRow>
