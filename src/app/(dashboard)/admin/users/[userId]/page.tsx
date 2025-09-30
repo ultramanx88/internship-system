@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { users as mockUsers, roles as mockRoles } from '@/lib/data';
+import { users as mockUsers } from '@/lib/data';
+import { roles as mockRoles } from '@/lib/permissions';
 import { User, Role } from '@prisma/client';
 
 import {
@@ -46,13 +47,13 @@ export default function UserProfilePage() {
   useEffect(() => {
     const foundUser = mockUsers.find(u => u.id === userId);
     if (foundUser) {
-      setUser(foundUser);
+      setUser(foundUser as User);
       // Mock data splitting from 'name' field
       const nameParts = foundUser.name?.split(' ') || ['', ''];
       setFormData({
           Login_id: foundUser.id,
           password: foundUser.password || '',
-          role_id: foundUser.roles.length > 0 ? foundUser.roles[0] : '',
+          role_id: foundUser.roles.length > 0 ? (foundUser.roles[0] as string) : '',
           t_name: foundUser.t_name || nameParts[0],
           t_surname: foundUser.t_surname || nameParts[1],
           e_name: foundUser.e_name || nameParts[0],
