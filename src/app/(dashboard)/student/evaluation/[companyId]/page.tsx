@@ -3,11 +3,9 @@
 import { useState, useEffect } from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import { companyEvaluations } from '@/lib/data';
-import type { CompanyEvaluationQuestion } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Save, ArrowLeft } from 'lucide-react';
@@ -15,11 +13,11 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 
 export default function EvaluationFormPage({ params }: { params: { companyId: string } }) {
-  const { companyId } = params;
+  const companyId = params.companyId;
   const { toast } = useToast();
   const router = useRouter();
 
-  const [evaluation, setEvaluation] = useState(companyEvaluations.find(e => e.internshipId === companyId));
+  const [evaluation, setEvaluation] = useState(() => companyEvaluations.find(e => e.internshipId === companyId));
   const [scores, setScores] = useState<Record<string, number | null>>({});
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,7 +26,7 @@ export default function EvaluationFormPage({ params }: { params: { companyId: st
     if (evaluation) {
       const initialScores: Record<string, number | null> = {};
       evaluation.questions.forEach(q => {
-        initialScores[q.id] = q.score;
+        initialScores[q.id] = q.score ?? null;
       });
       setScores(initialScores);
     }
