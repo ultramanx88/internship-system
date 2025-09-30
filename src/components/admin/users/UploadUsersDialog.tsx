@@ -63,10 +63,10 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
             const worksheet = workbook.Sheets[sheetName];
             const json = xlsx.utils.sheet_to_json(worksheet);
 
-            const response = await fetch('/api/users/upload', {
+            const response = await fetch('/api/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(json),
+                body: JSON.stringify({ action: 'upload', data: json }),
             });
 
             if (!response.ok) {
@@ -143,7 +143,7 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
             )}
             </div>
              <p className="text-xs text-muted-foreground">
-                * ต้องมีคอลัมน์: <code className="font-mono bg-muted p-1 rounded">email</code>, <code className="font-mono bg-muted p-1 rounded">name</code>, <code className="font-mono bg-muted p-1 rounded">password</code>, <code className="font-mono bg-muted p-1 rounded">roles</code> (คั่นด้วยจุลภาค). คอลัมน์ <code className="font-mono bg-muted p-1 rounded">id</code> (สำหรับรหัสนักศึกษา) เป็นตัวเลือก.
+                * ต้องมีคอลัมน์: <code className="font-mono bg-muted p-1 rounded">email</code>, <code className="font-mono bg-muted p-1 rounded">password</code>, <code className="font-mono bg-muted p-1 rounded">roles</code> (คั่นด้วยจุลภาค), และคอลัมน์ชื่อต่างๆ เช่น <code className="font-mono bg-muted p-1 rounded">e_name</code>. คอลัมน์ <code className="font-mono bg-muted p-1 rounded">Login_id</code> (สำหรับรหัสนักศึกษา) เป็นตัวเลือก.
             </p>
         </div>
       ) : (

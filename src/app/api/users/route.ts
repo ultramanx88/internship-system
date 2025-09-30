@@ -4,14 +4,52 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createId } from '@paralleldrive/cuid2';
 import { users } from '@/lib/data';
-import { Role } from '@prisma/client';
+import { roles as validRolesData } from '@/lib/permissions';
 
+const validRoles = validRolesData.map(r => r.id);
+
+// Schema for creating a single user from the form
 const createUserSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   roles: z.array(z.string()).min(1, 'At least one role is required'),
 });
+
+// Schema for validating a user from an uploaded Excel file
+const excelUserSchema = z.object({
+  Login_id: z.string().optional(),
+  email: z.string().email({ message: 'อีเมลไม่ถูกต้อง' }),
+  password: z.string().min(6, { message: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' }),
+  roles: z.string().transform((val, ctx) => {
+    const roles = val.split(',').map(r => r.trim()).filter(Boolean);
+    if (roles.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'ต้องระบุตำแหน่งอย่างน้อย 1 ตำแหน่ง',
+      });
+      return z.NEVER;
+    }
+    const invalidRoles = roles.filter(r => !validRoles.includes(r));
+    if (invalidRoles.length > 0) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `พบตำแหน่งที่ไม่ถูกต้อง: ${invalidRoles.join(', ')}`,
+        });
+        return z.NEVER;
+    }
+    return roles;
+  }),
+  t_title: z.string().optional(),
+  t_name: z.string().optional(),
+  t_middlename: z.string().optional(),
+  t_surname: z.string().optional(),
+  e_title: z.string().optional(),
+  e_name: z.string().optional(),
+  e_middle_name: z.string().optional(),
+  e_surname: z.string().optional(),
+});
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,54 +69,129 @@ export async function GET(request: NextRequest) {
     }
 
     if (role && role !== 'all') {
-        filteredUsers = filteredUsers.filter(user => user.roles.includes(role as Role));
+        filteredUsers = filteredUsers.filter(user => user.roles.includes(role as any));
     }
 
-    return NextResponse.json(filteredUsers.sort((a, b) => a.name.localeCompare(b.name)));
+    return NextResponse.json(filteredUsers.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
   } catch (error) {
     console.error('Failed to fetch users:', error);
     return NextResponse.json([]);
   }
 }
 
+async function handleSingleUserCreation(body: any) {
+    const result = createUserSchema.safeParse(body);
+
+    if (!result.success) {
+        return NextResponse.json({ message: 'Invalid request body', errors: result.error.flatten() }, { status: 400 });
+    }
+
+    const { name, email, password, roles } = result.data;
+
+    const existingUser = users.find(
+        (user) => user.email.toLowerCase() === email.toLowerCase()
+    );
+
+    if (existingUser) {
+        return NextResponse.json({ message: 'มีผู้ใช้ที่ใช้อีเมลนี้อยู่แล้ว' }, { status: 409 });
+    }
+    
+    const newUser = {
+        id: createId(),
+        name,
+        email,
+        password, // In a real app, this would be hashed
+        roles: roles as any[],
+        skills: null,
+        statement: null
+    };
+
+    users.push(newUser);
+    const { password: _, ...userWithoutPassword } = newUser;
+    return NextResponse.json(userWithoutPassword, { status: 201 });
+}
+
+async function handleUserUpload(data: any[]) {
+    let createdCount = 0;
+    let updatedCount = 0;
+    let skippedCount = 0;
+    const errors: string[] = [];
+
+    const existingEmails = new Set(users.map(u => u.email));
+    const existingIds = new Set(users.map(u => u.id));
+
+    for (const [index, row] of data.entries()) {
+      const rowIndex = index + 2;
+
+      if (row.password !== undefined && typeof row.password !== 'string') {
+        row.password = String(row.password);
+      }
+      
+      const validation = excelUserSchema.safeParse(row);
+
+      if (!validation.success) {
+        const errorMessages = validation.error.issues.map(issue => `แถวที่ ${rowIndex}: ${issue.message}`);
+        errors.push(...errorMessages);
+        skippedCount++;
+        continue;
+      }
+      
+      const { Login_id, email, password, roles, e_name, e_surname, e_title } = validation.data;
+      
+      if (existingEmails.has(email)) {
+        errors.push(`แถวที่ ${rowIndex}: อีเมล '${email}' มีอยู่แล้วในระบบ`);
+        skippedCount++;
+        continue;
+      }
+
+      if (Login_id && existingIds.has(Login_id)) {
+        errors.push(`แถวที่ ${rowIndex}: ID '${Login_id}' มีอยู่แล้วในระบบ`);
+        skippedCount++;
+        continue;
+      }
+      
+      const fullName = [e_title, e_name, e_surname].filter(Boolean).join(' ');
+
+      users.push({
+          id: Login_id || createId(),
+          name: fullName,
+          email,
+          password,
+          roles: roles as any,
+          skills: null,
+          statement: null,
+      });
+
+      createdCount++;
+      existingEmails.add(email);
+      if (Login_id) existingIds.add(Login_id);
+    }
+    
+    return NextResponse.json({
+      message: 'ประมวลผลไฟล์สำเร็จ',
+      createdCount,
+      updatedCount,
+      skippedCount,
+      errors,
+    });
+}
+
+
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const result = createUserSchema.safeParse(body);
 
-        if (!result.success) {
-            return NextResponse.json({ message: 'Invalid request body', errors: result.error.flatten() }, { status: 400 });
-        }
-
-        const { name, email, password, roles } = result.data;
-
-        const existingUser = users.find(
-            (user) => user.email.toLowerCase() === email.toLowerCase()
-        );
-
-        if (existingUser) {
-            return NextResponse.json({ message: 'มีผู้ใช้ที่ใช้อีเมลนี้อยู่แล้ว' }, { status: 409 });
+        // Check if this is an upload action
+        if (body.action === 'upload' && Array.isArray(body.data)) {
+            return handleUserUpload(body.data);
         }
         
-        const newUser = {
-            id: createId(),
-            name,
-            email,
-            password, // In a real app, this would be hashed
-            roles: roles as Role[],
-            skills: null,
-            statement: null
-        };
-
-        users.push(newUser);
-
-        const { password: _, ...userWithoutPassword } = newUser;
-
-        return NextResponse.json(userWithoutPassword, { status: 201 });
+        // Otherwise, handle single user creation
+        return handleSingleUserCreation(body);
 
     } catch (error) {
-        console.error('Failed to create user:', error);
-        return NextResponse.json({ message: 'ไม่สามารถสร้างผู้ใช้ได้' }, { status: 500 });
+        console.error('Failed to process POST request:', error);
+        return NextResponse.json({ message: 'ไม่สามารถประมวลผลคำขอได้' }, { status: 500 });
     }
 }
 
