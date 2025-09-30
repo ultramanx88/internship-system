@@ -19,8 +19,8 @@ const createUserSchema = z.object({
 // Schema for validating a user from an uploaded Excel file
 const excelUserSchema = z.object({
   Login_id: z.string().optional(),
-  email: z.string().email({ message: 'อีเมลไม่ถูกต้อง' }),
-  password: z.string().min(6, { message: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' }),
+  email: z.string().email({ message: 'อีเมลไม่ถูกต้อง' }).optional(),
+  password: z.string().min(6, { message: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' }).optional(),
   roles: z.string().transform((val, ctx) => {
     const roles = val.split(',').map(r => r.trim()).filter(Boolean);
     if (roles.length === 0) {
@@ -138,33 +138,51 @@ async function handleUserUpload(data: any[]) {
       
       const { Login_id, email, password, roles, e_name, e_surname, e_title } = validation.data;
       
-      if (existingEmails.has(email)) {
-        errors.push(`แถวที่ ${rowIndex}: อีเมล '${email}' มีอยู่แล้วในระบบ`);
-        skippedCount++;
-        continue;
+       if (!Login_id && !email) {
+          errors.push(`แถวที่ ${rowIndex}: ต้องระบุ Login_id หรือ email`);
+          skippedCount++;
+          continue;
       }
 
-      if (Login_id && existingIds.has(Login_id)) {
-        errors.push(`แถวที่ ${rowIndex}: ID '${Login_id}' มีอยู่แล้วในระบบ`);
-        skippedCount++;
-        continue;
+      const existingUserByEmail = email ? users.find(u => u.email === email) : undefined;
+      const existingUserById = Login_id ? users.find(u => u.id === Login_id) : undefined;
+
+      if (Login_id && existingUserById) {
+        // Update user
+        const fullName = [e_title, e_name, e_surname].filter(Boolean).join(' ');
+        existingUserById.name = fullName || existingUserById.name;
+        if(email) existingUserById.email = email;
+        if(password) existingUserById.password = password;
+        existingUserById.roles = roles as any[];
+        updatedCount++;
+      } else if (existingUserByEmail) {
+         errors.push(`แถวที่ ${rowIndex}: อีเมล '${email}' มีอยู่แล้วในระบบ`);
+         skippedCount++;
+         continue;
+      } else {
+        // Create new user
+        if (!email || !password) {
+            errors.push(`แถวที่ ${rowIndex}: ผู้ใช้ใหม่ต้องมี email และ password`);
+            skippedCount++;
+            continue;
+        }
+
+        const fullName = [e_title, e_name, e_surname].filter(Boolean).join(' ');
+
+        users.push({
+            id: Login_id || createId(),
+            name: fullName,
+            email,
+            password,
+            roles: roles as any,
+            skills: null,
+            statement: null,
+        });
+
+        createdCount++;
+        if(email) existingEmails.add(email);
+        if (Login_id) existingIds.add(Login_id);
       }
-      
-      const fullName = [e_title, e_name, e_surname].filter(Boolean).join(' ');
-
-      users.push({
-          id: Login_id || createId(),
-          name: fullName,
-          email,
-          password,
-          roles: roles as any,
-          skills: null,
-          statement: null,
-      });
-
-      createdCount++;
-      existingEmails.add(email);
-      if (Login_id) existingIds.add(Login_id);
     }
     
     return NextResponse.json({
