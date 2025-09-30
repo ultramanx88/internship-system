@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import Link from 'next/link';
 
 export default function StudentInternshipsPage() {
     const [searchTerm, setSearchTerm] = useState('');
@@ -95,9 +96,11 @@ export default function StudentInternshipsPage() {
                                         <p className="text-sm text-muted-foreground line-clamp-3">{internship.description}</p>
                                     </CardContent>
                                     <CardFooter>
-                                        <Button className="w-full">
-                                            <Briefcase className="mr-2 h-4 w-4" />
-                                            ดูรายละเอียดและสมัคร
+                                        <Button asChild className="w-full">
+                                            <Link href={`/student/internships/${internship.id}`}>
+                                                <Briefcase className="mr-2 h-4 w-4" />
+                                                ดูรายละเอียดและสมัคร
+                                            </Link>
                                         </Button>
                                     </CardFooter>
                                 </Card>
