@@ -1,0 +1,6 @@
+Login_id,password,role_id,t_title,t_name,t_middle_name,t_surname,e_title,e_name,e_middle_name,e_surname
+65010001,123456,student,นาย,สมชาย,,ใจดี,Mr.,Somchai,,Jaidee
+65010002,123456,student,นางสาว,สมหญิง,,รักเรียน,Ms.,Somying,,Rakrian
+t001,123456,courseInstructor,ผศ.ดร.,อาจารย์,,สอนดี,Asst. Prof. Dr.,Teacher,,Soondee
+s001,123456,staff,นาง,เจ้าหน้าที่,,ทำงานดี,Mrs.,Staff,,Thamngandee
+a001,123456,admin,นาย,ผู้ดูแล,,ระบบ,Mr.,Admin,,System

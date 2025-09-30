@@ -16,7 +16,7 @@ async function main() {
       update: {
         name: user.name,
         password: hashedPassword,
-        roles: user.roles,
+        roles: JSON.stringify(user.roles),
         skills: user.skills,
         statement: user.statement,
       },
@@ -25,7 +25,7 @@ async function main() {
         name: user.name,
         email: user.email,
         password: hashedPassword,
-        roles: user.roles,
+        roles: JSON.stringify(user.roles),
         skills: user.skills,
         statement: user.statement,
       },
@@ -44,7 +44,7 @@ async function main() {
             company: internship.company,
             location: internship.location,
             description: internship.description,
-            type: internship.type,
+            type: internship.type as any,
         }
     })
   }
@@ -59,7 +59,7 @@ async function main() {
             id: app.id,
             studentId: app.studentId,
             internshipId: app.internshipId,
-            status: app.status,
+            status: app.status as any,
             dateApplied: new Date(app.dateApplied),
             feedback: app.feedback,
             projectTopic: app.projectTopic,

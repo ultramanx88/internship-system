@@ -8,16 +8,18 @@ import {
   useMemo,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { users } from '@/lib/data';
 import { User, Role } from '@prisma/client';
 
-export type AuthUser = Pick<User, 'id' | 'email' | 'name' | 'roles'>;
+export type AuthUser = Pick<User, 'id' | 'email' | 'name' | 'roles'> & {
+  currentRole?: Role;
+};
 
 type AuthContextType = {
   user: AuthUser | null;
   loading: boolean;
-  login: (identifier: string, password: string, role: Role) => AuthUser | null;
+  login: (identifier: string, password: string, role: Role) => Promise<AuthUser | null>;
   logout: () => void;
+  switchRole: (role: Role) => void;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -42,32 +44,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(
-    (identifier: string, password: string, selectedRole: Role) => {
-      const identifierLower = identifier.toLowerCase();
+    async (identifier: string, password: string, selectedRole: Role) => {
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            identifier,
+            password,
+            role: selectedRole,
+          }),
+        });
 
-      const foundUser = users.find((u) => {
-        // All roles log in with their ID (Login_id) and password.
-        return u.id.toLowerCase() === identifierLower && u.password === password;
-      });
+        const data = await response.json();
 
-      // After finding the user, ensure they actually have the role they're trying to log in with.
-      if (foundUser && foundUser.roles.includes(selectedRole)) {
-        const authUser: AuthUser = {
-          id: foundUser.id,
-          email: foundUser.email,
-          name: foundUser.name,
-          roles: foundUser.roles,
-        };
-        setUser(authUser);
-        localStorage.setItem(
-          'internship-flow-user',
-          JSON.stringify(authUser)
-        );
-        return authUser;
+        if (response.ok && data.user) {
+          const authUser: AuthUser = {
+            ...data.user,
+            currentRole: selectedRole
+          };
+          setUser(authUser);
+          localStorage.setItem(
+            'internship-flow-user',
+            JSON.stringify(authUser)
+          );
+          return authUser;
+        } else {
+          // แสดง error message ที่ได้จาก API
+          const errorMessage = data?.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
+          console.error('Login failed:', errorMessage);
+          throw new Error(errorMessage);
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        return null;
       }
-
-      // If no user is found with the correct credentials and role
-      return null;
     },
     []
   );
@@ -78,9 +91,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/login');
   }, [router]);
 
+  const switchRole = useCallback((role: Role) => {
+    if (user && user.roles.includes(role)) {
+      const updatedUser = { ...user, currentRole: role };
+      setUser(updatedUser);
+      localStorage.setItem('internship-flow-user', JSON.stringify(updatedUser));
+      
+      // Navigate to appropriate dashboard
+      if (role === 'admin' || role === 'staff') {
+        router.push('/admin');
+      } else if (role === 'courseInstructor' || role === 'committee' || role === 'visitor') {
+        router.push('/teacher');
+      } else if (role === 'student') {
+        router.push('/student');
+      }
+    }
+  }, [user, router]);
+
   const value = useMemo(
-    () => ({ user, loading, login, logout }),
-    [user, loading, login, logout]
+    () => ({ user, loading, login, logout, switchRole }),
+    [user, loading, login, logout, switchRole]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

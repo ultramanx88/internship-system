@@ -15,16 +15,38 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader2, Save } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { roles as roleData } from '@/lib/permissions';
 import type { User, Role } from '@prisma/client';
 
 const formSchema = z.object({
-  name: z.string().min(2, 'ต้องมีอย่างน้อย 2 ตัวอักษร'),
+  newId: z.string().min(1, 'Login ID จำเป็นต้องระบุ'),
+  email: z.string().email('อีเมลไม่ถูกต้อง'),
   roles: z.array(z.string()).refine((value) => value.some((item) => item), {
     message: "คุณต้องเลือกอย่างน้อยหนึ่งตำแหน่ง",
   }),
+  password: z.string().optional(),
+  
+  // ข้อมูลภาษาไทย
+  t_title: z.string().optional(),
+  t_name: z.string().optional(),
+  t_middle_name: z.string().optional(),
+  t_surname: z.string().optional(),
+  
+  // ข้อมูลภาษาอังกฤษ
+  e_title: z.string().optional(),
+  e_name: z.string().optional(),
+  e_middle_name: z.string().optional(),
+  e_surname: z.string().optional(),
 });
 
 type EditUserFormProps = {
@@ -38,8 +60,18 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: user.name ?? '',
+      newId: user.id ?? '',
+      email: user.email ?? '',
       roles: user.roles as string[] ?? [],
+      password: '',
+      t_title: (user as any).t_title ?? '',
+      t_name: (user as any).t_name ?? '',
+      t_middle_name: (user as any).t_middle_name ?? '',
+      t_surname: (user as any).t_surname ?? '',
+      e_title: (user as any).e_title ?? '',
+      e_name: (user as any).e_name ?? '',
+      e_middle_name: (user as any).e_middle_name ?? '',
+      e_surname: (user as any).e_surname ?? '',
     },
   });
 
@@ -47,10 +79,16 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      // ลบ password ออกหากเป็นค่าว่าง
+      const submitData = { ...values };
+      if (!submitData.password || submitData.password.trim() === '') {
+        delete submitData.password;
+      }
+
       const response = await fetch(`/api/users/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) {
@@ -58,9 +96,13 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
         throw new Error(errorData.message || 'Failed to update user');
       }
 
+      const result = await response.json();
+      
       toast({
         title: 'อัปเดตผู้ใช้สำเร็จ',
-        description: `ข้อมูลของ ${values.name} ได้รับการอัปเดตเรียบร้อยแล้ว`,
+        description: values.newId !== user.id 
+          ? `เปลี่ยน Login ID จาก ${user.id} เป็น ${values.newId} และอัปเดตข้อมูลเรียบร้อยแล้ว`
+          : `ข้อมูลของ ${values.name} ได้รับการอัปเดตเรียบร้อยแล้ว`,
       });
       onSuccess();
     } catch (error: any) {
@@ -75,29 +117,199 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-h-[70vh] overflow-y-auto">
         <FormField
           control={control}
-          name="name"
+          name="newId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>ชื่อ-สกุล</FormLabel>
+              <FormLabel>Login ID (รหัสนักศึกษา/ผู้ใช้)</FormLabel>
               <FormControl>
-                <Input placeholder="สมชาย ใจดี" {...field} />
+                <Input placeholder="65010001 หรือ user_admin001" {...field} />
+              </FormControl>
+              <FormDescription>
+                สามารถแก้ไข Login ID ได้ แต่ต้องไม่ซ้ำกับผู้ใช้อื่น
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>อีเมล</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="user@example.com" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <FormItem>
-            <FormLabel>อีเมล</FormLabel>
-            <FormControl>
-                <Input type="email" value={user.email} disabled />
-            </FormControl>
-            <FormDescription>
-                ไม่สามารถแก้ไขอีเมลได้
-            </FormDescription>
-        </FormItem>
+        
+        <FormField
+          control={control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>รหัสผ่านใหม่</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="ปล่อยว่างไว้หากไม่ต้องการเปลี่ยน" {...field} />
+              </FormControl>
+              <FormDescription>
+                ปล่อยว่างไว้หากไม่ต้องการเปลี่ยนรหัสผ่าน
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* ข้อมูลภาษาไทย */}
+        <div className="space-y-4 border rounded-lg p-4">
+          <h3 className="text-lg font-medium">ข้อมูลภาษาไทย</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={control}
+              name="t_title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>คำนำหน้า</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="เลือกคำนำหน้า" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="นาย">นาย</SelectItem>
+                      <SelectItem value="นาง">นาง</SelectItem>
+                      <SelectItem value="นางสาว">นางสาว</SelectItem>
+                      <SelectItem value="ผศ.ดร.">ผศ.ดร.</SelectItem>
+                      <SelectItem value="รศ.ดร.">รศ.ดร.</SelectItem>
+                      <SelectItem value="ศ.ดร.">ศ.ดร.</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="t_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ชื่อ</FormLabel>
+                  <FormControl>
+                    <Input placeholder="สมชาย" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="t_middle_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ชื่อกลาง</FormLabel>
+                  <FormControl>
+                    <Input placeholder="(ถ้ามี)" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="t_surname"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>นามสกุล</FormLabel>
+                  <FormControl>
+                    <Input placeholder="ใจดี" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* ข้อมูลภาษาอังกฤษ */}
+        <div className="space-y-4 border rounded-lg p-4">
+          <h3 className="text-lg font-medium">ข้อมูลภาษาอังกฤษ</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={control}
+              name="e_title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select title" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Mr.">Mr.</SelectItem>
+                      <SelectItem value="Mrs.">Mrs.</SelectItem>
+                      <SelectItem value="Ms.">Ms.</SelectItem>
+                      <SelectItem value="Dr.">Dr.</SelectItem>
+                      <SelectItem value="Prof.">Prof.</SelectItem>
+                      <SelectItem value="Asst. Prof.">Asst. Prof.</SelectItem>
+                      <SelectItem value="Assoc. Prof.">Assoc. Prof.</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="e_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>First Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Somchai" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="e_middle_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Middle Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="(Optional)" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="e_surname"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Jaidee" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+
          <FormField
           control={control}
           name="roles"
