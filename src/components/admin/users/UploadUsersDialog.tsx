@@ -143,7 +143,7 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
             )}
             </div>
              <p className="text-xs text-muted-foreground">
-                * ต้องมีคอลัมน์: <code className="font-mono bg-muted p-1 rounded">email</code>, <code className="font-mono bg-muted p-1 rounded">name</code>, <code className="font-mono bg-muted p-1 rounded">password</code>, <code className="font-mono bg-muted p-1 rounded">roles</code> (คั่นด้วยจุลภาค)
+                * ต้องมีคอลัมน์: <code className="font-mono bg-muted p-1 rounded">email</code>, <code className="font-mono bg-muted p-1 rounded">name</code>, <code className="font-mono bg-muted p-1 rounded">password</code>, <code className="font-mono bg-muted p-1 rounded">roles</code> (คั่นด้วยจุลภาค). คอลัมน์ <code className="font-mono bg-muted p-1 rounded">id</code> (สำหรับรหัสนักศึกษา) เป็นตัวเลือก.
             </p>
         </div>
       ) : (
