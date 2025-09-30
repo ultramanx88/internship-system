@@ -9,9 +9,8 @@ import { users } from '@/lib/data'; // Import mock data
 const validRoles = validRolesData.map(r => r.id);
 
 const userSchema = z.object({
-  id: z.string().optional(),
+  Login_id: z.string().optional(),
   email: z.string().email({ message: 'อีเมลไม่ถูกต้อง' }),
-  name: z.string().min(2, { message: 'ชื่อต้องมีอย่างน้อย 2 ตัวอักษร' }),
   password: z.string().min(6, { message: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' }),
   roles: z.string().transform((val, ctx) => {
     const roles = val.split(',').map(r => r.trim()).filter(Boolean);
@@ -32,6 +31,14 @@ const userSchema = z.object({
     }
     return roles;
   }),
+  t_title: z.string().optional(),
+  t_name: z.string().optional(),
+  t_middlename: z.string().optional(),
+  t_surname: z.string().optional(),
+  e_title: z.string().optional(),
+  e_name: z.string().optional(),
+  e_middle_name: z.string().optional(),
+  e_surname: z.string().optional(),
 });
 
 const uploadSchema = z.array(z.any());
@@ -65,7 +72,7 @@ export async function POST(request: Request) {
         continue;
       }
       
-      const { id, email, name, password, roles } = validation.data;
+      const { Login_id, email, password, roles, e_name, e_surname, e_title } = validation.data;
       
       if (existingEmails.has(email)) {
         errors.push(`แถวที่ ${rowIndex}: อีเมล '${email}' มีอยู่แล้วในระบบ`);
@@ -73,15 +80,17 @@ export async function POST(request: Request) {
         continue;
       }
 
-      if (id && existingIds.has(id)) {
-        errors.push(`แถวที่ ${rowIndex}: ID '${id}' มีอยู่แล้วในระบบ`);
+      if (Login_id && existingIds.has(Login_id)) {
+        errors.push(`แถวที่ ${rowIndex}: ID '${Login_id}' มีอยู่แล้วในระบบ`);
         skippedCount++;
         continue;
       }
       
+      const fullName = [e_title, e_name, e_surname].filter(Boolean).join(' ');
+
       users.push({
-          id: id || createId(),
-          name,
+          id: Login_id || createId(),
+          name: fullName,
           email,
           password,
           roles: roles as any,
@@ -91,7 +100,7 @@ export async function POST(request: Request) {
 
       createdCount++;
       existingEmails.add(email);
-      if (id) existingIds.add(id);
+      if (Login_id) existingIds.add(Login_id);
     }
 
     return NextResponse.json({
