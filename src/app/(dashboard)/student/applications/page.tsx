@@ -80,7 +80,7 @@ export default function StudentApplicationsPage() {
                       </TableCell>
                       <TableCell className="text-center">
                         <Button asChild variant="outline" size="sm">
-                          <Link href={`/admin/applications/${app.id}`}>
+                          <Link href={`/student/internships/${app.internshipId}`}>
                             <Eye className="mr-2 h-4 w-4" />
                             ดูรายละเอียด
                           </Link>

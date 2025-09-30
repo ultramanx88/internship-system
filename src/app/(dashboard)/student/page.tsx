@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { internships, applications, users, progressReports } from '@/lib/data';
+import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,10 +14,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-
-
-// For demo purposes, we'll hardcode the student user
-const STUDENT_ID = 'test001';
 
 const statusIcons: { [key: string]: React.ReactNode } = {
   approved: <CheckCircle className="text-white" />,
@@ -33,10 +30,14 @@ const statusColors: { [key: string]: string } = {
 
 export default function StudentPage() {
   const { toast } = useToast();
-  const student = users.find(u => u.id === STUDENT_ID);
+  const { user } = useAuth();
+  
+  // Use fallback for demo if no user
+  const studentId = user?.id || 'test001';
+  const student = users.find(u => u.id === studentId);
   
   // Use state to make applications data mutable
-  const [myApplications, setMyApplications] = useState(applications.filter(app => app.studentId === STUDENT_ID));
+  const [myApplications, setMyApplications] = useState(applications.filter(app => app.studentId === studentId));
 
   const approvedApplication = myApplications.find(app => app.status === 'approved');
   const approvedInternship = approvedApplication ? internships.find(i => i.id === approvedApplication.internshipId) : null;
@@ -183,9 +184,15 @@ export default function StudentPage() {
                         <CardDescription>บันทึกความคืบหน้าการฝึกงานของคุณที่ {approvedInternship?.company}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                       <form className="space-y-4">
+                       <form className="space-y-4" onSubmit={(e) => {
+                           e.preventDefault();
+                           toast({
+                               title: "ส่งรายงานสำเร็จ",
+                               description: "รายงานความคืบหน้าของคุณได้รับการบันทึกแล้ว",
+                           });
+                       }}>
                            <Textarea placeholder="เขียนรายงานความคืบหน้าประจำสัปดาห์ของคุณ..." />
-                           <Button>ส่งรายงาน</Button>
+                           <Button type="submit">ส่งรายงาน</Button>
                        </form>
                        <Separator />
                        <h4 className="font-semibold text-lg">รายงานที่ส่งแล้ว</h4>
