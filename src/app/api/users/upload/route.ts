@@ -1,16 +1,17 @@
 'use server';
 
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import * as xlsx from 'xlsx';
 import { z } from 'zod';
-import { Role } from '@prisma/client';
-import { roles as validRoles } from '@/lib/permissions';
+import { roles as validRolesData } from '@/lib/permissions';
 import { createId } from '@paralleldrive/cuid2';
+import { users } from '@/lib/data'; // Import mock data
 
-const validRoleIds = validRoles.map(r => r.id);
+// Define valid roles from permissions lib
+const validRoles = validRolesData.map(r => r.id);
 
+// Define a schema without Prisma's Role enum
 const userSchema = z.object({
   id: z.string().optional(),
   email: z.string().email({ message: 'อีเมลไม่ถูกต้อง' }),
@@ -25,7 +26,7 @@ const userSchema = z.object({
       });
       return z.NEVER;
     }
-    const invalidRoles = roles.filter(r => !validRoleIds.includes(r as Role));
+    const invalidRoles = roles.filter(r => !validRoles.includes(r));
     if (invalidRoles.length > 0) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
@@ -33,9 +34,10 @@ const userSchema = z.object({
         });
         return z.NEVER;
     }
-    return roles as Role[];
+    return roles;
   }),
 });
+
 
 export async function POST(request: Request) {
   try {
@@ -53,15 +55,13 @@ export async function POST(request: Request) {
     const data = xlsx.utils.sheet_to_json(sheet) as any[];
 
     let createdCount = 0;
-    let updatedCount = 0;
+    let updatedCount = 0; // Not implementing updates for now
     let skippedCount = 0;
     const errors: string[] = [];
 
-    const existingUsers = await prisma.user.findMany({
-      select: { email: true, id: true },
-    });
-    const existingEmails = new Set(existingUsers.map(u => u.email));
-    const existingIds = new Set(existingUsers.map(u => u.id));
+    // Use existing mock data for checks
+    const existingEmails = new Set(users.map(u => u.email));
+    const existingIds = new Set(users.map(u => u.id));
 
     for (const [index, row] of data.entries()) {
       const rowIndex = index + 2; // Excel rows are 1-based, plus header
@@ -84,24 +84,27 @@ export async function POST(request: Request) {
       
       if (existingEmails.has(email)) {
         skippedCount++;
+        errors.push(`แถวที่ ${rowIndex}: อีเมล '${email}' มีอยู่แล้วในระบบ (ถูกข้าม)`);
         continue;
       }
 
       if (id && existingIds.has(id)) {
         skippedCount++;
+        errors.push(`แถวที่ ${rowIndex}: ID '${id}' มีอยู่แล้วในระบบ (ถูกข้าม)`);
         continue;
       }
       
-      const hashedPassword = await bcrypt.hash(password, 10);
+      // In a real app, you would hash the password. Here we store it as is or hash it.
+      // Let's stick to the convention of storing it plain for the mock data for now.
       
-      await prisma.user.create({
-        data: {
+      users.push({
           id: id || createId(),
           name,
           email,
-          password: hashedPassword,
-          roles,
-        },
+          password, // Storing plain text password for mock data consistency
+          roles: roles as any, // Cast to any to match mock data type
+          skills: null,
+          statement: null,
       });
 
       createdCount++;
@@ -112,7 +115,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       message: 'ประมวลผลไฟล์สำเร็จ',
       createdCount,
-      updatedCount, // Currently not implementing updates, so it's 0
+      updatedCount,
       skippedCount,
       errors,
     });
