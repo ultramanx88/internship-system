@@ -1,29 +1,42 @@
 'use client';
 
-import { notFound, useParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { applications, users, internships, progressReports } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, Building, GraduationCap, Calendar, FileText, Printer } from 'lucide-react';
+import { ArrowLeft, User, Building, Calendar, FileText, Printer } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 export default function ReportDetailsPage() {
-  const params = useParams();
-  const reportId = params.reportId as string;
+  const pathname = usePathname();
+  const reportId = pathname.split('/').pop();
+  
   const application = applications.find(app => app.id === reportId);
 
-  if (!application) {
-    notFound();
-  }
-
-  const student = users.find(u => u.id === application.studentId);
-  const internship = internships.find(i => i.id === application.internshipId);
-  const reports = progressReports.filter(p => p.applicationId === application.id);
+  const student = users.find(u => u.id === application?.studentId);
+  const internship = internships.find(i => i.id === application?.internshipId);
   const teacher = users.find(u => u.roles.includes('visitor')); // Mock data
 
-  if (!student || !internship) {
-    notFound();
+  if (!application || !student || !internship) {
+    return (
+        <div className="space-y-8 p-4 text-secondary-600">
+             <Button asChild variant="outline" size="sm" className="mb-4">
+              <Link href="/admin/reports">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                กลับไปหน้ารายงาน
+              </Link>
+            </Button>
+            <Card>
+                <CardHeader>
+                    <CardTitle>ไม่พบข้อมูล</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>ไม่สามารถโหลดรายละเอียดรายงานได้ กรุณาตรวจสอบว่า URL ถูกต้องหรือไม่</p>
+                </CardContent>
+            </Card>
+        </div>
+    );
   }
 
   return (
