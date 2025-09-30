@@ -1,4 +1,7 @@
+'use client';
+
 import { Application } from '@prisma/client';
+import { useRouter } from 'next/navigation';
 import {
   Table,
   TableBody,
@@ -10,24 +13,24 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminDashboard from '@/components/dashboard/admin/AdminDashboard';
 import { Badge } from '@/components/ui/badge';
-import { users, internships } from '@/lib/data';
+import { users, internships, applications as mockApplications } from '@/lib/data';
+import { useState, useEffect } from 'react';
 
-async function getApplications() {
+// This function can be removed or adapted if a real API is used later.
+async function getApplications(): Promise<Omit<Application, "createdAt" | "updatedAt">[]> {
     // In a real app, you'd fetch from your API endpoint.
     // For now, we'll simulate it by returning the mock data.
-    // To see the real implementation, you would use:
-    // const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/applications`, { cache: 'no-store' });
-    // if (!res.ok) {
-    //   throw new Error('Failed to fetch applications');
-    // }
-    // return res.json();
-    const { applications } = await import('@/lib/data');
-    return applications;
+    return Promise.resolve(mockApplications);
 }
 
 
-export default async function AdminPage() {
-    const applications: Omit<Application, "createdAt" | "updatedAt">[] = await getApplications();
+export default function AdminPage() {
+    const router = useRouter();
+    const [applications, setApplications] = useState<Omit<Application, "createdAt" | "updatedAt">[]>([]);
+    
+    useEffect(() => {
+        getApplications().then(data => setApplications(data));
+    }, []);
     
     const statusColors: { [key: string]: string } = {
         approved: "bg-[#2f7b69] text-white",
@@ -49,6 +52,10 @@ export default async function AdminPage() {
       approved: "อนุมัติ",
       pending: "รอการตรวจสอบ",
       rejected: "ปฏิเสธ",
+    };
+
+    const handleRowClick = (applicationId: string) => {
+        router.push(`/admin/applications/${applicationId}`);
     };
 
     return (
@@ -77,15 +84,15 @@ export default async function AdminPage() {
                     </TableHeader>
                     <TableBody>
                     {tableData.slice(0, 10).map(app => (
-                        <TableRow key={app.id}>
-                        <TableCell className="font-medium">{app.studentName}</TableCell>
-                        <TableCell>{app.internshipTitle}</TableCell>
-                        <TableCell>{new Date(app.dateApplied).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
-                        <TableCell className="text-right">
-                            <Badge className={`capitalize ${statusColors[app.status]}`}>
-                                {statusTranslations[app.status]}
-                            </Badge>
-                        </TableCell>
+                        <TableRow key={app.id} onClick={() => handleRowClick(app.id)} className="cursor-pointer">
+                            <TableCell className="font-medium">{app.studentName}</TableCell>
+                            <TableCell>{app.internshipTitle}</TableCell>
+                            <TableCell>{new Date(app.dateApplied).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
+                            <TableCell className="text-right">
+                                <Badge className={`capitalize ${statusColors[app.status]}`}>
+                                    {statusTranslations[app.status]}
+                                </Badge>
+                            </TableCell>
                         </TableRow>
                     ))}
                     </TableBody>
