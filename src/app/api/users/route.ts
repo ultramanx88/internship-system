@@ -108,20 +108,22 @@ async function handleSingleUserCreation(body: any) {
     return NextResponse.json(userWithoutPassword, { status: 201 });
 }
 
-async function handleUserUpload(fileData: any[]) {
+async function handleUserUpload(sheetData: any[][]) {
     let createdCount = 0;
     let updatedCount = 0;
     let skippedCount = 0;
     const errors: string[] = [];
 
     // This handles multi-line headers by assuming the first row is descriptive and the second is the actual header.
-    const header = fileData[1]; 
-    const dataRows = fileData.slice(2); 
+    const header = sheetData[1]; 
+    const dataRows = sheetData.slice(2); 
 
     const json = dataRows.map(row => {
         const obj: { [key: string]: any } = {};
         header.forEach((key: string, index: number) => {
-            obj[key] = row[index];
+            if (key) { // Ensure key is not null or undefined
+              obj[key] = row[index];
+            }
         });
         return obj;
     });
