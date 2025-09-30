@@ -21,7 +21,10 @@ const excelUserSchema = z.object({
   Login_id: z.string().optional(),
   email: z.string().email({ message: 'อีเมลไม่ถูกต้อง' }).optional(),
   password: z.string().min(6, { message: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' }).optional(),
-  roles: z.string().transform((val, ctx) => {
+  role_id: z.string().optional().transform((val, ctx) => {
+    if (!val) {
+        return []; // Return empty array if role_id is not present
+    }
     const roles = val.split(',').map(r => r.trim()).filter(Boolean);
     if (roles.length === 0) {
       ctx.addIssue({
@@ -136,7 +139,8 @@ async function handleUserUpload(data: any[]) {
         continue;
       }
       
-      const { Login_id, email, password, roles, t_name, t_surname, e_name, e_surname } = validation.data;
+      const { Login_id, email, password, role_id, t_name, t_surname, e_name, e_surname } = validation.data;
+      const roles = role_id;
       
        if (!Login_id && !email) {
           errors.push(`แถวที่ ${rowIndex}: ต้องระบุ Login_id หรือ email`);
@@ -154,7 +158,7 @@ async function handleUserUpload(data: any[]) {
         existingUserById.name = fullName || existingUserById.name;
         if(email) existingUserById.email = email;
         if(password) existingUserById.password = password;
-        existingUserById.roles = roles as any[];
+        if(roles && roles.length > 0) existingUserById.roles = roles as any[];
         // @ts-ignore
         existingUserById.t_name = t_name;
         // @ts-ignore
