@@ -30,7 +30,7 @@ export default function AdminReportsPage() {
             .map((app, index) => {
                 const student = mockUsers.find(u => u.id === app.studentId);
                 const internship = mockInternships.find(i => i.id === app.internshipId);
-                const teacher = mockUsers.find(u => u.role === 'teacher');
+                const teacher = mockUsers.find(u => u.roles.includes('visitor'));
                 return {
                     ...app,
                     studentName: student?.name || 'N/A',
@@ -57,6 +57,38 @@ export default function AdminReportsPage() {
     const statusColors: { [key: string]: string } = {
         'มีรายงานแล้ว': "bg-success text-white",
         'ยังไม่มีรายงาน': "bg-amber-500 text-white",
+    };
+
+    const handleDownloadAll = () => {
+        const csvHeaders = [
+            "ชื่อ-สกุล",
+            "บริษัท",
+            "อาจารย์นิเทศ",
+            "สถานะรายงาน"
+        ];
+        
+        const csvRows = filteredData.map(item => 
+            [
+                `"${item.studentName}"`,
+                `"${item.companyName}"`,
+                `"${item.teacherName}"`,
+                `"${item.reportStatus}"`
+            ].join(',')
+        );
+
+        const csvContent = "\uFEFF" + [csvHeaders.join(','), ...csvRows].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.href) {
+            URL.revokeObjectURL(link.href);
+        }
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute('download', 'supervision_reports.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     return (
@@ -91,7 +123,7 @@ export default function AdminReportsPage() {
                                 <SelectItem value="ยังไม่มีรายงาน">ยังไม่มีรายงาน</SelectItem>
                             </SelectContent>
                         </Select>
-                         <Button className="ml-auto" variant="outline">
+                         <Button className="ml-auto" variant="outline" onClick={handleDownloadAll}>
                             <Download className="mr-2 h-4 w-4" />
                             ดาวน์โหลดทั้งหมด
                         </Button>
