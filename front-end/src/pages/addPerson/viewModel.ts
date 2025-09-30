@@ -40,7 +40,7 @@ const useViewModel = () => {
 
   useEffect(() => {
     fetchUserList();
-  }, []);
+  }, [fetchUserList]);
 
   const toggleRow = useCallback((id: number) => {
     setSelected((prev) => {
@@ -82,7 +82,9 @@ const useViewModel = () => {
     try {
       const form = new FormData();
       form.append("file", xlsxFile);
-      if (roleIdForAll !== "") form.append("role_id", String(roleIdForAll));
+      if (roleIdForAll) {
+        form.append("role_id", String(roleIdForAll));
+      }
       const res = await userService.reqPostAddUserByXLSX(form);
       setResult(res as unknown as BulkResult);
       await fetchUserList(); // refresh list after upload

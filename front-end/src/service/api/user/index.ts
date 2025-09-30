@@ -27,7 +27,12 @@ export class UserService extends RemoteA {
   reqPostAddUserByXLSX = async (entity: FormData): Promise<AxiosResponse> => {
     const response = await this.getAxiosInstance().post(
       PROTECTED_PATH.ADD_USER_XLSX,
-      entity
+      entity,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
     const { data } = response;
     return data;
