@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { internships, applications, users, progressReports } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -214,7 +215,9 @@ export default function StudentPage() {
                                 <h3 className="font-semibold">{internship.title}</h3>
                                 <p className="text-sm text-muted-foreground">{internship.company}</p>
                                 <p className="text-sm mt-2 line-clamp-2">{internship.description}</p>
-                                <Button size="sm" variant="outline" className="mt-3">ดูและสมัคร</Button>
+                                <Button size="sm" variant="outline" className="mt-3" asChild>
+                                  <Link href={`/student/internships/${internship.id}`}>ดูและสมัคร</Link>
+                                </Button>
                             </div>
                         ))}
                     </div>
