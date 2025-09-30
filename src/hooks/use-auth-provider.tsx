@@ -43,10 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(
     (identifier: string, password: string, selectedRole: Role) => {
+      const identifierLower = identifier.toLowerCase();
+
       const foundUser = users.find((u) => {
-        const identifierLower = identifier.toLowerCase();
-        
-        // Students must log in with their student ID
+        // Students must log in with their student ID (which is the user.id in mock data)
         if (selectedRole === 'student') {
             return u.id.toLowerCase() === identifierLower && u.password === password;
         }
@@ -55,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return u.email.toLowerCase() === identifierLower && u.password === password;
       });
 
+      // After finding the user, ensure they actually have the role they're trying to log in with.
       if (foundUser && foundUser.roles.includes(selectedRole)) {
         const authUser: AuthUser = {
           id: foundUser.id,
@@ -69,6 +70,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         );
         return authUser;
       }
+
+      // If no user is found with the correct credentials and role
       return null;
     },
     []
