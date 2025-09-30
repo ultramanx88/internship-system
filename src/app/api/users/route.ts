@@ -3,6 +3,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createId } from '@paralleldrive/cuid2';
+import * as xlsx from 'xlsx';
 import { users } from '@/lib/data';
 import { roles as validRolesData } from '@/lib/permissions';
 
@@ -107,14 +108,27 @@ async function handleSingleUserCreation(body: any) {
     return NextResponse.json(userWithoutPassword, { status: 201 });
 }
 
-async function handleUserUpload(data: any[]) {
+async function handleUserUpload(fileData: any[]) {
     let createdCount = 0;
     let updatedCount = 0;
     let skippedCount = 0;
     const errors: string[] = [];
 
-    for (const [index, row] of data.entries()) {
-      const rowIndex = index + 2;
+    // This handles multi-line headers by assuming the first row is descriptive and the second is the actual header.
+    const header = fileData[1]; 
+    const dataRows = fileData.slice(2); 
+
+    const json = dataRows.map(row => {
+        const obj: { [key: string]: any } = {};
+        header.forEach((key: string, index: number) => {
+            obj[key] = row[index];
+        });
+        return obj;
+    });
+
+
+    for (const [index, row] of json.entries()) {
+      const rowIndex = index + 3; // +2 for header rows, +1 for 1-based index
 
       if (row.password !== undefined && typeof row.password !== 'string') {
         row.password = String(row.password);
@@ -201,7 +215,20 @@ export async function POST(request: Request) {
 
         // Check if this is an upload action
         if (body.action === 'upload' && Array.isArray(body.data)) {
-            return handleUserUpload(body.data);
+             const data = body.data;
+             // Read the workbook and sheet
+            const workbook = xlsx.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            
+            // Convert sheet to array of arrays, which is easier for handling multi-line headers
+            const sheetData: any[][] = xlsx.utils.sheet_to_json(worksheet, {
+                header: 1, // This is the key change to read all rows as arrays
+                raw: false,
+                defval: null
+            });
+
+            return handleUserUpload(sheetData);
         }
         
         // Otherwise, handle single user creation

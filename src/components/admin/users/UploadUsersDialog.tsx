@@ -58,19 +58,16 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
     reader.onload = async (event) => {
         try {
             const data = event.target?.result;
-            const workbook = xlsx.read(data, { type: 'array' });
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
-            const json = xlsx.utils.sheet_to_json(worksheet, {
-                // Force all values to be strings to avoid type issues with passwords etc.
-                raw: false,
-                defval: null
-            });
+            if (!data) {
+                throw new Error('Could not read file data.');
+            }
+            
+            const arrayBuffer = data instanceof ArrayBuffer ? data : new TextEncoder().encode(data as string).buffer;
 
             const response = await fetch('/api/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'upload', data: json }),
+                body: JSON.stringify({ action: 'upload', data: Array.from(new Uint8Array(arrayBuffer)) }),
             });
 
             const resultData = await response.json();
