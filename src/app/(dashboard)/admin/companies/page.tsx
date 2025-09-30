@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { internships as mockInternships, applications as mockApplications } from '@/lib/data';
 import {
   Table,
@@ -98,8 +99,10 @@ export default function AdminCompaniesPage() {
                                             <TableCell>{item.location}</TableCell>
                                             <TableCell className="text-center">{item.studentCount}</TableCell>
                                             <TableCell className="text-center">
-                                                <Button size="sm" variant="outline">
-                                                    ดูรายละเอียด
+                                                <Button asChild size="sm" variant="outline">
+                                                    <Link href={`/admin/companies/${encodeURIComponent(item.company)}`}>
+                                                        ดูรายละเอียด
+                                                    </Link>
                                                 </Button>
                                             </TableCell>
                                         </TableRow>
