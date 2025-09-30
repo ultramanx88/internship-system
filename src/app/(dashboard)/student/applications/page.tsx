@@ -80,8 +80,7 @@ export default function StudentApplicationsPage() {
                       </TableCell>
                       <TableCell className="text-center">
                         <Button asChild variant="outline" size="sm">
-                          {/* This would link to a detailed application view page */}
-                          <Link href="#">
+                          <Link href={`/admin/applications/${app.id}`}>
                             <Eye className="mr-2 h-4 w-4" />
                             ดูรายละเอียด
                           </Link>
