@@ -1,6 +1,6 @@
 'use client';
 
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { applications, users, internships, progressReports } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, User, Building, GraduationCap, Calendar, FileText, Printer } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
-export default function ReportDetailsPage({ params }: { params: { reportId: string } }) {
-  const { reportId } = params;
+export default function ReportDetailsPage() {
+  const params = useParams();
+  const reportId = params.reportId as string;
   const application = applications.find(app => app.id === reportId);
 
   if (!application) {
