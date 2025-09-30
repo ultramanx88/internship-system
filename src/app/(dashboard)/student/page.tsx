@@ -1,12 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { internships, applications, users, progressReports } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Briefcase, CheckCircle, Clock, FileText, XCircle, BookOpen } from 'lucide-react';
+import { Briefcase, CheckCircle, Clock, FileText, XCircle, BookOpen, Save } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+
 
 // For demo purposes, we'll hardcode the student user
 const STUDENT_ID = 'test001';
@@ -25,11 +31,19 @@ const statusColors: { [key: string]: string } = {
 
 
 export default function StudentPage() {
+  const { toast } = useToast();
   const student = users.find(u => u.id === STUDENT_ID);
-  const myApplications = applications.filter(app => app.studentId === STUDENT_ID);
+  
+  // Use state to make applications data mutable
+  const [myApplications, setMyApplications] = useState(applications.filter(app => app.studentId === STUDENT_ID));
+
   const approvedApplication = myApplications.find(app => app.status === 'approved');
   const approvedInternship = approvedApplication ? internships.find(i => i.id === approvedApplication.internshipId) : null;
   const myProgressReports = approvedApplication ? progressReports.filter(p => p.applicationId === approvedApplication.id) : [];
+
+  const [projectTopic, setProjectTopic] = useState(approvedApplication?.projectTopic || '');
+  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+
 
   const statusTranslations: { [key: string]: string } = {
     approved: "อนุมัติ",
@@ -38,6 +52,30 @@ export default function StudentPage() {
   };
 
   const isCoop = approvedInternship?.type === 'co-op';
+
+  const handleSaveProjectTopic = () => {
+    if (!approvedApplication) return;
+    
+    // Simulate updating the data
+    const appIndex = applications.findIndex(app => app.id === approvedApplication.id);
+    if (appIndex !== -1) {
+        applications[appIndex].projectTopic = projectTopic;
+    }
+
+    // Update local state to re-render
+    setMyApplications(prevApps => 
+        prevApps.map(app => 
+            app.id === approvedApplication.id ? { ...app, projectTopic: projectTopic } : app
+        )
+    );
+    
+    toast({
+        title: "บันทึกสำเร็จ",
+        description: "หัวข้อโปรเจคของคุณได้รับการอัปเดตแล้ว",
+    })
+    setIsProjectDialogOpen(false);
+  };
+
 
   return (
     <div className="grid gap-8 text-secondary-600">
@@ -75,29 +113,66 @@ export default function StudentPage() {
             </Card>
 
             {isCoop && (
-                <Card>
-                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                           <BookOpen />
-                           ข้อมูลโปรเจค (สหกิจศึกษา)
-                        </CardTitle>
-                        <CardDescription>จัดการหัวข้อและรายละเอียดโปรเจคสหกิจของคุณ</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {approvedApplication?.projectTopic ? (
-                            <div>
-                                <p className="font-semibold">หัวข้อโปรเจค:</p>
-                                <p className="text-muted-foreground">{approvedApplication.projectTopic}</p>
-                                <Button variant="outline" size="sm" className="mt-2">แก้ไขหัวข้อ</Button>
+                 <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                            <BookOpen />
+                            ข้อมูลโปรเจค (สหกิจศึกษา)
+                            </CardTitle>
+                            <CardDescription>จัดการหัวข้อและรายละเอียดโปรเจคสหกิจของคุณ</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {approvedApplication?.projectTopic ? (
+                                <div>
+                                    <p className="font-semibold">หัวข้อโปรเจค:</p>
+                                    <p className="text-muted-foreground">{approvedApplication.projectTopic}</p>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" size="sm" className="mt-2">แก้ไขหัวข้อ</Button>
+                                    </DialogTrigger>
+                                </div>
+                            ) : (
+                                <div>
+                                    <p className="text-muted-foreground">คุณยังไม่ได้กำหนดหัวข้อโปรเจค</p>
+                                    <DialogTrigger asChild>
+                                        <Button size="sm" className="mt-2">กำหนดหัวข้อโปรเจค</Button>
+                                    </DialogTrigger>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>แก้ไขหัวข้อโปรเจค</DialogTitle>
+                            <DialogDescription>
+                                กรอกหรือแก้ไขหัวข้อโปรเจคสหกิจศึกษาของคุณที่นี่
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="project-topic" className="text-right">
+                                    หัวข้อ
+                                </Label>
+                                <Input
+                                    id="project-topic"
+                                    value={projectTopic}
+                                    onChange={(e) => setProjectTopic(e.target.value)}
+                                    className="col-span-3"
+                                    placeholder="เช่น การพัฒนาระบบ AI..."
+                                />
                             </div>
-                        ) : (
-                             <div>
-                                <p className="text-muted-foreground">คุณยังไม่ได้กำหนดหัวข้อโปรเจค</p>
-                                <Button size="sm" className="mt-2">กำหนดหัวข้อโปรเจค</Button>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                        </div>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary">ยกเลิก</Button>
+                            </DialogClose>
+                            <Button type="button" onClick={handleSaveProjectTopic}>
+                                <Save className="mr-2 h-4 w-4" />
+                                บันทึก
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             )}
 
             {approvedApplication && (
