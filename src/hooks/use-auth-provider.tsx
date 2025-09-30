@@ -46,13 +46,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const identifierLower = identifier.toLowerCase();
 
       const foundUser = users.find((u) => {
-        // Students must log in with their student ID (which is the user.id in mock data)
-        if (selectedRole === 'student') {
-            return u.id.toLowerCase() === identifierLower && u.password === password;
-        }
-
-        // Other roles log in with email
-        return u.email.toLowerCase() === identifierLower && u.password === password;
+        // All roles log in with their ID (Login_id) and password.
+        return u.id.toLowerCase() === identifierLower && u.password === password;
       });
 
       // After finding the user, ensure they actually have the role they're trying to log in with.

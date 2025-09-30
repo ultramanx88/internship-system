@@ -18,6 +18,7 @@ const createUserSchema = z.object({
 
 // Schema for validating a user from an uploaded Excel file
 const excelUserSchema = z.object({
+  login_id: z.string().optional(),
   email: z.string().email({ message: 'อีเมลไม่ถูกต้อง' }).optional(),
   password: z.string().optional(),
   role_id: z.string().optional().transform((val, ctx) => {
@@ -112,8 +113,6 @@ async function handleUserUpload(data: any[]) {
     let skippedCount = 0;
     const errors: string[] = [];
 
-    const existingEmails = new Set(users.map(u => u.email));
-
     for (const [index, row] of data.entries()) {
       const rowIndex = index + 2;
 
@@ -130,16 +129,16 @@ async function handleUserUpload(data: any[]) {
         continue;
       }
       
-      const { email, password, role_id, t_title, t_name, t_middlename, t_surname, e_title, e_name, e_middle_name, e_surname } = validation.data;
+      const { login_id, email, password, role_id, t_title, t_name, t_middlename, t_surname, e_title, e_name, e_middle_name, e_surname } = validation.data;
       const roles = role_id;
       
-       if (!email) {
-          errors.push(`แถวที่ ${rowIndex}: ต้องระบุ email`);
+       if (!login_id) {
+          errors.push(`แถวที่ ${rowIndex}: ต้องระบุ login_id`);
           skippedCount++;
           continue;
       }
 
-      const existingUser = users.find(u => u.email === email);
+      const existingUser = users.find(u => u.id === login_id);
       
       const t_fullName = [t_name, t_surname].filter(Boolean).join(' ');
       const e_fullName = [e_name, e_surname].filter(Boolean).join(' ');
@@ -175,14 +174,14 @@ async function handleUserUpload(data: any[]) {
         }
         
         users.push({
-            id: createId(),
+            id: login_id,
+            email: email || `${login_id}@placeholder.com`, // Add placeholder email if missing
             skills: null,
             statement: null,
             ...userData,
         });
 
         createdCount++;
-        existingEmails.add(email);
       }
     }
     
