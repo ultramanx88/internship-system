@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, useRouter, useParams } from 'next/navigation';
 import { companyEvaluations } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,8 +12,9 @@ import { Save, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 
-export default function EvaluationFormPage({ params }: { params: { companyId: string } }) {
-  const companyId = params.companyId;
+export default function EvaluationFormPage() {
+  const params = useParams();
+  const companyId = params.companyId as string;
   const { toast } = useToast();
   const router = useRouter();
 
