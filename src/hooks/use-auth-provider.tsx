@@ -43,12 +43,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(
     (identifier: string, password: string, selectedRole: Role) => {
-      const foundUser = users.find(
-        (u) =>
-          (u.email.toLowerCase() === identifier.toLowerCase() ||
-            u.id.toLowerCase() === identifier.toLowerCase()) &&
-          u.password === password
-      );
+      const foundUser = users.find((u) => {
+        const identifierLower = identifier.toLowerCase();
+        
+        // Students must log in with their student ID
+        if (selectedRole === 'student') {
+            return u.id.toLowerCase() === identifierLower && u.password === password;
+        }
+
+        // Other roles log in with email
+        return u.email.toLowerCase() === identifierLower && u.password === password;
+      });
 
       if (foundUser && foundUser.roles.includes(selectedRole)) {
         const authUser: AuthUser = {
