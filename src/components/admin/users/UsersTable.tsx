@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import type { User } from '@prisma/client';
 import { roles as roleData } from '@/lib/permissions';
+import Link from 'next/link';
 import {
   Table,
   TableBody,
@@ -29,7 +30,6 @@ import {
 } from "@/components/ui/dialog"
 import { AddUserForm } from './AddUserForm';
 import { UploadUsersDialog } from './UploadUsersDialog';
-import { EditUserForm } from './EditUserForm';
 
 export function UsersTable() {
     const [users, setUsers] = useState<User[]>([]);
@@ -40,7 +40,6 @@ export function UsersTable() {
     const [roleFilter, setRoleFilter] = useState('all');
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
     const [isUploadOpen, setIsUploadOpen] = useState(false);
-    const [editingUser, setEditingUser] = useState<User | null>(null);
     
     const { toast } = useToast();
 
@@ -142,7 +141,6 @@ export function UsersTable() {
     const handleSuccess = () => {
       setIsAddUserOpen(false);
       setIsUploadOpen(false);
-      setEditingUser(null);
       fetchUsers(debouncedSearchTerm, roleFilter);
     }
 
@@ -253,8 +251,10 @@ export function UsersTable() {
                                         <TableCell>{user.email}</TableCell>
                                         <TableCell>{user.roles.map(r => roleTranslations[r as any] || r).join(', ')}</TableCell>
                                         <TableCell className="text-center">
-                                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setEditingUser(user)}>
-                                                <Edit className="h-4 w-4" />
+                                            <Button asChild variant="outline" size="icon" className="h-8 w-8">
+                                                <Link href={`/admin/users/${user.id}`}>
+                                                   <Edit className="h-4 w-4" />
+                                                </Link>
                                             </Button>
                                         </TableCell>
                                     </TableRow>
@@ -269,25 +269,7 @@ export function UsersTable() {
                         </TableBody>
                     </Table>
                 </div>
-                
-                {/* Edit User Dialog */}
-                <Dialog open={!!editingUser} onOpenChange={(isOpen) => !isOpen && setEditingUser(null)}>
-                     <DialogContent className="sm:max-w-[480px]">
-                        <DialogHeader>
-                        <DialogTitle>แก้ไขข้อมูลผู้ใช้</DialogTitle>
-                        <DialogDescription>
-                            อัปเดตรายละเอียดสำหรับ {editingUser?.name}
-                        </DialogDescription>
-                        </DialogHeader>
-                        {editingUser && (
-                             <EditUserForm 
-                                user={editingUser}
-                                onSuccess={handleSuccess}
-                                onCancel={() => setEditingUser(null)}
-                            />
-                        )}
-                    </DialogContent>
-                </Dialog>
+
             </CardContent>
         </Card>
     );
