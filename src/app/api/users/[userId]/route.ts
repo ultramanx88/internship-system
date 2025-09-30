@@ -23,8 +23,17 @@ export async function GET(
 }
 
 const updateUserSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  roles: z.array(z.string()).min(1, 'At least one role is required'),
+  email: z.string().email().optional(),
+  password: z.string().min(6).optional().or(z.literal('')),
+  role_id: z.string().optional(),
+  t_title: z.string().optional(),
+  t_name: z.string().optional(),
+  t_middlename: z.string().optional(),
+  t_surname: z.string().optional(),
+  e_title: z.string().optional(),
+  e_name: z.string().optional(),
+  e_middle_name: z.string().optional(),
+  e_surname: z.string().optional(),
 });
 
 export async function PUT(
@@ -46,13 +55,30 @@ export async function PUT(
       return NextResponse.json({ message: 'Invalid request body', errors: result.error.flatten() }, { status: 400 });
     }
     
-    const { name, roles } = result.data;
+    const validatedData = result.data;
+    const currentUser = users[userIndex];
+
+    // Combine Thai and English names for the main 'name' field
+    const t_fullName = [validatedData.t_name, validatedData.t_surname].filter(Boolean).join(' ');
+    const e_fullName = [validatedData.e_name, validatedData.e_surname].filter(Boolean).join(' ');
+    const mainName = t_fullName || e_fullName || currentUser.name;
 
     // Update user in the mock data array
     users[userIndex] = {
-        ...users[userIndex],
-        name: name,
-        roles: roles as Role[],
+        ...currentUser,
+        name: mainName,
+        email: validatedData.email ?? currentUser.email,
+        // Only update password if a new one is provided and is not an empty string
+        password: (validatedData.password && validatedData.password.length > 0) ? validatedData.password : currentUser.password,
+        roles: validatedData.role_id ? [validatedData.role_id as Role] : currentUser.roles,
+        t_title: validatedData.t_title ?? currentUser.t_title,
+        t_name: validatedData.t_name ?? currentUser.t_name,
+        t_middlename: validatedData.t_middlename ?? currentUser.t_middlename,
+        t_surname: validatedData.t_surname ?? currentUser.t_surname,
+        e_title: validatedData.e_title ?? currentUser.e_title,
+        e_name: validatedData.e_name ?? currentUser.e_name,
+        e_middle_name: validatedData.e_middle_name ?? currentUser.e_middle_name,
+        e_surname: validatedData.e_surname ?? currentUser.e_surname,
     };
 
     const { password, ...updatedUser } = users[userIndex];

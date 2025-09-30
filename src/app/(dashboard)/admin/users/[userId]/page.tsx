@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { users as mockUsers } from '@/lib/data';
 import { roles as mockRoles } from '@/lib/permissions';
+import { titles as mockTitles } from '@/lib/data';
 import { User, Role } from '@prisma/client';
 
 import {
   X as CancelIcon,
   Edit,
   Save,
+  Loader2
 } from "lucide-react";
 import { PROTECTED_PATH } from "../../../../../constant/path.route";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,15 +20,18 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 
 export default function UserProfilePage() {
   const router = useRouter();
   const params = useParams();
   const userId = params.userId as string;
+  const { toast } = useToast();
   
   const [user, setUser] = useState<User | null>(null);
   const [isEdit, setIsEdit] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -45,24 +50,24 @@ export default function UserProfilePage() {
   });
 
   useEffect(() => {
-    const foundUser = mockUsers.find(u => u.id === userId);
+    // In a real app, you would fetch the user from the API
+    // For demo purposes, we find the user in the mock data
+    const foundUser: any = mockUsers.find(u => u.id === userId);
     if (foundUser) {
       setUser(foundUser as User);
-      // Mock data splitting from 'name' field
-      const nameParts = foundUser.name?.split(' ') || ['', ''];
       setFormData({
           Login_id: foundUser.id,
-          password: foundUser.password || '',
+          password: '', // Password should not be pre-filled for security
           role_id: foundUser.roles.length > 0 ? (foundUser.roles[0] as string) : '',
-          t_name: foundUser.t_name || nameParts[0],
-          t_surname: foundUser.t_surname || nameParts[1],
-          e_name: foundUser.e_name || nameParts[0],
-          e_surname: foundUser.e_surname || nameParts[1],
+          t_name: foundUser.t_name || '',
+          t_surname: foundUser.t_surname || '',
+          e_name: foundUser.e_name || '',
+          e_surname: foundUser.e_surname || '',
           email: foundUser.email,
-          t_title: '',
-          t_middlename: '',
-          e_title: '',
-          e_middle_name: '',
+          t_title: foundUser.t_title || '',
+          t_middlename: foundUser.t_middlename || '',
+          e_title: foundUser.e_title || '',
+          e_middle_name: foundUser.e_middle_name || '',
       });
     }
     setIsLoading(false);
@@ -73,15 +78,39 @@ export default function UserProfilePage() {
     setFormData(prev => ({...prev, [id]: value}));
   };
   
-  const handleRoleChange = (value: string) => {
-    setFormData(prev => ({...prev, role_id: value}));
+  const handleSelectChange = (field: keyof typeof formData) => (value: string) => {
+    setFormData(prev => ({...prev, [field]: value}));
   }
 
-  const handleSave = () => {
-    console.log("Saving data:", formData);
-    // Here you would typically call an API to save the data
-    // For now, we just log and exit edit mode
-    setIsEdit(false);
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+        const response = await fetch(`/api/users/${userId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to update user');
+        }
+        
+        toast({
+            title: "บันทึกสำเร็จ",
+            description: "ข้อมูลผู้ใช้ได้รับการอัปเดตเรียบร้อยแล้ว",
+        });
+        setIsEdit(false);
+        // Here you might want to refetch the user data or update the local state
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'เกิดข้อผิดพลาด',
+            description: error.message || 'ไม่สามารถบันทึกข้อมูลได้',
+        });
+    } finally {
+        setIsSaving(false);
+    }
   }
 
   if (isLoading) {
@@ -103,11 +132,11 @@ export default function UserProfilePage() {
             <div className="flex gap-2">
               {isEdit ? (
                 <>
-                  <Button onClick={handleSave}>
-                    <Save className="mr-2 h-4 w-4" />
-                    ยืนยันและบันทึก
+                  <Button onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                    {isSaving ? 'กำลังบันทึก' : 'ยืนยันและบันทึก'}
                   </Button>
-                   <Button variant="outline" onClick={() => setIsEdit(false)}>
+                   <Button variant="outline" onClick={() => setIsEdit(false)} disabled={isSaving}>
                     ยกเลิก
                   </Button>
                 </>
@@ -130,19 +159,19 @@ export default function UserProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
                         <Label htmlFor="Login_id">Login ID (รหัสนักศึกษา/ผู้ใช้)</Label>
-                        <Input id="Login_id" value={formData.Login_id} onChange={handleInputChange} disabled={!isEdit} />
+                        <Input id="Login_id" value={formData.Login_id} onChange={handleInputChange} disabled />
                     </div>
                      <div>
                         <Label htmlFor="email">อีเมล</Label>
                         <Input id="email" type="email" value={formData.email} onChange={handleInputChange} disabled={!isEdit} />
                     </div>
                     <div>
-                        <Label htmlFor="password">รหัสผ่าน</Label>
-                        <Input id="password" type="password" value={formData.password} onChange={handleInputChange} disabled={!isEdit} placeholder="********"/>
+                        <Label htmlFor="password">รหัสผ่านใหม่</Label>
+                        <Input id="password" type="password" value={formData.password} onChange={handleInputChange} disabled={!isEdit} placeholder="เปลี่ยนรหัสผ่าน (ถ้าต้องการ)"/>
                     </div>
                      <div>
                         <Label htmlFor="role_id">ตำแหน่ง (Role)</Label>
-                        <Select value={formData.role_id} onValueChange={handleRoleChange} disabled={!isEdit}>
+                        <Select value={formData.role_id} onValueChange={handleSelectChange('role_id')} disabled={!isEdit}>
                             <SelectTrigger id="role_id">
                                 <SelectValue placeholder="เลือกตำแหน่ง" />
                             </SelectTrigger>
@@ -162,7 +191,14 @@ export default function UserProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
                         <Label htmlFor="t_title">คำนำหน้า</Label>
-                        <Input id="t_title" value={formData.t_title} onChange={handleInputChange} disabled={!isEdit} />
+                        <Select value={formData.t_title} onValueChange={handleSelectChange('t_title')} disabled={!isEdit}>
+                            <SelectTrigger id="t_title">
+                                <SelectValue placeholder="เลือกคำนำหน้า" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {mockTitles.map(t => <SelectItem key={t.id} value={t.nameTh}>{t.nameTh}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div>
                         <Label htmlFor="t_name">ชื่อ</Label>
@@ -187,7 +223,14 @@ export default function UserProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
                         <Label htmlFor="e_title">Title</Label>
-                        <Input id="e_title" value={formData.e_title} onChange={handleInputChange} disabled={!isEdit} />
+                        <Select value={formData.e_title} onValueChange={handleSelectChange('e_title')} disabled={!isEdit}>
+                            <SelectTrigger id="e_title">
+                                <SelectValue placeholder="Select Title" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                 {mockTitles.map(t => <SelectItem key={t.id} value={t.nameEn}>{t.nameEn}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div>
                         <Label htmlFor="e_name">First Name</Label>
