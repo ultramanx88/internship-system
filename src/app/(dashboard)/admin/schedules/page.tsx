@@ -17,10 +17,13 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Search } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { CreateScheduleForm } from '@/components/admin/schedules/CreateScheduleForm';
 
 export default function AdminSchedulesPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
     const scheduleData = useMemo(() => {
@@ -30,7 +33,7 @@ export default function AdminSchedulesPage() {
             .map(app => {
                 const student = mockUsers.find(u => u.id === app.studentId);
                 const internship = mockInternships.find(i => i.id === app.internshipId);
-                const teacher = mockUsers.find(u => u.role === 'teacher'); // Assign a mock teacher
+                const teacher = mockUsers.find(u => u.roles.includes('visitor')); // Assign a mock visitor
                 return {
                     ...app,
                     studentName: student?.name || 'N/A',
@@ -56,6 +59,11 @@ export default function AdminSchedulesPage() {
             return matchesSearch && matchesStatus;
         });
     }, [scheduleData, debouncedSearchTerm, statusFilter]);
+
+    const handleSuccess = () => {
+        setIsDialogOpen(false);
+        // Here you would typically refetch the data
+    }
 
     return (
         <div className="grid gap-8 text-secondary-600">
@@ -90,10 +98,26 @@ export default function AdminSchedulesPage() {
                                 <SelectItem value="ยังไม่มอบหมาย">ยังไม่มอบหมาย</SelectItem>
                             </SelectContent>
                         </Select>
-                         <Button className="ml-auto" onClick={() => alert('ฟังก์ชันยังไม่ถูกใช้งาน')}>
-                            <Calendar className="mr-2 h-4 w-4" />
-                            สร้างนัดหมายใหม่
-                        </Button>
+                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="ml-auto">
+                                    <Calendar className="mr-2 h-4 w-4" />
+                                    สร้างนัดหมายใหม่
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[480px]">
+                                <DialogHeader>
+                                    <DialogTitle>สร้างนัดหมายการนิเทศ</DialogTitle>
+                                    <DialogDescription>
+                                        เลือกนักศึกษา, อาจารย์ และกำหนดวันที่สำหรับการนิเทศ
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <CreateScheduleForm 
+                                    onSuccess={handleSuccess}
+                                    onCancel={() => setIsDialogOpen(false)}
+                                />
+                            </DialogContent>
+                        </Dialog>
                     </div>
 
                      <div className="rounded-md border">
