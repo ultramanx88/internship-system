@@ -61,7 +61,11 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
             const workbook = xlsx.read(data, { type: 'array' });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-            const json = xlsx.utils.sheet_to_json(worksheet);
+            const json = xlsx.utils.sheet_to_json(worksheet, {
+                // Force all values to be strings to avoid type issues with passwords etc.
+                raw: false,
+                defval: null
+            });
 
             const response = await fetch('/api/users', {
                 method: 'POST',
@@ -69,12 +73,11 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
                 body: JSON.stringify({ action: 'upload', data: json }),
             });
 
+            const resultData = await response.json();
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to upload data');
+                throw new Error(resultData.message || 'Failed to upload data');
             }
 
-            const resultData = await response.json();
             setResult(resultData);
             toast({
                 title: 'อัปโหลดสำเร็จ',
@@ -143,7 +146,7 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
             )}
             </div>
              <p className="text-xs text-muted-foreground">
-                * ต้องมีคอลัมน์: <code className="font-mono bg-muted p-1 rounded">email</code>, <code className="font-mono bg-muted p-1 rounded">password</code>, <code className="font-mono bg-muted p-1 rounded">roles</code> (คั่นด้วยจุลภาค), และคอลัมน์ชื่อต่างๆ เช่น <code className="font-mono bg-muted p-1 rounded">e_name</code>. คอลัมน์ <code className="font-mono bg-muted p-1 rounded">Login_id</code> (สำหรับรหัสนักศึกษา) เป็นตัวเลือก.
+                * คอลัมน์ที่แนะนำ: <code className="font-mono bg-muted p-1 rounded">login_id</code>, <code className="font-mono bg-muted p-1 rounded">password</code>, <code className="font-mono bg-muted p-1 rounded">role_id</code>, <code className="font-mono bg-muted p-1 rounded">email</code>, และคอลัมน์ชื่อต่างๆ เช่น <code className="font-mono bg-muted p-1 rounded">t_name</code>, <code className="font-mono bg-muted p-1 rounded">t_surname</code>, <code className="font-mono bg-muted p-1 rounded">e_name</code> เป็นต้น
             </p>
         </div>
       ) : (

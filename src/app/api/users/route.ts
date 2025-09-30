@@ -18,21 +18,14 @@ const createUserSchema = z.object({
 
 // Schema for validating a user from an uploaded Excel file
 const excelUserSchema = z.object({
-  Login_id: z.string().optional(),
+  login_id: z.string().optional(),
   email: z.string().email({ message: 'อีเมลไม่ถูกต้อง' }).optional(),
-  password: z.string().min(6, { message: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' }).optional(),
+  password: z.string().optional(),
   role_id: z.string().optional().transform((val, ctx) => {
     if (!val) {
-        return []; // Return empty array if role_id is not present
+        return [];
     }
-    const roles = val.split(',').map(r => r.trim()).filter(Boolean);
-    if (roles.length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'ต้องระบุตำแหน่งอย่างน้อย 1 ตำแหน่ง',
-      });
-      return z.NEVER;
-    }
+    const roles = val.split(',').map(r => r.trim().toLowerCase()).filter(Boolean);
     const invalidRoles = roles.filter(r => !validRoles.includes(r));
     if (invalidRoles.length > 0) {
         ctx.addIssue({
@@ -133,45 +126,53 @@ async function handleUserUpload(data: any[]) {
       const validation = excelUserSchema.safeParse(row);
 
       if (!validation.success) {
-        const errorMessages = validation.error.issues.map(issue => `แถวที่ ${rowIndex}: ${issue.message}`);
+        const errorMessages = validation.error.issues.map(issue => `แถวที่ ${rowIndex}: ${issue.path.join('.')} - ${issue.message}`);
         errors.push(...errorMessages);
         skippedCount++;
         continue;
       }
       
-      const { Login_id, email, password, role_id, t_name, t_surname, e_name, e_surname } = validation.data;
+      const { login_id, email, password, role_id, t_title, t_name, t_middlename, t_surname, e_title, e_name, e_middle_name, e_surname } = validation.data;
       const roles = role_id;
       
-       if (!Login_id && !email) {
-          errors.push(`แถวที่ ${rowIndex}: ต้องระบุ Login_id หรือ email`);
+       if (!login_id && !email) {
+          errors.push(`แถวที่ ${rowIndex}: ต้องระบุ login_id หรือ email`);
           skippedCount++;
           continue;
       }
 
       const existingUserByEmail = email ? users.find(u => u.email === email) : undefined;
-      const existingUserById = Login_id ? users.find(u => u.id === Login_id) : undefined;
+      const existingUserById = login_id ? users.find(u => u.id === login_id) : undefined;
 
-      const fullName = [e_name, e_surname].filter(Boolean).join(' ');
+      const e_fullName = [e_name, e_surname].filter(Boolean).join(' ');
+      const t_fullName = [t_name, t_surname].filter(Boolean).join(' ');
+      const fullName = e_fullName || t_fullName;
 
-      if (Login_id && existingUserById) {
+
+      const userData: any = {
+        name: fullName,
+        t_title,
+        t_name,
+        t_middlename,
+        t_surname,
+        e_title,
+        e_name,
+        e_middle_name,
+        e_surname,
+      };
+
+      if (email) userData.email = email;
+      if (password) userData.password = password;
+      if (roles && roles.length > 0) userData.roles = roles;
+
+      if (login_id && existingUserById) {
         // Update user
-        existingUserById.name = fullName || existingUserById.name;
-        if(email) existingUserById.email = email;
-        if(password) existingUserById.password = password;
-        if(roles && roles.length > 0) existingUserById.roles = roles as any[];
-        // @ts-ignore
-        existingUserById.t_name = t_name;
-        // @ts-ignore
-        existingUserById.t_surname = t_surname;
-        // @ts-ignore
-        existingUserById.e_name = e_name;
-        // @ts-ignore
-        existingUserById.e_surname = e_surname;
+        Object.assign(existingUserById, userData);
         updatedCount++;
-      } else if (existingUserByEmail) {
-         errors.push(`แถวที่ ${rowIndex}: อีเมล '${email}' มีอยู่แล้วในระบบ`);
-         skippedCount++;
-         continue;
+      } else if (existingUserByEmail && !login_id) {
+         // If only email is provided and it exists, treat it as an update
+         Object.assign(existingUserByEmail, userData);
+         updatedCount++;
       } else {
         // Create new user
         if (!email || !password) {
@@ -179,25 +180,22 @@ async function handleUserUpload(data: any[]) {
             skippedCount++;
             continue;
         }
+        if (email && existingEmails.has(email)) {
+            errors.push(`แถวที่ ${rowIndex}: อีเมล '${email}' มีอยู่แล้วในระบบ`);
+            skippedCount++;
+            continue;
+        }
 
         users.push({
-            id: Login_id || createId(),
-            name: fullName,
-            email,
-            password,
-            roles: roles as any,
+            id: login_id || createId(),
             skills: null,
             statement: null,
-            // @ts-ignore
-            t_name: t_name,
-            t_surname: t_surname,
-            e_name: e_name,
-            e_surname: e_surname,
+            ...userData,
         });
 
         createdCount++;
         if(email) existingEmails.add(email);
-        if (Login_id) existingIds.add(Login_id);
+        if (login_id) existingIds.add(login_id);
       }
     }
     
