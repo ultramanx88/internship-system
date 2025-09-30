@@ -1,11 +1,10 @@
 'use server';
 
 import { NextResponse, type NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import bcrypt from 'bcryptjs';
 import { Role } from '@prisma/client';
 import { createId } from '@paralleldrive/cuid2';
+import { users } from '@/lib/data';
 
 const createUserSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -20,32 +19,24 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
     const role = searchParams.get('role') || 'all';
 
-    const whereClause: any = {};
+    let filteredUsers = users;
 
     if (search) {
-      whereClause.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-        { id: { contains: search, mode: 'insensitive' } },
-      ];
+        const lowercasedSearch = search.toLowerCase();
+        filteredUsers = filteredUsers.filter(user => 
+            user.name?.toLowerCase().includes(lowercasedSearch) ||
+            user.email.toLowerCase().includes(lowercasedSearch) ||
+            user.id.toLowerCase().includes(lowercasedSearch)
+        );
     }
 
     if (role && role !== 'all') {
-      whereClause.roles = {
-        has: role as Role,
-      };
+        filteredUsers = filteredUsers.filter(user => user.roles.includes(role as Role));
     }
 
-    const users = await prisma.user.findMany({
-      where: whereClause,
-      orderBy: {
-        name: 'asc',
-      },
-    });
-    return NextResponse.json(users);
+    return NextResponse.json(filteredUsers.sort((a, b) => a.name.localeCompare(b.name)));
   } catch (error) {
     console.error('Failed to fetch users:', error);
-    // Return an empty array to prevent the client from crashing.
     return NextResponse.json([]);
   }
 }
@@ -61,24 +52,25 @@ export async function POST(request: Request) {
 
         const { name, email, password, roles } = result.data;
 
-        const existingUser = await prisma.user.findUnique({
-            where: { email },
-        });
+        const existingUser = users.find(
+            (user) => user.email.toLowerCase() === email.toLowerCase()
+        );
 
         if (existingUser) {
             return NextResponse.json({ message: 'มีผู้ใช้ที่ใช้อีเมลนี้อยู่แล้ว' }, { status: 409 });
         }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
         
-        const newUser = await prisma.user.create({
-            data: {
-                name,
-                email,
-                password: hashedPassword,
-                roles,
-            },
-        });
+        const newUser = {
+            id: createId(),
+            name,
+            email,
+            password, // In a real app, this would be hashed
+            roles,
+            skills: null,
+            statement: null
+        };
+
+        users.push(newUser);
 
         const { password: _, ...userWithoutPassword } = newUser;
 
@@ -105,16 +97,18 @@ export async function DELETE(request: Request) {
     }
 
     const { ids } = result.data;
+    
+    const initialLength = users.length;
+    const idsToDelete = new Set(ids);
+    const newUsers = users.filter(user => !idsToDelete.has(user.id));
+    
+    // This is a hack for the mock data. In a real DB, you'd just delete.
+    users.length = 0;
+    Array.prototype.push.apply(users, newUsers);
 
-    await prisma.user.deleteMany({
-      where: {
-        id: {
-          in: ids,
-        },
-      },
-    });
+    const deletedCount = initialLength - users.length;
 
-    return NextResponse.json({ message: `${ids.length} user(s) deleted successfully.` });
+    return NextResponse.json({ message: `${deletedCount} user(s) deleted successfully.` });
   } catch (error) {
     console.error('Failed to delete users:', error);
     return NextResponse.json({ message: 'Failed to delete users' }, { status: 500 });

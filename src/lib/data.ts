@@ -5,7 +5,7 @@ type DemoUser = Omit<User, 'createdAt' | 'updatedAt'> & {
 };
 
 // Data from DEMO_USERS.md, adapted for multi-role structure
-export const users: DemoUser[] = [
+export let users: DemoUser[] = [
   // Admin Users
   { id: 'user_admin2', name: 'System Administrator', email: 'admin2@smart-solutions.com', password: 'admin123', roles: ['admin'], skills: null, statement: null },
   { id: 'user_demo001', name: 'Demo Admin 001', email: 'demo001@smart-solutions.com', password: '123456', roles: ['admin'], skills: null, statement: null },
