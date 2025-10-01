@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
-import { getAvailableFonts, getBestThaiFont, loadFont } from '@/lib/fonts'
+import { AVAILABLE_FONTS, getBestThaiFont } from '@/lib/fonts'
+import { getAvailableFonts, loadFont } from '@/lib/fonts-server'
 
 export async function GET() {
   try {
-    const availableFonts = getAvailableFonts()
+    const availableFonts = getAvailableFonts(AVAILABLE_FONTS)
     const bestFont = getBestThaiFont()
     
     // ทดสอบโหลดฟอนต์

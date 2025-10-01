@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
-import { getAvailableFonts } from '@/lib/fonts'
+import { AVAILABLE_FONTS } from '@/lib/fonts'
+import { getAvailableFonts } from '@/lib/fonts-server'
 
 export async function GET() {
   try {
-    const availableFonts = getAvailableFonts()
+    const availableFonts = getAvailableFonts(AVAILABLE_FONTS)
     
     return NextResponse.json(availableFonts)
   } catch (error) {

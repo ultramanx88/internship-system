@@ -4,7 +4,8 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import { PDFDocument, PDFTextField, rgb } from 'pdf-lib'
 import fontkit from '@pdf-lib/fontkit'
-import { loadFont, getBestThaiFont, DEFAULT_FONTS } from '@/lib/fonts'
+import { getBestThaiFont, DEFAULT_FONTS } from '@/lib/fonts'
+import { loadFont } from '@/lib/fonts-server'
 
 export async function POST(request: NextRequest) {
   try {

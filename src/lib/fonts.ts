@@ -1,7 +1,5 @@
 // ระบบจัดการฟอนต์สำหรับ PDF
-import { readFile } from 'fs/promises'
-import { join } from 'path'
-import { existsSync } from 'fs'
+// Note: Server-side functions are moved to separate API endpoints
 
 export interface FontInfo {
   name: string
@@ -65,72 +63,41 @@ export const DEFAULT_FONTS = {
 }
 
 /**
- * โหลดฟอนต์จากไฟล์
+ * โหลดฟอนต์จาก URL (client-side)
  */
-export async function loadFont(fontPath: string): Promise<ArrayBuffer | null> {
+export async function loadFontFromUrl(fontUrl: string): Promise<ArrayBuffer | null> {
   try {
-    const fullPath = join(process.cwd(), fontPath)
-    
-    if (!existsSync(fullPath)) {
-      console.log(`Font file not found: ${fullPath}`)
+    const response = await fetch(fontUrl)
+    if (!response.ok) {
+      console.log(`Font not found: ${fontUrl}`)
       return null
     }
-
-    const fontBytes = await readFile(fullPath)
-    return fontBytes.buffer
+    return await response.arrayBuffer()
   } catch (error) {
-    console.error(`Error loading font: ${fontPath}`, error)
+    console.error(`Error loading font: ${fontUrl}`, error)
     return null
   }
 }
 
 /**
- * ดาวน์โหลดฟอนต์จาก Google Fonts
- */
-export async function downloadGoogleFont(fontFamily: string, outputPath: string): Promise<boolean> {
-  try {
-    // URL สำหรับดาวน์โหลดฟอนต์จาก Google Fonts
-    const googleFontsUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400&display=swap`
-    
-    // ในการใช้งานจริง ควรใช้ library สำหรับดาวน์โหลดฟอนต์
-    console.log(`Would download font from: ${googleFontsUrl}`)
-    console.log(`To: ${outputPath}`)
-    
-    return true
-  } catch (error) {
-    console.error('Error downloading font:', error)
-    return false
-  }
-}
-
-/**
- * ตรวจสอบว่าฟอนต์มีอยู่หรือไม่
- */
-export function checkFontExists(fontPath: string): boolean {
-  const fullPath = join(process.cwd(), fontPath)
-  return existsSync(fullPath)
-}
-
-/**
- * รับรายการฟอนต์ที่ใช้ได้
+ * รับรายการฟอนต์ที่ใช้ได้ (client-side)
  */
 export function getAvailableFonts(): FontInfo[] {
-  return AVAILABLE_FONTS.filter(font => checkFontExists(font.path))
+  // Return all fonts - availability will be checked via API
+  return AVAILABLE_FONTS
 }
 
 /**
  * หาฟอนต์ที่เหมาะสมสำหรับภาษาไทย
  */
 export function getBestThaiFont(): FontInfo | null {
-  const availableFonts = getAvailableFonts()
-  
   // ลำดับความสำคัญ (ให้ TH Sarabun New เป็นอันดับแรกเพราะอัปโหลดแล้ว)
   const priority = ['TH Sarabun New', 'Sarabun', 'Noto Sans Thai']
   
   for (const fontName of priority) {
-    const font = availableFonts.find(f => f.name === fontName)
+    const font = AVAILABLE_FONTS.find(f => f.name === fontName)
     if (font) return font
   }
   
-  return availableFonts.length > 0 ? availableFonts[0] : null
+  return AVAILABLE_FONTS.length > 0 ? AVAILABLE_FONTS[0] : null
 }
