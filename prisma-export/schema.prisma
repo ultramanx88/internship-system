@@ -42,8 +42,7 @@ model User {
 model Internship {
   id          String        @id @default(cuid())
   title       String
-  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   String
+  company     String
   location    String
   description String
   type        InternshipType
@@ -73,30 +72,6 @@ model Faculty {
   nameEn  String?
 }
 
-model Company {
-  id          String   @id @default(cuid())
-  name        String
-  nameEn      String?
-  address     String?
-  province    String?
-  district    String?
-  subdistrict String?
-  postalCode  String?
-  phone       String?
-  email       String?
-  website     String?
-  description String?
-  industry    String?
-  size        CompanySize?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  internships Internship[]
-
-  @@map("companies")
-}
-
 enum Role {
   admin
   staff
@@ -115,12 +90,4 @@ enum ApplicationStatus {
 enum InternshipType {
   internship
   co_op
-}
-
-enum CompanySize {
-  startup
-  small
-  medium
-  large
-  enterprise
 }

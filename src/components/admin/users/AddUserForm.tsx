@@ -29,7 +29,7 @@ import { roles as roleData } from '@/lib/permissions';
 
 const formSchema = z.object({
   id: z.string().min(1, 'Login ID จำเป็นต้องระบุ'),
-  email: z.string().email('อีเมลไม่ถูกต้อง'),
+  email: z.string().optional(), // ไม่บังคับอีเมล์
   password: z.string().min(6, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'),
   roles: z.array(z.string()).refine((value) => value.some((item) => item), {
     message: "คุณต้องเลือกอย่างน้อยหนึ่งตำแหน่ง",
@@ -46,6 +46,33 @@ const formSchema = z.object({
   e_name: z.string().optional(),
   e_middle_name: z.string().optional(),
   e_surname: z.string().optional(),
+}).refine((data) => {
+  // ต้องมีชื่อและนามสกุลอย่างน้อยหนึ่งภาษา
+  const hasThaiName = data.t_name && data.t_surname;
+  const hasEnglishName = data.e_name && data.e_surname;
+  
+  return hasThaiName || hasEnglishName;
+}, {
+  message: "ต้องกรอกชื่อ-นามสกุลภาษาไทย หรือ ชื่อ-นามสกุลภาษาอังกฤษ อย่างน้อยหนึ่งชุด",
+  path: ["t_name"], // แสดง error ที่ฟิลด์ชื่อไทย
+}).refine((data) => {
+  // ถ้ากรอกชื่อไทย ต้องมีคำนำหน้าไทย
+  if (data.t_name && !data.t_title) {
+    return false;
+  }
+  return true;
+}, {
+  message: "ถ้ากรอกชื่อไทย ต้องเลือกคำนำหน้าไทยด้วย",
+  path: ["t_title"],
+}).refine((data) => {
+  // ถ้ากรอกชื่ออังกฤษ ต้องมีคำนำหน้าอังกฤษ
+  if (data.e_name && !data.e_title) {
+    return false;
+  }
+  return true;
+}, {
+  message: "ถ้ากรอกชื่ออังกฤษ ต้องเลือกคำนำหน้าอังกฤษด้วย",
+  path: ["e_title"],
 });
 
 type AddUserFormProps = {
@@ -111,7 +138,7 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
           name="id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Login ID (รหัสนักศึกษา/ผู้ใช้)</FormLabel>
+              <FormLabel>Login ID (รหัสนักศึกษา/ผู้ใช้) *</FormLabel>
               <FormControl>
                 <Input placeholder="65010001 หรือ user_admin001" {...field} />
               </FormControl>
@@ -125,7 +152,7 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>อีเมล</FormLabel>
+              <FormLabel>อีเมล (ไม่บังคับ)</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="example@email.com" {...field} />
               </FormControl>
@@ -139,7 +166,7 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>รหัสผ่าน</FormLabel>
+              <FormLabel>รหัสผ่าน *</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
@@ -151,6 +178,9 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
         {/* ข้อมูลภาษาไทย */}
         <div className="space-y-4 border rounded-lg p-4">
           <h3 className="text-lg font-medium">ข้อมูลภาษาไทย</h3>
+          <p className="text-sm text-muted-foreground">
+            สำหรับนักศึกษาไทย: กรอกคำนำหน้า ชื่อ และนามสกุลไทย (กรอกภาษาอังกฤษเพิ่มได้)
+          </p>
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={control}
@@ -222,6 +252,9 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
         {/* ข้อมูลภาษาอังกฤษ */}
         <div className="space-y-4 border rounded-lg p-4">
           <h3 className="text-lg font-medium">ข้อมูลภาษาอังกฤษ</h3>
+          <p className="text-sm text-muted-foreground">
+            สำหรับนักศึกษาต่างชาติ: กรอกคำนำหน้า ชื่อ และนามสกุลอังกฤษ
+          </p>
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={control}
@@ -298,7 +331,7 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
           render={({ field }) => (
             <FormItem>
               <div className="mb-4">
-                <FormLabel className="text-base">ตำแหน่ง</FormLabel>
+                <FormLabel className="text-base">ตำแหน่ง *</FormLabel>
                 <FormDescription>
                   เลือกตำแหน่งอย่างน้อยหนึ่งตำแหน่งสำหรับผู้ใช้นี้
                 </FormDescription>

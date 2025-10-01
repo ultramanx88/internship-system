@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { applications as mockApplications, users as mockUsers, internships as mockInternships } from '@/lib/data';
 import {
@@ -15,36 +15,80 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Check, X, Search, Eye } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Check, X, Search, Eye, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
+import { useToast } from '@/hooks/use-toast';
+
+type PendingApplicationData = {
+    id: string;
+    studentName: string;
+    studentId: string;
+    major: string;
+    companyName: string;
+    status: string;
+    dateApplied: string;
+    feedback?: string;
+    projectTopic?: string;
+};
 
 export default function AdminPendingApplicationsPage() {
+    const [applications, setApplications] = useState<PendingApplicationData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); // desc = ล่าสุดก่อน, asc = เก่าสุดก่อน
+    
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalApplications, setTotalApplications] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
+    const { toast } = useToast();
 
-    const tableData = useMemo(() => {
-        return mockApplications
-            .filter(app => app.status === 'pending')
-            .map(app => {
-                const student = mockUsers.find(u => u.id === app.studentId);
-                const internship = mockInternships.find(i => i.id === app.internshipId);
-                return {
-                    ...app,
-                    studentName: student?.name || 'N/A',
-                    studentId: student?.id || 'N/A',
-                    major: 'เทคโนโลยีสารสนเทศ', // Mock data for major
-                    companyName: internship?.company || 'N/A',
-                };
+    const fetchPendingApplications = useCallback(async (search: string, sort: string, page: number, limit: number) => {
+        setIsLoading(true);
+        try {
+            const url = `/api/applications/pending?search=${encodeURIComponent(search)}&sort=${encodeURIComponent(sort)}&page=${page}&limit=${limit}`;
+            
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('Failed to fetch pending applications');
+            }
+
+            const data = await response.json();
+            setApplications(data.applications || []);
+            setTotalApplications(data.total || 0);
+            setTotalPages(Math.ceil((data.total || 0) / limit));
+            setCurrentPage(page);
+        } catch (error) {
+            console.error('Fetch pending applications error:', error);
+            toast({
+                variant: 'destructive',
+                title: 'เกิดข้อผิดพลาด',
+                description: 'ไม่สามารถโหลดข้อมูลใบสมัครที่รอการตรวจสอบได้',
             });
-    }, []);
+            setApplications([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [toast]);
 
-    const filteredData = useMemo(() => {
-        return tableData.filter(item => {
-            return item.studentName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                   item.studentId.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                   item.companyName.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
-        });
-    }, [tableData, debouncedSearchTerm]);
+    useEffect(() => {
+        fetchPendingApplications(debouncedSearchTerm, sortOrder, currentPage, pageSize);
+    }, [fetchPendingApplications, debouncedSearchTerm, sortOrder, currentPage, pageSize]);
+
+    // Reset to first page when search changes
+    useEffect(() => {
+        if (currentPage !== 1) {
+            setCurrentPage(1);
+        }
+    }, [debouncedSearchTerm]);
+
+    const toggleSortOrder = () => {
+        setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
+    };
 
     const statusColors: { [key: string]: string } = {
         pending: "bg-[#f4a79d] text-secondary-foreground",
@@ -76,6 +120,23 @@ export default function AdminPendingApplicationsPage() {
                                 className="max-w-sm pl-9"
                             />
                         </div>
+                        <Button
+                            variant="outline"
+                            onClick={toggleSortOrder}
+                            className="flex items-center gap-2"
+                        >
+                            {sortOrder === 'desc' ? (
+                                <>
+                                    <ArrowDown className="h-4 w-4" />
+                                    ล่าสุดก่อน
+                                </>
+                            ) : (
+                                <>
+                                    <ArrowUp className="h-4 w-4" />
+                                    เก่าสุดก่อน
+                                </>
+                            )}
+                        </Button>
                     </div>
 
                      <div className="rounded-md border">
@@ -91,8 +152,15 @@ export default function AdminPendingApplicationsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredData.length > 0 ? (
-                                    filteredData.map((item) => (
+                                {isLoading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="h-24 text-center">
+                                            <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+                                            กำลังโหลดข้อมูล...
+                                        </TableCell>
+                                    </TableRow>
+                                ) : applications.length > 0 ? (
+                                    applications.map((item) => (
                                         <TableRow key={item.id}>
                                             <TableCell>{item.studentId}</TableCell>
                                             <TableCell className="font-medium">{item.studentName}</TableCell>
@@ -130,6 +198,85 @@ export default function AdminPendingApplicationsPage() {
                             </TableBody>
                         </Table>
                     </div>
+
+                    {/* Pagination Controls */}
+                    {totalApplications > 0 && (
+                        <div className="flex items-center justify-between px-2 py-4">
+                            <div className="flex items-center space-x-2">
+                                <p className="text-sm text-muted-foreground">
+                                    แสดง {((currentPage - 1) * pageSize) + 1} ถึง {Math.min(currentPage * pageSize, totalApplications)} จาก {totalApplications} รายการ
+                                </p>
+                                <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
+                                    <SelectTrigger className="h-8 w-[70px]">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="5">5</SelectItem>
+                                        <SelectItem value="10">10</SelectItem>
+                                        <SelectItem value="20">20</SelectItem>
+                                        <SelectItem value="50">50</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-sm text-muted-foreground">รายการต่อหน้า</p>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(1)}
+                                    disabled={currentPage === 1 || isLoading}
+                                >
+                                    หน้าแรก
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1 || isLoading}
+                                >
+                                    ก่อนหน้า
+                                </Button>
+                                
+                                <div className="flex items-center space-x-1">
+                                    <span className="text-sm text-muted-foreground">หน้า</span>
+                                    <Input
+                                        type="number"
+                                        min="1"
+                                        max={totalPages}
+                                        value={currentPage}
+                                        onChange={(e) => {
+                                            const page = Number(e.target.value);
+                                            if (page >= 1 && page <= totalPages) {
+                                                setCurrentPage(page);
+                                            }
+                                        }}
+                                        className="h-8 w-16 text-center"
+                                        disabled={isLoading}
+                                    />
+                                    <span className="text-sm text-muted-foreground">จาก {totalPages}</span>
+                                </div>
+                                
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages || isLoading}
+                                >
+                                    ถัดไป
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(totalPages)}
+                                    disabled={currentPage === totalPages || isLoading}
+                                >
+                                    หน้าสุดท้าย
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
                 </CardContent>
             </Card>
         </div>

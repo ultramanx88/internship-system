@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { applications as mockApplications, users as mockUsers, internships as mockInternships } from '@/lib/data';
 import {
@@ -16,40 +16,95 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Check, X, Search, Eye } from 'lucide-react';
+import { Check, X, Search, Eye, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
+import { useToast } from '@/hooks/use-toast';
+
+type ApplicationData = {
+    id: string;
+    studentName: string;
+    studentId: string;
+    major: string;
+    companyName: string;
+    status: string;
+    dateApplied: string;
+    feedback?: string;
+    projectTopic?: string;
+};
 
 export default function AdminApplicationsPage() {
+    const [applications, setApplications] = useState<ApplicationData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [sortOrder, setSortOrder] = useState<'priority' | 'date_desc' | 'date_asc'>('priority');
+    
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalApplications, setTotalApplications] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
+    const { toast } = useToast();
 
-    const tableData = useMemo(() => {
-        return mockApplications.map(app => {
-            const student = mockUsers.find(u => u.id === app.studentId);
-            const internship = mockInternships.find(i => i.id === app.internshipId);
-            return {
-                ...app,
-                studentName: student?.name || 'N/A',
-                studentId: student?.id || 'N/A',
-                major: 'เทคโนโลยีสารสนเทศ', // Mock data for major
-                companyName: internship?.company || 'N/A',
-            };
-        });
-    }, []);
-
-    const filteredData = useMemo(() => {
-        return tableData.filter(item => {
-            const matchesSearch =
-                item.studentName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                item.studentId.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                item.companyName.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+    const fetchApplications = useCallback(async (search: string, status: string, sort: string, page: number, limit: number) => {
+        setIsLoading(true);
+        try {
+            const url = `/api/applications?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}&sort=${encodeURIComponent(sort)}&page=${page}&limit=${limit}`;
             
-            const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('Failed to fetch applications');
+            }
 
-            return matchesSearch && matchesStatus;
-        });
-    }, [tableData, debouncedSearchTerm, statusFilter]);
+            const data = await response.json();
+            setApplications(data.applications || []);
+            setTotalApplications(data.total || 0);
+            setTotalPages(Math.ceil((data.total || 0) / limit));
+            setCurrentPage(page);
+        } catch (error) {
+            console.error('Fetch applications error:', error);
+            toast({
+                variant: 'destructive',
+                title: 'เกิดข้อผิดพลาด',
+                description: 'ไม่สามารถโหลดข้อมูลใบสมัครได้',
+            });
+            setApplications([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [toast]);
+
+    useEffect(() => {
+        fetchApplications(debouncedSearchTerm, statusFilter, sortOrder, currentPage, pageSize);
+    }, [fetchApplications, debouncedSearchTerm, statusFilter, sortOrder, currentPage, pageSize]);
+
+    // Reset to first page when search/filter changes
+    useEffect(() => {
+        if (currentPage !== 1) {
+            setCurrentPage(1);
+        }
+    }, [debouncedSearchTerm, statusFilter]);
+
+    const toggleSortOrder = () => {
+        if (sortOrder === 'priority') {
+            setSortOrder('date_desc');
+        } else if (sortOrder === 'date_desc') {
+            setSortOrder('date_asc');
+        } else {
+            setSortOrder('priority');
+        }
+    };
+
+    const getSortLabel = () => {
+        switch (sortOrder) {
+            case 'priority': return 'ความสำคัญ (รอตรวจสอบก่อน)';
+            case 'date_desc': return 'วันที่ล่าสุดก่อน';
+            case 'date_asc': return 'วันที่เก่าสุดก่อน';
+            default: return 'ความสำคัญ';
+        }
+    };
 
     const statusColors: { [key: string]: string } = {
         approved: "bg-[#2f7b69] text-white",
@@ -96,6 +151,18 @@ export default function AdminApplicationsPage() {
                                 <SelectItem value="rejected">ปฏิเสธ</SelectItem>
                             </SelectContent>
                         </Select>
+                        <Button
+                            variant="outline"
+                            onClick={toggleSortOrder}
+                            className="flex items-center gap-2"
+                        >
+                            {sortOrder === 'date_asc' ? (
+                                <ArrowUp className="h-4 w-4" />
+                            ) : (
+                                <ArrowDown className="h-4 w-4" />
+                            )}
+                            {getSortLabel()}
+                        </Button>
                     </div>
 
                      <div className="rounded-md border">
@@ -111,8 +178,15 @@ export default function AdminApplicationsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredData.length > 0 ? (
-                                    filteredData.map((item) => (
+                                {isLoading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="h-24 text-center">
+                                            <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+                                            กำลังโหลดข้อมูล...
+                                        </TableCell>
+                                    </TableRow>
+                                ) : applications.length > 0 ? (
+                                    applications.map((item) => (
                                         <TableRow key={item.id}>
                                             <TableCell>{item.studentId}</TableCell>
                                             <TableCell className="font-medium">{item.studentName}</TableCell>
@@ -154,6 +228,85 @@ export default function AdminApplicationsPage() {
                             </TableBody>
                         </Table>
                     </div>
+
+                    {/* Pagination Controls */}
+                    {totalApplications > 0 && (
+                        <div className="flex items-center justify-between px-2 py-4">
+                            <div className="flex items-center space-x-2">
+                                <p className="text-sm text-muted-foreground">
+                                    แสดง {((currentPage - 1) * pageSize) + 1} ถึง {Math.min(currentPage * pageSize, totalApplications)} จาก {totalApplications} รายการ
+                                </p>
+                                <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
+                                    <SelectTrigger className="h-8 w-[70px]">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="5">5</SelectItem>
+                                        <SelectItem value="10">10</SelectItem>
+                                        <SelectItem value="20">20</SelectItem>
+                                        <SelectItem value="50">50</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-sm text-muted-foreground">รายการต่อหน้า</p>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(1)}
+                                    disabled={currentPage === 1 || isLoading}
+                                >
+                                    หน้าแรก
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1 || isLoading}
+                                >
+                                    ก่อนหน้า
+                                </Button>
+                                
+                                <div className="flex items-center space-x-1">
+                                    <span className="text-sm text-muted-foreground">หน้า</span>
+                                    <Input
+                                        type="number"
+                                        min="1"
+                                        max={totalPages}
+                                        value={currentPage}
+                                        onChange={(e) => {
+                                            const page = Number(e.target.value);
+                                            if (page >= 1 && page <= totalPages) {
+                                                setCurrentPage(page);
+                                            }
+                                        }}
+                                        className="h-8 w-16 text-center"
+                                        disabled={isLoading}
+                                    />
+                                    <span className="text-sm text-muted-foreground">จาก {totalPages}</span>
+                                </div>
+                                
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages || isLoading}
+                                >
+                                    ถัดไป
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(totalPages)}
+                                    disabled={currentPage === totalPages || isLoading}
+                                >
+                                    หน้าสุดท้าย
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
                 </CardContent>
             </Card>
         </div>

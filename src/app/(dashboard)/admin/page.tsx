@@ -1,102 +1,87 @@
 'use client';
 
-import { Application } from '@prisma/client';
-import { useRouter } from 'next/navigation';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import AdminDashboard from '@/components/dashboard/admin/AdminDashboard';
-import { Badge } from '@/components/ui/badge';
-import { users, internships, applications as mockApplications } from '@/lib/data';
-import { useState, useEffect } from 'react';
-
-// This function can be removed or adapted if a real API is used later.
-async function getApplications(): Promise<Omit<Application, "createdAt" | "updatedAt">[]> {
-    // In a real app, you'd fetch from your API endpoint.
-    // For now, we'll simulate it by returning the mock data.
-    return Promise.resolve(mockApplications);
-}
-
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { Building2, Users, FileText, BarChart2 } from 'lucide-react';
 
 export default function AdminPage() {
-    const router = useRouter();
-    const [applications, setApplications] = useState<Omit<Application, "createdAt" | "updatedAt">[]>([]);
-    
-    useEffect(() => {
-        getApplications().then(data => setApplications(data));
-    }, []);
-    
-    const statusColors: { [key: string]: string } = {
-        approved: "bg-[#2f7b69] text-white",
-        pending: "bg-[#f4a79d] text-secondary-foreground",
-        rejected: "bg-[#a01f38] text-white",
-    };
-
-    const tableData = applications.map(app => {
-        const student = users.find(u => u.id === app.studentId);
-        const internship = internships.find(i => i.id === app.internshipId);
-        return {
-            ...app,
-            studentName: student?.name || 'N/A',
-            internshipTitle: internship?.title || 'N/A',
-        };
-    });
-    
-    const statusTranslations: { [key: string]: string } = {
-      approved: "อนุมัติ",
-      pending: "รอการตรวจสอบ",
-      rejected: "ปฏิเสธ",
-    };
-
-    const handleRowClick = (applicationId: string) => {
-        router.push(`/admin/applications/${applicationId}`);
-    };
-
     return (
-        <div className="grid gap-8 text-secondary-600">
-            <div>
-                <h1 className="text-3xl font-bold gradient-text">แดชบอร์ดผู้ดูแลระบบ</h1>
-                <p>ภาพรวมโปรแกรมการฝึกงานทั้งหมดในที่เดียว</p>
+        <div className="container mx-auto py-6">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold">แดชบอร์ดผู้ดูแลระบบ</h1>
+                <p className="text-muted-foreground">จัดการระบบฝึกงานและสหกิจศึกษา</p>
             </div>
 
-            <AdminDashboard applications={applications} />
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">จัดการผู้ใช้</CardTitle>
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">จัดการ</div>
+                        <p className="text-xs text-muted-foreground">ผู้ใช้ในระบบ</p>
+                        <Button asChild className="w-full mt-4" variant="outline">
+                            <Link href="/admin/users">เข้าสู่หน้าจัดการ</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
 
-            <Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">สถานประกอบการ</CardTitle>
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">จัดการ</div>
+                        <p className="text-xs text-muted-foreground">ข้อมูลบริษัท</p>
+                        <Button asChild className="w-full mt-4" variant="outline">
+                            <Link href="/admin/companies">เข้าสู่หน้าจัดการ</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">ใบสมัคร</CardTitle>
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">จัดการ</div>
+                        <p className="text-xs text-muted-foreground">ใบสมัครฝึกงาน</p>
+                        <Button asChild className="w-full mt-4" variant="outline">
+                            <Link href="/admin/applications">เข้าสู่หน้าจัดการ</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">รายงาน</CardTitle>
+                        <BarChart2 className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">ดู</div>
+                        <p className="text-xs text-muted-foreground">รายงานสรุป</p>
+                        <Button asChild className="w-full mt-4" variant="outline">
+                            <Link href="/admin/reports">เข้าสู่หน้าจัดการ</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <Card className="mt-8">
                 <CardHeader>
-                    <CardTitle>ใบสมัครล่าสุด</CardTitle>
-                    <CardDescription>ภาพรวม 10 ใบสมัครล่าสุด</CardDescription>
+                    <CardTitle>ข้อมูลระบบ</CardTitle>
                 </CardHeader>
                 <CardContent>
-                <Table>
-                    <TableHeader>
-                    <TableRow className="bg-primary-600 hover:bg-primary-600">
-                        <TableHead className="text-white">นักเรียน</TableHead>
-                        <TableHead className="text-white">การฝึกงาน</TableHead>
-                        <TableHead className="text-white">วันที่สมัคร</TableHead>
-                        <TableHead className="text-right text-white">สถานะ</TableHead>
-                    </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                    {tableData.slice(0, 10).map(app => (
-                        <TableRow key={app.id} onClick={() => handleRowClick(app.id)} className="cursor-pointer">
-                            <TableCell className="font-medium">{app.studentName}</TableCell>
-                            <TableCell>{app.internshipTitle}</TableCell>
-                            <TableCell>{new Date(app.dateApplied).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
-                            <TableCell className="text-right">
-                                <Badge className={`capitalize ${statusColors[app.status]}`}>
-                                    {statusTranslations[app.status]}
-                                </Badge>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                    </TableBody>
-                </Table>
+                    <div className="space-y-2">
+                        <p>✅ ระบบจัดการผู้ใช้ - พร้อมใช้งาน</p>
+                        <p>✅ ระบบจัดการสถานประกอบการ - พร้อมใช้งาน</p>
+                        <p>🔄 ระบบใบสมัคร - กำลังพัฒนา</p>
+                        <p>🔄 ระบบรายงาน - กำลังพัฒนา</p>
+                    </div>
                 </CardContent>
             </Card>
         </div>

@@ -8,7 +8,7 @@ const validRoles = validRolesData.map(r => r.id);
 
 const updateUserSchema = z.object({
   newId: z.string().min(1, 'Login ID is required').optional(),
-  email: z.string().email('Invalid email address').optional(),
+  email: z.string().email('Invalid email address').optional().or(z.literal('')),
   password: z.string().min(6, 'Password must be at least 6 characters').optional(),
   roles: z.array(z.string()).min(1, 'At least one role is required').optional(),
   
@@ -40,6 +40,14 @@ export async function GET(
         roles: true,
         skills: true,
         statement: true,
+        t_title: true,
+        t_name: true,
+        t_middle_name: true,
+        t_surname: true,
+        e_title: true,
+        e_name: true,
+        e_middle_name: true,
+        e_surname: true,
       }
     });
 

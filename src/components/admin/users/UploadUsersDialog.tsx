@@ -19,6 +19,8 @@ type UploadResult = {
   createdCount: number;
   updatedCount: number;
   skippedCount: number;
+  duplicateCount?: number;
+  totalRows?: number;
   errors: string[];
 };
 
@@ -45,6 +47,8 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
     accept: {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
       'application/vnd.ms-excel': ['.xls'],
+      'text/csv': ['.csv'],
+      'application/csv': ['.csv'],
     },
     multiple: false,
   });
@@ -62,12 +66,31 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
                 throw new Error('Could not read file data.');
             }
             
-            const arrayBuffer = data instanceof ArrayBuffer ? data : new TextEncoder().encode(data as string).buffer;
+            let processedData;
+            const fileExtension = file.name.toLowerCase().split('.').pop();
+            
+            if (fileExtension === 'csv') {
+                // สำหรับไฟล์ CSV ส่งเป็น text
+                const csvText = data as string;
+                processedData = { 
+                    action: 'upload', 
+                    fileType: 'csv',
+                    data: csvText 
+                };
+            } else {
+                // สำหรับไฟล์ Excel ส่งเป็น array buffer
+                const arrayBuffer = data instanceof ArrayBuffer ? data : new TextEncoder().encode(data as string).buffer;
+                processedData = { 
+                    action: 'upload', 
+                    fileType: 'excel',
+                    data: Array.from(new Uint8Array(arrayBuffer)) 
+                };
+            }
 
             const response = await fetch('/api/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'upload', data: Array.from(new Uint8Array(arrayBuffer)) }),
+                body: JSON.stringify(processedData),
             });
 
             const resultData = await response.json();
@@ -90,7 +113,14 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
             setIsUploading(false);
         }
     };
-    reader.readAsArrayBuffer(file);
+    
+    // อ่านไฟล์ตามประเภท
+    const fileExtension = file.name.toLowerCase().split('.').pop();
+    if (fileExtension === 'csv') {
+        reader.readAsText(file, 'UTF-8');
+    } else {
+        reader.readAsArrayBuffer(file);
+    }
   }
   
   const handleDone = () => {
@@ -106,7 +136,7 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
       <DialogHeader>
         <DialogTitle>อัปโหลดรายชื่อผู้ใช้จาก Excel</DialogTitle>
         <DialogDescription>
-          เลือกไฟล์ .xlsx หรือ .xls ที่มีข้อมูลผู้ใช้ตามรูปแบบที่กำหนด
+          เลือกไฟล์ .xlsx, .xls หรือ .csv ที่มีข้อมูลผู้ใช้ตามรูปแบบที่กำหนด
         </DialogDescription>
       </DialogHeader>
       
@@ -138,7 +168,7 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
                 <div className="text-center">
                 <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
                 <p className="mt-2 font-semibold">ลากและวางไฟล์ที่นี่ หรือคลิกเพื่อเลือกไฟล์</p>
-                <p className="text-sm text-muted-foreground">รองรับเฉพาะไฟล์ .xlsx และ .xls</p>
+                <p className="text-sm text-muted-foreground">รองรับไฟล์ .xlsx, .xls และ .csv</p>
                 </div>
             )}
             </div>
@@ -151,9 +181,13 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
             <CheckCircle className="h-4 w-4" />
             <AlertTitle>ประมวลผลเสร็จสิ้น!</AlertTitle>
             <AlertDescription className="space-y-2">
+                <p>ทั้งหมด: {result.totalRows || 0} รายการ</p>
                 <p>สร้างใหม่: {result.createdCount} รายการ</p>
                 <p>อัปเดต: {result.updatedCount} รายการ</p>
                 <p>ข้าม: {result.skippedCount} รายการ</p>
+                {result.duplicateCount && result.duplicateCount > 0 && (
+                    <p className="text-orange-600">ข้อมูลซ้ำ: {result.duplicateCount} รายการ</p>
+                )}
                 {result.errors.length > 0 && (
                     <div>
                         <p className="font-semibold text-destructive">ข้อผิดพลาด ({result.errors.length} รายการ):</p>

@@ -16,7 +16,7 @@ import { Check, Sparkles, X, Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 
 type ReviewToolProps = {
-  student: User;
+  student: any; // Use any to avoid type conflicts with DemoUser vs Prisma User
   internship: Internship;
   application: Application;
 };

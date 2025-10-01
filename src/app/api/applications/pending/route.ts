@@ -5,27 +5,28 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
-    const status = searchParams.get('status') || 'all';
-    const sort = searchParams.get('sort') || 'priority';
+    const sort = searchParams.get('sort') || 'desc'; // desc = ล่าสุดก่อน, asc = เก่าสุดก่อน
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    // สร้างข้อมูลจาก mock data
-    const tableData = mockApplications.map(app => {
-      const student = mockUsers.find(u => u.id === app.studentId);
-      const internship = mockInternships.find(i => i.id === app.internshipId);
-      return {
-        id: app.id,
-        studentId: app.studentId,
-        studentName: student?.name || 'N/A',
-        major: 'เทคโนโลยีสารสนเทศ', // Mock data
-        companyName: internship?.company || 'N/A',
-        status: app.status,
-        dateApplied: app.dateApplied,
-        feedback: app.feedback,
-        projectTopic: app.projectTopic,
-      };
-    });
+    // สร้างข้อมูลจาก mock data - เฉพาะสถานะ pending
+    const tableData = mockApplications
+      .filter(app => app.status === 'pending')
+      .map(app => {
+        const student = mockUsers.find(u => u.id === app.studentId);
+        const internship = mockInternships.find(i => i.id === app.internshipId);
+        return {
+          id: app.id,
+          studentId: app.studentId,
+          studentName: student?.name || 'N/A',
+          major: 'เทคโนโลยีสารสนเทศ', // Mock data
+          companyName: internship?.company || 'N/A',
+          status: app.status,
+          dateApplied: app.dateApplied,
+          feedback: app.feedback,
+          projectTopic: app.projectTopic,
+        };
+      });
 
     // กรองข้อมูลตามการค้นหา
     let filteredData = tableData.filter(item => {
@@ -34,27 +35,15 @@ export async function GET(request: NextRequest) {
         item.studentId.toLowerCase().includes(search.toLowerCase()) ||
         item.companyName.toLowerCase().includes(search.toLowerCase());
       
-      const matchesStatus = status === 'all' || item.status === status;
-      
-      return matchesSearch && matchesStatus;
+      return matchesSearch;
     });
 
-    // เรียงลำดับข้อมูล
-    const statusPriority = { 'pending': 1, 'approved': 2, 'rejected': 3 };
-    
+    // เรียงลำดับข้อมูลตามวันที่
     switch (sort) {
-      case 'priority':
-        filteredData.sort((a, b) => {
-          const statusA = statusPriority[a.status as keyof typeof statusPriority] || 4;
-          const statusB = statusPriority[b.status as keyof typeof statusPriority] || 4;
-          if (statusA !== statusB) return statusA - statusB;
-          return new Date(b.dateApplied).getTime() - new Date(a.dateApplied).getTime();
-        });
-        break;
-      case 'date_desc':
+      case 'desc':
         filteredData.sort((a, b) => new Date(b.dateApplied).getTime() - new Date(a.dateApplied).getTime());
         break;
-      case 'date_asc':
+      case 'asc':
         filteredData.sort((a, b) => new Date(a.dateApplied).getTime() - new Date(b.dateApplied).getTime());
         break;
     }
@@ -72,9 +61,9 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil(totalCount / limit)
     });
   } catch (error) {
-    console.error('Failed to fetch applications:', error);
+    console.error('Failed to fetch pending applications:', error);
     return NextResponse.json({ 
-      message: 'Failed to fetch applications',
+      message: 'Failed to fetch pending applications',
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

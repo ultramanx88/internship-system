@@ -1,0 +1,4 @@
+คำอธิบาย,ต้องกรอกชื่อ-นามสกุลอย่างน้อยหนึ่งภาษา (ไทยหรืออังกฤษ),,,,,,,,,
+คำอธิบาย,นักศึกษาไทย: กรอก t_title + t_name + t_surname,,,,,,,,,
+คำอธิบาย,นักศึกษาต่างชาติ: กรอก e_title + e_name + e_surname,,,,,,,,,
+Login_id,password,role_id,t_title,t_name,t_middle_name,t_surname,e_title,e_name,e_middle_name,e_surname

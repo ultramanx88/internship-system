@@ -12,19 +12,20 @@ import {
   Save,
   Loader2
 } from "lucide-react";
-import { PROTECTED_PATH } from "../../../../../constant/path.route";
+import { PROTECTED_PATH } from "@/constant/path.route";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SafeSelect, SafeSelectItem } from '@/components/ui/safe-select';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 
 export default function UserProfilePage() {
   const router = useRouter();
   const params = useParams();
-  const userId = params.userId as string;
+  const userId = params.id as string;
   const { toast } = useToast();
   
   const [user, setUser] = useState<User | null>(null);
@@ -52,25 +53,35 @@ export default function UserProfilePage() {
     const fetchUser = async () => {
       try {
         setIsLoading(true);
+        console.log('Fetching user:', userId);
         const response = await fetch(`/api/users/${userId}`);
+        console.log('Response status:', response.status);
+        
         if (response.ok) {
           const foundUser = await response.json();
+          console.log('Found user:', foundUser);
           setUser(foundUser as User);
           const userRoles = Array.isArray(foundUser.roles) ? foundUser.roles : JSON.parse(foundUser.roles || '[]');
-          setFormData({
-            Login_id: foundUser.id,
+          const newFormData = {
+            Login_id: foundUser.id || '',
             password: '', // Password should not be pre-filled for security
             role_id: userRoles.length > 0 ? userRoles[0] : '',
             t_name: foundUser.t_name || '',
             t_surname: foundUser.t_surname || '',
             e_name: foundUser.e_name || '',
             e_surname: foundUser.e_surname || '',
-            email: foundUser.email,
+            email: foundUser.email || '',
             t_title: foundUser.t_title || '',
             t_middlename: foundUser.t_middle_name || '',
             e_title: foundUser.e_title || '',
             e_middle_name: foundUser.e_middle_name || '',
-          });
+          };
+          
+          console.log('Setting form data:', newFormData);
+          console.log('User data from API:', foundUser);
+          console.log('t_title value:', newFormData.t_title);
+          console.log('e_title value:', newFormData.e_title);
+          setFormData(newFormData);
         } else {
           toast({
             variant: 'destructive',
@@ -108,10 +119,33 @@ export default function UserProfilePage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+        // ตรวจสอบข้อมูลที่จำเป็น
+        if (!formData.Login_id.trim()) {
+            throw new Error('Login ID จำเป็นต้องระบุ');
+        }
+        
+        // ตรวจสอบว่ามีชื่อ-นามสกุลอย่างน้อยหนึ่งภาษา
+        const hasThaiName = formData.t_name.trim() && formData.t_surname.trim();
+        const hasEnglishName = formData.e_name.trim() && formData.e_surname.trim();
+        
+        if (!hasThaiName && !hasEnglishName) {
+            throw new Error('ต้องกรอกชื่อ-นามสกุลภาษาไทย หรือ ชื่อ-นามสกุลภาษาอังกฤษ อย่างน้อยหนึ่งชุด');
+        }
+        
+        // ถ้ากรอกชื่อไทย ต้องมีคำนำหน้าไทย
+        if (formData.t_name.trim() && !formData.t_title.trim()) {
+            throw new Error('ถ้ากรอกชื่อไทย ต้องเลือกคำนำหน้าไทยด้วย');
+        }
+        
+        // ถ้ากรอกชื่ออังกฤษ ต้องมีคำนำหน้าอังกฤษ
+        if (formData.e_name.trim() && !formData.e_title.trim()) {
+            throw new Error('ถ้ากรอกชื่ออังกฤษ ต้องเลือกคำนำหน้าอังกฤษด้วย');
+        }
+
         // แปลงข้อมูลให้ตรงกับ API
         const apiData = {
             newId: formData.Login_id,
-            email: formData.email,
+            email: formData.email || undefined, // ไม่บังคับอีเมล์
             password: formData.password || undefined,
             roles: formData.role_id ? [formData.role_id] : [],
             t_title: formData.t_title,
@@ -168,11 +202,25 @@ export default function UserProfilePage() {
   }
 
   if (isLoading) {
-    return <p>Loading...</p>
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="flex items-center space-x-4">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <div className="text-lg">กำลังโหลดข้อมูลผู้ใช้...</div>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
-    return <p>User not found</p>
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">ไม่พบผู้ใช้</h2>
+          <p className="text-muted-foreground">ไม่สามารถโหลดข้อมูลผู้ใช้ได้</p>
+        </div>
+      </div>
+    );
   }
   
   return (
@@ -212,7 +260,7 @@ export default function UserProfilePage() {
                 <h3 className="text-lg font-semibold text-secondary-600">ข้อมูลการเข้าสู่ระบบ</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
-                        <Label htmlFor="Login_id">Login ID (รหัสนักศึกษา/ผู้ใช้)</Label>
+                        <Label htmlFor="Login_id">Login ID (รหัสนักศึกษา/ผู้ใช้) *</Label>
                         <Input id="Login_id" value={formData.Login_id} onChange={handleInputChange} disabled={!isEdit} />
                         {isEdit && (
                           <p className="text-sm text-muted-foreground mt-1">
@@ -221,7 +269,7 @@ export default function UserProfilePage() {
                         )}
                     </div>
                      <div>
-                        <Label htmlFor="email">อีเมล</Label>
+                        <Label htmlFor="email">อีเมล (ไม่บังคับ)</Label>
                         <Input id="email" type="email" value={formData.email} onChange={handleInputChange} disabled={!isEdit} />
                     </div>
                     <div>
@@ -230,12 +278,14 @@ export default function UserProfilePage() {
                     </div>
                      <div>
                         <Label htmlFor="role_id">ตำแหน่ง (Role)</Label>
-                        <Select value={formData.role_id} onValueChange={handleSelectChange('role_id')} disabled={!isEdit}>
+                        <Select value={formData.role_id || ''} onValueChange={handleSelectChange('role_id')} disabled={!isEdit}>
                             <SelectTrigger id="role_id">
                                 <SelectValue placeholder="เลือกตำแหน่ง" />
                             </SelectTrigger>
                             <SelectContent>
-                                {mockRoles.map(r => <SelectItem key={r.id} value={r.id}>{r.label}</SelectItem>)}
+                                {mockRoles?.filter(r => r?.id && r?.label).map(r => (
+                                    <SelectItem key={r.id} value={r.id}>{r.label}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
@@ -247,15 +297,23 @@ export default function UserProfilePage() {
             {/* Thai Name */}
              <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-secondary-600">ข้อมูลชื่อ (ภาษาไทย)</h3>
+                {isEdit && (
+                  <p className="text-sm text-muted-foreground">
+                    สำหรับนักศึกษาไทย: กรอกคำนำหน้า ชื่อ และนามสกุลไทย (กรอกภาษาอังกฤษเพิ่มได้)
+                  </p>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
                         <Label htmlFor="t_title">คำนำหน้า</Label>
-                        <Select value={formData.t_title} onValueChange={handleSelectChange('t_title')} disabled={!isEdit}>
+                        <Select value={formData.t_title || ''} onValueChange={handleSelectChange('t_title')} disabled={!isEdit}>
                             <SelectTrigger id="t_title">
                                 <SelectValue placeholder="เลือกคำนำหน้า" />
                             </SelectTrigger>
                             <SelectContent>
-                                {mockTitles.map(t => <SelectItem key={t.id} value={t.nameTh}>{t.nameTh}</SelectItem>)}
+                                <SelectItem value="">ไม่ระบุ</SelectItem>
+                                {mockTitles?.filter(t => t?.nameTh).map(t => (
+                                    <SelectItem key={t.id} value={t.nameTh}>{t.nameTh}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
@@ -279,15 +337,23 @@ export default function UserProfilePage() {
             {/* English Name */}
              <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-secondary-600">ข้อมูลชื่อ (ภาษาอังกฤษ)</h3>
+                {isEdit && (
+                  <p className="text-sm text-muted-foreground">
+                    สำหรับนักศึกษาต่างชาติ: กรอกคำนำหน้า ชื่อ และนามสกุลอังกฤษ
+                  </p>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
                         <Label htmlFor="e_title">Title</Label>
-                        <Select value={formData.e_title} onValueChange={handleSelectChange('e_title')} disabled={!isEdit}>
+                        <Select value={formData.e_title || ''} onValueChange={handleSelectChange('e_title')} disabled={!isEdit}>
                             <SelectTrigger id="e_title">
                                 <SelectValue placeholder="Select Title" />
                             </SelectTrigger>
                             <SelectContent>
-                                 {mockTitles.map(t => <SelectItem key={t.id} value={t.nameEn}>{t.nameEn}</SelectItem>)}
+                                <SelectItem value="">Not specified</SelectItem>
+                                {mockTitles?.filter(t => t?.nameEn).map(t => (
+                                    <SelectItem key={t.id} value={t.nameEn}>{t.nameEn}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>

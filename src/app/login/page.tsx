@@ -35,7 +35,7 @@ export default function LoginPage() {
       <Card className="z-10 w-full max-w-md bg-background/80 backdrop-blur-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center">
-             <Icons.logo className="h-12 w-12 text-primary" logoUrl={logo} />
+            <Icons.logo className="h-12 w-12 text-primary" logoUrl={logo} />
           </div>
           <CardTitle className="text-3xl font-bold">ระบบสหกิจศึกษา</CardTitle>
           <CardDescription>

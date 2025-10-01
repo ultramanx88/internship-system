@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Briefcase, GraduationCap, Mail, Phone, Link as LinkIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
-export default async function ApplicationDetailsPage({ params }: { params: { applicationId: string } }) {
+export default function ApplicationDetailsPage({ params }: { params: { applicationId: string } }) {
   const { applicationId } = params;
   const application = applications.find(app => app.id === applicationId);
 

@@ -61,37 +61,40 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      newId: user.id ?? '',
-      email: user.email ?? '',
+      newId: user.id || '',
+      email: user.email || '',
       roles: Array.isArray(user.roles) ? user.roles : JSON.parse(user.roles || '[]'),
       password: '',
-      t_title: (user as any).t_title ?? '',
-      t_name: (user as any).t_name ?? '',
-      t_middle_name: (user as any).t_middle_name ?? '',
-      t_surname: (user as any).t_surname ?? '',
-      e_title: (user as any).e_title ?? '',
-      e_name: (user as any).e_name ?? '',
-      e_middle_name: (user as any).e_middle_name ?? '',
-      e_surname: (user as any).e_surname ?? '',
+      t_title: (user as any).t_title || '',
+      t_name: (user as any).t_name || '',
+      t_middle_name: (user as any).t_middle_name || '',
+      t_surname: (user as any).t_surname || '',
+      e_title: (user as any).e_title || '',
+      e_name: (user as any).e_name || '',
+      e_middle_name: (user as any).e_middle_name || '',
+      e_surname: (user as any).e_surname || '',
     },
   });
 
   // Reset form values when user prop changes
   React.useEffect(() => {
-    form.reset({
-      newId: user.id ?? '',
-      email: user.email ?? '',
+    const formData = {
+      newId: user.id || '',
+      email: user.email || '',
       roles: Array.isArray(user.roles) ? user.roles : JSON.parse(user.roles || '[]'),
       password: '',
-      t_title: (user as any).t_title ?? '',
-      t_name: (user as any).t_name ?? '',
-      t_middle_name: (user as any).t_middle_name ?? '',
-      t_surname: (user as any).t_surname ?? '',
-      e_title: (user as any).e_title ?? '',
-      e_name: (user as any).e_name ?? '',
-      e_middle_name: (user as any).e_middle_name ?? '',
-      e_surname: (user as any).e_surname ?? '',
-    });
+      t_title: (user as any).t_title || '',
+      t_name: (user as any).t_name || '',
+      t_middle_name: (user as any).t_middle_name || '',
+      t_surname: (user as any).t_surname || '',
+      e_title: (user as any).e_title || '',
+      e_name: (user as any).e_name || '',
+      e_middle_name: (user as any).e_middle_name || '',
+      e_surname: (user as any).e_surname || '',
+    };
+    
+    console.log('Resetting form with user data:', formData);
+    form.reset(formData);
   }, [user, form]);
 
   const { formState, handleSubmit, control } = form;
@@ -195,13 +198,14 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>คำนำหน้า</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || ''}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="เลือกคำนำหน้า" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="">ไม่ระบุ</SelectItem>
                       <SelectItem value="นาย">นาย</SelectItem>
                       <SelectItem value="นาง">นาง</SelectItem>
                       <SelectItem value="นางสาว">นางสาว</SelectItem>
@@ -266,13 +270,14 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Title</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || ''}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select title" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="">Not specified</SelectItem>
                       <SelectItem value="Mr.">Mr.</SelectItem>
                       <SelectItem value="Mrs.">Mrs.</SelectItem>
                       <SelectItem value="Ms.">Ms.</SelectItem>
