@@ -33,20 +33,44 @@ async function main() {
   }
   console.log(`Seeded ${users.length} users.`);
 
+  // Seed Companies first
+  const uniqueCompanies = [...new Set(internships.map(i => i.company))];
+  for (const companyName of uniqueCompanies) {
+    const existingCompany = await prisma.company.findFirst({
+      where: { name: companyName },
+    });
+    
+    if (!existingCompany) {
+      await prisma.company.create({
+        data: {
+          name: companyName,
+          isActive: true,
+        },
+      });
+    }
+  }
+  console.log(`Seeded ${uniqueCompanies.length} companies.`);
+
   // Seed Internships
   for (const internship of internships) {
-    await prisma.internship.upsert({
-        where: { id: internship.id },
-        update: {},
-        create: {
-            id: internship.id,
-            title: internship.title,
-            company: internship.company,
-            location: internship.location,
-            description: internship.description,
-            type: internship.type as any,
-        }
-    })
+    const company = await prisma.company.findFirst({
+      where: { name: internship.company },
+    });
+    
+    if (company) {
+      await prisma.internship.upsert({
+          where: { id: internship.id },
+          update: {},
+          create: {
+              id: internship.id,
+              title: internship.title,
+              companyId: company.id,
+              location: internship.location,
+              description: internship.description,
+              type: internship.type as any,
+          }
+      });
+    }
   }
   console.log(`Seeded ${internships.length} internships.`);
 

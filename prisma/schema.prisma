@@ -35,6 +35,7 @@ model User {
   updatedAt    DateTime @updatedAt
 
   applications Application[]
+  printRecords PrintRecord[]
 
   @@map("users")
 }
@@ -64,7 +65,23 @@ model Application {
   feedback     String?
   projectTopic String?
 
+  printRecord   PrintRecord? @relation(fields: [printRecordId], references: [id])
+  printRecordId String?
+
   @@map("applications")
+}
+
+model PrintRecord {
+  id            String      @id @default(cuid())
+  documentNumber String     @unique // เลขที่เอกสาร (ไม่ซ้ำ)
+  documentDate  DateTime   // วันที่เอกสาร
+  printedAt     DateTime   @default(now())
+  printedBy     User       @relation(fields: [printedById], references: [id])
+  printedById   String
+  
+  applications  Application[] // เอกสารหลายใบที่ใช้เลขเดียวกัน
+  
+  @@map("print_records")
 }
 
 model Faculty {

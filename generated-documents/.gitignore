@@ -1,0 +1,8 @@
+# Ignore all generated documents for privacy
+*
+!.gitignore
+!README.md
+
+# But keep directory structure
+!*/
+!*/.gitkeep

@@ -71,6 +71,7 @@ const navConfig = {
       subItems: [
         { href: '/admin/applications', label: 'รายการใบสมัคร'},
         { href: '/admin/applications/pending', label: 'รอการตรวจสอบ'},
+        { href: '/admin/applications/print', label: 'พิมพ์เอกสาร'},
       ]
     },
     { href: '/admin/companies', icon: Building, label: 'ข้อมูลสถานประกอบการ' },

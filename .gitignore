@@ -43,3 +43,12 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+
+# Document generation
+/generated-documents/**/*
+!/generated-documents/README.md
+!/generated-documents/.gitignore
+!/generated-documents/*/.gitkeep
+
+# Temporary files
+/temp/
