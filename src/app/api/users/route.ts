@@ -71,10 +71,16 @@ export async function GET(request: NextRequest) {
     const whereClause: any = {};
     
     if (search) {
+      // SQLite ไม่รองรับ case insensitive search โดยตรง ใช้ LIKE แทน
+      const searchLower = search.toLowerCase();
       whereClause.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-        { id: { contains: search, mode: 'insensitive' } }
+        { name: { contains: search } },
+        { email: { contains: search } },
+        { id: { contains: search } },
+        { t_name: { contains: search } },
+        { t_surname: { contains: search } },
+        { e_name: { contains: search } },
+        { e_surname: { contains: search } }
       ];
     }
 
@@ -91,7 +97,11 @@ export async function GET(request: NextRequest) {
         email: true,
         roles: true,
         skills: true,
-        statement: true
+        statement: true,
+        t_name: true,
+        t_surname: true,
+        e_name: true,
+        e_surname: true
       }
     });
 
@@ -104,7 +114,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(usersWithParsedRoles);
   } catch (error) {
     console.error('Failed to fetch users:', error);
-    return NextResponse.json({ message: 'ไม่สามารถดึงข้อมูลผู้ใช้ได้' }, { status: 500 });
+    return NextResponse.json({ 
+      message: 'ไม่สามารถดึงข้อมูลผู้ใช้ได้', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    }, { status: 500 });
   }
 }
 
