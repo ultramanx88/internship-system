@@ -18,7 +18,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SafeSelect, SafeSelectItem } from '@/components/ui/safe-select';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 
@@ -71,9 +70,9 @@ export default function UserProfilePage() {
             e_name: foundUser.e_name || '',
             e_surname: foundUser.e_surname || '',
             email: foundUser.email || '',
-            t_title: foundUser.t_title || '',
+            t_title: foundUser.t_title || 'not-specified',
             t_middlename: foundUser.t_middle_name || '',
-            e_title: foundUser.e_title || '',
+            e_title: foundUser.e_title || 'not-specified',
             e_middle_name: foundUser.e_middle_name || '',
           };
           
@@ -133,12 +132,12 @@ export default function UserProfilePage() {
         }
         
         // ถ้ากรอกชื่อไทย ต้องมีคำนำหน้าไทย
-        if (formData.t_name.trim() && !formData.t_title.trim()) {
+        if (formData.t_name.trim() && (!formData.t_title.trim() || formData.t_title === 'not-specified')) {
             throw new Error('ถ้ากรอกชื่อไทย ต้องเลือกคำนำหน้าไทยด้วย');
         }
         
         // ถ้ากรอกชื่ออังกฤษ ต้องมีคำนำหน้าอังกฤษ
-        if (formData.e_name.trim() && !formData.e_title.trim()) {
+        if (formData.e_name.trim() && (!formData.e_title.trim() || formData.e_title === 'not-specified')) {
             throw new Error('ถ้ากรอกชื่ออังกฤษ ต้องเลือกคำนำหน้าอังกฤษด้วย');
         }
 
@@ -147,17 +146,19 @@ export default function UserProfilePage() {
             newId: formData.Login_id,
             email: formData.email || undefined, // ไม่บังคับอีเมล์
             password: formData.password || undefined,
-            roles: formData.role_id ? [formData.role_id] : [],
-            t_title: formData.t_title,
+            roles: formData.role_id ? [formData.role_id] : undefined,
+            t_title: formData.t_title === 'not-specified' ? null : formData.t_title,
             t_name: formData.t_name,
             t_middle_name: formData.t_middlename,
             t_surname: formData.t_surname,
-            e_title: formData.e_title,
+            e_title: formData.e_title === 'not-specified' ? null : formData.e_title,
             e_name: formData.e_name,
             e_middle_name: formData.e_middle_name,
             e_surname: formData.e_surname,
         };
 
+        console.log('Sending API data:', apiData);
+        
         const response = await fetch(`/api/users/${userId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -310,7 +311,7 @@ export default function UserProfilePage() {
                                 <SelectValue placeholder="เลือกคำนำหน้า" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">ไม่ระบุ</SelectItem>
+                                <SelectItem value="not-specified">ไม่ระบุ</SelectItem>
                                 {mockTitles?.filter(t => t?.nameTh).map(t => (
                                     <SelectItem key={t.id} value={t.nameTh}>{t.nameTh}</SelectItem>
                                 ))}
@@ -350,7 +351,7 @@ export default function UserProfilePage() {
                                 <SelectValue placeholder="Select Title" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">Not specified</SelectItem>
+                                <SelectItem value="not-specified">Not specified</SelectItem>
                                 {mockTitles?.filter(t => t?.nameEn).map(t => (
                                     <SelectItem key={t.id} value={t.nameEn}>{t.nameEn}</SelectItem>
                                 ))}

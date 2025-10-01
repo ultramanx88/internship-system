@@ -10,7 +10,7 @@ const updateUserSchema = z.object({
   newId: z.string().min(1, 'Login ID is required').optional(),
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
   password: z.string().min(6, 'Password must be at least 6 characters').optional(),
-  roles: z.array(z.string()).min(1, 'At least one role is required').optional(),
+  roles: z.array(z.string()).optional(),
   
   // ข้อมูลภาษาไทย
   t_title: z.string().nullable().optional(),
@@ -23,6 +23,13 @@ const updateUserSchema = z.object({
   e_name: z.string().nullable().optional(),
   e_middle_name: z.string().nullable().optional(),
   e_surname: z.string().nullable().optional(),
+
+  // Academic information
+  facultyId: z.string().nullable().optional(),
+  departmentId: z.string().nullable().optional(),
+  curriculumId: z.string().nullable().optional(),
+  majorId: z.string().nullable().optional(),
+  studentYear: z.number().int().min(1).max(4).nullable().optional(),
 });
 
 // GET single user
@@ -48,6 +55,11 @@ export async function GET(
         e_name: true,
         e_middle_name: true,
         e_surname: true,
+        facultyId: true,
+        departmentId: true,
+        curriculumId: true,
+        majorId: true,
+        studentYear: true,
       }
     });
 
@@ -87,7 +99,12 @@ export async function PUT(
       );
     }
 
-    const { newId, email, password, roles, t_title, t_name, t_middle_name, t_surname, e_title, e_name, e_middle_name, e_surname } = result.data;
+    const { 
+      newId, email, password, roles, 
+      t_title, t_name, t_middle_name, t_surname, 
+      e_title, e_name, e_middle_name, e_surname,
+      facultyId, departmentId, curriculumId, majorId, studentYear
+    } = result.data;
 
     // ตรวจสอบว่าผู้ใช้มีอยู่จริง
     const existingUser = await prisma.user.findUnique({
@@ -124,16 +141,14 @@ export async function PUT(
 
     // ถ้ามีการเปลี่ยน Login ID ต้องสร้างผู้ใช้ใหม่และลบผู้ใช้เก่า
     if (newId && newId !== params.id) {
-      // สร้างชื่อเต็มจากข้อมูลใหม่หรือเก่า
+      // สร้างชื่อเต็มจากข้อมูลใหม่หรือเก่า (ไม่รวม title เพื่อให้ชื่อสั้นลง)
       const t_fullName = [
-        t_title !== undefined ? t_title : (existingUser as any).t_title,
         t_name !== undefined ? t_name : (existingUser as any).t_name,
         t_middle_name !== undefined ? t_middle_name : (existingUser as any).t_middle_name,
         t_surname !== undefined ? t_surname : (existingUser as any).t_surname
       ].filter(Boolean).join(' ');
       
       const e_fullName = [
-        e_title !== undefined ? e_title : (existingUser as any).e_title,
         e_name !== undefined ? e_name : (existingUser as any).e_name,
         e_middle_name !== undefined ? e_middle_name : (existingUser as any).e_middle_name,
         e_surname !== undefined ? e_surname : (existingUser as any).e_surname
@@ -158,6 +173,11 @@ export async function PUT(
         e_name: e_name !== undefined ? e_name : (existingUser as any).e_name,
         e_middle_name: e_middle_name !== undefined ? e_middle_name : (existingUser as any).e_middle_name,
         e_surname: e_surname !== undefined ? e_surname : (existingUser as any).e_surname,
+        facultyId: facultyId !== undefined ? facultyId : (existingUser as any).facultyId,
+        departmentId: departmentId !== undefined ? departmentId : (existingUser as any).departmentId,
+        curriculumId: curriculumId !== undefined ? curriculumId : (existingUser as any).curriculumId,
+        majorId: majorId !== undefined ? majorId : (existingUser as any).majorId,
+        studentYear: studentYear !== undefined ? studentYear : (existingUser as any).studentYear,
       };
 
       // ใช้ transaction เพื่อให้แน่ใจว่าการสร้างและลบเกิดขึ้นพร้อมกัน
@@ -192,14 +212,12 @@ export async function PUT(
       
       if (shouldUpdateName) {
         const t_fullName = [
-          t_title !== undefined ? t_title : (existingUser as any).t_title,
           t_name !== undefined ? t_name : (existingUser as any).t_name,
           t_middle_name !== undefined ? t_middle_name : (existingUser as any).t_middle_name,
           t_surname !== undefined ? t_surname : (existingUser as any).t_surname
         ].filter(Boolean).join(' ');
         
         const e_fullName = [
-          e_title !== undefined ? e_title : (existingUser as any).e_title,
           e_name !== undefined ? e_name : (existingUser as any).e_name,
           e_middle_name !== undefined ? e_middle_name : (existingUser as any).e_middle_name,
           e_surname !== undefined ? e_surname : (existingUser as any).e_surname
@@ -218,6 +236,11 @@ export async function PUT(
       if (e_name !== undefined) updateData.e_name = e_name;
       if (e_middle_name !== undefined) updateData.e_middle_name = e_middle_name;
       if (e_surname !== undefined) updateData.e_surname = e_surname;
+      if (facultyId !== undefined) updateData.facultyId = facultyId;
+      if (departmentId !== undefined) updateData.departmentId = departmentId;
+      if (curriculumId !== undefined) updateData.curriculumId = curriculumId;
+      if (majorId !== undefined) updateData.majorId = majorId;
+      if (studentYear !== undefined) updateData.studentYear = studentYear;
       
       // เข้ารหัสรหัสผ่านใหม่ (ถ้ามี)
       if (password) {

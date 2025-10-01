@@ -199,8 +199,9 @@ export function UsersTable() {
         if (user.t_name) {
             return user.t_name;
         }
-        // If no Thai name (International student), leave name column empty
-        return '-';
+        // If no Thai name (International student), show English first name + middle name
+        const parts = [user.e_name, user.e_middle_name].filter(Boolean);
+        return parts.length > 0 ? parts.join(' ') : '-';
     };
 
     const getDisplaySurname = (user: DisplayUser) => {
@@ -208,9 +209,8 @@ export function UsersTable() {
         if (user.t_name) {
             return user.t_surname || '-';
         }
-        // If no Thai name, show full English name: first + middle + last (International student)
-        const parts = [user.e_name, user.e_middle_name, user.e_surname].filter(Boolean);
-        return parts.length > 0 ? parts.join(' ') : '-';
+        // If no Thai name (International student), show English surname only
+        return user.e_surname || '-';
     };
 
     return (

@@ -6,7 +6,10 @@
 
 ```
 document-templates/
-├── internship/                    # Templates สำหรับฝึกงาน
+├── assets/                       # ไฟล์สำหรับเอกสาร
+│   └── images/
+│       └── garuda-logo.png       # โลโก้ตราครุฑ
+├── internship/                   # Templates สำหรับฝึกงาน
 │   ├── th/                       # เอกสารภาษาไทย
 │   │   ├── 01_หนังสือขอฝึกงาน.docx
 │   │   ├── 01_หนังสือขอฝึกงาน.pdf
@@ -34,6 +37,7 @@ document-templates/
 │       ├── 02_Request_Letter_Cooperative_Education.pdf
 │       ├── 03_Introduction_Letter_Cooperative_Education.docx
 │       └── 03_Introduction_Letter_Cooperative_Education.pdf
+├── ข้อมูล คณะ สาขา.xlsx           # ข้อมูลคณะและสาขา
 └── README.md                     # ไฟล์นี้
 ```
 
@@ -69,8 +73,20 @@ document-templates/
    - แยกภาษาไทย (th/) และอังกฤษ (en/)
    - รูปแบบ: `{ลำดับ}_{ชื่อเอกสาร}.{นามสกุล}`
 
+## Assets และรูปภาพ
+
+1. **โลโก้ตราครุฑ**
+   - ไฟล์: `assets/images/garuda-logo.png`
+   - ใช้ในส่วนหัวของเอกสารทุกประเภท
+   - คัดลอกไปยัง `public/assets/images/` สำหรับเว็บแอป
+
+2. **การใช้งานในเทมเพลต**
+   - โลโก้จะแสดงที่ส่วนบนของเอกสาร
+   - ตามด้วยชื่อมหาวิทยาลัย คณะ และภาควิชา
+
 ## หมายเหตุ
 
 - ไฟล์ template ควรมี version control
 - ตรวจสอบ placeholder variables ให้ถูกต้องก่อนใช้งาน
 - สำรองข้อมูล template เป็นประจำ
+- โลโก้ตราครุฑต้องมีในทุกเอกสารราชการ

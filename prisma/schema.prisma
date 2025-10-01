@@ -31,11 +31,23 @@ model User {
   e_middle_name String?
   e_surname    String?
 
+  // Academic information
+  faculty      Faculty?     @relation(fields: [facultyId], references: [id])
+  facultyId    String?
+  department   Department?  @relation(fields: [departmentId], references: [id])
+  departmentId String?
+  curriculum   Curriculum?  @relation(fields: [curriculumId], references: [id])
+  curriculumId String?
+  major        Major?       @relation(fields: [majorId], references: [id])
+  majorId      String?
+  studentYear  Int?         // ชั้นปี (1, 2, 3, 4)
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   applications Application[]
   printRecords PrintRecord[]
+  documents    Document[]
 
   @@map("users")
 }
@@ -71,6 +83,22 @@ model Application {
   @@map("applications")
 }
 
+model Document {
+  id         String         @id @default(cuid())
+  student    User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId  String
+  name       String         // ชื่อไฟล์
+  type       DocumentType   // ประเภทเอกสาร
+  status     DocumentStatus @default(pending)
+  size       Int            // ขนาดไฟล์ (bytes)
+  url        String         // URL ของไฟล์
+  uploadDate DateTime       @default(now())
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@map("documents")
+}
+
 model PrintRecord {
   id            String      @id @default(cuid())
   documentNumber String     @unique // เลขที่เอกสาร (ไม่ซ้ำ)
@@ -85,9 +113,69 @@ model PrintRecord {
 }
 
 model Faculty {
-  id      String   @id @default(cuid())
-  nameTh  String
-  nameEn  String?
+  id          String       @id @default(cuid())
+  nameTh      String
+  nameEn      String?
+  code        String?      // รหัสคณะ
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  departments Department[]
+  users       User[]
+
+  @@map("faculties")
+}
+
+model Department {
+  id          String       @id @default(cuid())
+  nameTh      String
+  nameEn      String?
+  code        String?      // รหัสสาขา
+  faculty     Faculty      @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  facultyId   String
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  curriculums Curriculum[]
+  users       User[]
+
+  @@map("departments")
+}
+
+model Curriculum {
+  id            String       @id @default(cuid())
+  nameTh        String
+  nameEn        String?
+  code          String?      // รหัสหลักสูตร
+  degree        String?      // ระดับปริญญา (บธ.บ., ศศ.บ., วศ.บ.)
+  department    Department   @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  departmentId  String
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  majors        Major[]
+  users         User[]
+
+  @@map("curriculums")
+}
+
+model Major {
+  id            String       @id @default(cuid())
+  nameTh        String
+  nameEn        String?
+  curriculum    Curriculum   @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  curriculumId  String
+  area          String?      // เขตพื้นที่
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  users         User[]
+
+  @@map("majors")
 }
 
 model Company {
@@ -140,4 +228,21 @@ enum CompanySize {
   medium
   large
   enterprise
+}
+
+enum DocumentType {
+  cv
+  transcript
+  certificate
+  request_letter
+  introduction_letter
+  application_form
+  evaluation_form
+  other
+}
+
+enum DocumentStatus {
+  pending
+  approved
+  rejected
 }

@@ -1,0 +1,25 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- ตราครุฑ (Garuda) - สัญลักษณ์ของไทย -->
+  <circle cx="40" cy="40" r="38" stroke="#000" stroke-width="2" fill="#fff"/>
+  
+  <!-- หัวครุฑ -->
+  <path d="M40 15 L45 25 L40 30 L35 25 Z" fill="#000"/>
+  
+  <!-- ตัวครุฑ -->
+  <ellipse cx="40" cy="40" rx="15" ry="20" fill="none" stroke="#000" stroke-width="2"/>
+  
+  <!-- ปีกซ้าย -->
+  <path d="M25 35 Q20 30 15 35 Q20 40 25 45 L30 40 Z" fill="none" stroke="#000" stroke-width="2"/>
+  
+  <!-- ปีกขวา -->
+  <path d="M55 35 Q60 30 65 35 Q60 40 55 45 L50 40 Z" fill="none" stroke="#000" stroke-width="2"/>
+  
+  <!-- หาง -->
+  <path d="M40 55 L35 65 L40 70 L45 65 Z" fill="none" stroke="#000" stroke-width="2"/>
+  
+  <!-- รายละเอียดเพิ่มเติม -->
+  <circle cx="37" cy="35" r="2" fill="#000"/>
+  <circle cx="43" cy="35" r="2" fill="#000"/>
+  
+  <text x="40" y="78" text-anchor="middle" font-size="6" fill="#000">ตราครุฑ</text>
+</svg>

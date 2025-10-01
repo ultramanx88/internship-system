@@ -1,34 +1,106 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
-import { NextResponse } from 'next/server';
-import { faculties as mockFaculties } from '@/lib/data';
-
-// GET: Fetch all faculties
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // For this demo, we use mock data to avoid database dependency.
-    return NextResponse.json(mockFaculties);
+    const { searchParams } = new URL(request.url);
+    const includeRelations = searchParams.get('include') === 'true';
 
+    const faculties = await prisma.faculty.findMany({
+      where: {
+        isActive: true,
+      },
+      include: includeRelations ? {
+        departments: {
+          where: { isActive: true },
+          include: {
+            curriculums: {
+              where: { isActive: true },
+              include: {
+                majors: {
+                  where: { isActive: true },
+                },
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            departments: true,
+            users: true,
+          },
+        },
+      } : {
+        _count: {
+          select: {
+            departments: true,
+            users: true,
+          },
+        },
+      },
+      orderBy: {
+        nameTh: 'asc',
+      },
+    });
+
+    return NextResponse.json({
+      faculties,
+    });
   } catch (error) {
-    console.error('Failed to fetch faculties:', error);
-    return NextResponse.json({ message: 'Failed to fetch faculties' }, { status: 500 });
+    console.error('Error fetching faculties:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
-// POST: Create, Update, or Delete faculties
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const incomingFaculties = await request.json();
+    const body = await request.json();
+    const { nameTh, nameEn, code } = body;
 
-    if (!Array.isArray(incomingFaculties)) {
-      return NextResponse.json({ message: 'Invalid data format' }, { status: 400 });
+    if (!nameTh) {
+      return NextResponse.json(
+        { error: 'ชื่อคณะ (ภาษาไทย) เป็นข้อมูลที่จำเป็น' },
+        { status: 400 }
+      );
     }
 
-    // For demo purposes, we'll just return the sent data as if it were saved.
-    // This simulates a successful database transaction.
-    return NextResponse.json({ message: 'Faculties updated successfully (Simulated)', data: incomingFaculties });
-    
+    // Check if faculty with same name already exists
+    const existingFaculty = await prisma.faculty.findFirst({
+      where: { nameTh },
+    });
+
+    if (existingFaculty) {
+      return NextResponse.json(
+        { error: 'คณะนี้มีอยู่ในระบบแล้ว' },
+        { status: 400 }
+      );
+    }
+
+    const faculty = await prisma.faculty.create({
+      data: {
+        nameTh,
+        nameEn,
+        code,
+      },
+      include: {
+        _count: {
+          select: {
+            departments: true,
+            users: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(faculty, { status: 201 });
   } catch (error) {
-    console.error('Failed to update faculties:', error);
-    return NextResponse.json({ message: 'Failed to update faculties' }, { status: 500 });
+    console.error('Error creating faculty:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }

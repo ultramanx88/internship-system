@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock, Eye, XCircle } from 'lucide-react';
+import { formatThaiDateLong } from '@/lib/date-utils';
 
 const statusIcons: { [key: string]: React.ReactNode } = {
   approved: <CheckCircle className="h-4 w-4" />,
@@ -71,7 +72,7 @@ export default function StudentApplicationsPage() {
                     <TableRow key={app.id}>
                       <TableCell className="font-medium">{app.internship?.title}</TableCell>
                       <TableCell>{app.internship?.company}</TableCell>
-                      <TableCell>{new Date(app.dateApplied).toLocaleDateString('th-TH')}</TableCell>
+                      <TableCell>{formatThaiDateLong(new Date(app.dateApplied))}</TableCell>
                       <TableCell className="text-center">
                         <Badge className={`capitalize ${statusColors[app.status]}`}>
                             {statusIcons[app.status]}

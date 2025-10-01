@@ -1,0 +1,115 @@
+{
+  "templates": {
+    "internship": {
+      "th": {
+        "01_หนังสือขอฝึกงาน": {
+          "sections": [
+            {
+              "type": "header",
+              "content": "โลโก้ตราครุฑ + ชื่อมหาวิทยาลัย คณะ ภาควิชา"
+            },
+            {
+              "type": "document_info",
+              "content": "ที่ {{documentNumber}} วันที่ {{documentDate}}"
+            },
+            {
+              "type": "subject",
+              "content": "เรื่อง ขอความอนุเคราะห์รับนักศึกษาฝึกงาน"
+            },
+            {
+              "type": "recipient",
+              "content": "เรียน ผู้จัดการฝ่ายบุคคล บริษัท {{companyName}}"
+            },
+            {
+              "type": "body",
+              "content": "เนื้อหาหลัก + รายละเอียดนักศึกษา + ระยะเวลาฝึกงาน"
+            },
+            {
+              "type": "signature",
+              "content": "ลายเซ็นอาจารย์ประจำวิชา"
+            }
+          ],
+          "variables": [
+            "{{documentNumber}}",
+            "{{documentDate}}",
+            "{{companyName}}",
+            "{{studentName}}",
+            "{{studentId}}",
+            "{{studentEmail}}",
+            "{{startDate}}",
+            "{{duration}}",
+            "{{position}}",
+            "{{phoneNumber}}"
+          ]
+        }
+      },
+      "en": {
+        "01_Request_Letter_Internship": {
+          "sections": [
+            {
+              "type": "header",
+              "content": "Garuda Logo + University Name Faculty Department"
+            },
+            {
+              "type": "document_info",
+              "content": "No. {{documentNumber}} Date {{documentDate}}"
+            },
+            {
+              "type": "subject",
+              "content": "Subject: Request for Internship Student Placement"
+            },
+            {
+              "type": "recipient",
+              "content": "To: Human Resources Manager {{companyName}}"
+            },
+            {
+              "type": "body",
+              "content": "Main content + Student details + Internship period"
+            },
+            {
+              "type": "signature",
+              "content": "Course Instructor signature"
+            }
+          ]
+        }
+      }
+    },
+    "co_op": {
+      "th": {
+        "01_แบบฟอร์มขอสหกิจศึกษา": {
+          "sections": [
+            {
+              "type": "header",
+              "content": "โลโก้ตราครุฑ + ชื่อมหาวิทยาลัย + หัวข้อแบบฟอร์ม"
+            },
+            {
+              "type": "part1",
+              "content": "ส่วนที่ ๑ - ข้อมูลนักศึกษา",
+              "fields": [
+                "ชื่อนักศึกษา",
+                "รหัสนักศึกษา", 
+                "ระดับการศึกษา",
+                "เบอร์โทรศัพท์",
+                "อีเมล"
+              ]
+            },
+            {
+              "type": "part2", 
+              "content": "ส่วนที่ ๒ - ข้อมูลสถานประกอบการ",
+              "fields": [
+                "ชื่อสถานประกอบการ",
+                "ชื่อหน่วยงาน/ฝ่ายงาน",
+                "ตำแหน่ง",
+                "ที่อยู่สถานประกอบการ",
+                "เบอร์โทรศัพท์/โทรสาร",
+                "แผนที่หรือเส้นทาง",
+                "ลักษณะงาน",
+                "แผนที่"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
 import { applications as mockApplications, users as mockUsers, internships as mockInternships } from '@/lib/data';
+
+const createApplicationSchema = z.object({
+  studentId: z.string().min(1, 'Student ID is required'),
+  internshipId: z.string().min(1, 'Internship ID is required'),
+});
 
 export async function GET(request: NextRequest) {
   try {
@@ -77,5 +84,103 @@ export async function GET(request: NextRequest) {
       message: 'Failed to fetch applications',
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
+  }
+}
+
+// POST - Create new application
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const result = createApplicationSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { message: 'ข้อมูลไม่ถูกต้อง', errors: result.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { studentId, internshipId } = result.data;
+
+    // ตรวจสอบว่า student มีอยู่จริง
+    const student = await prisma.user.findUnique({
+      where: { id: studentId }
+    });
+
+    if (!student) {
+      return NextResponse.json(
+        { message: 'ไม่พบข้อมูลนักศึกษา' },
+        { status: 404 }
+      );
+    }
+
+    // ตรวจสอบว่า internship มีอยู่จริง
+    const internship = await prisma.internship.findUnique({
+      where: { id: internshipId }
+    });
+
+    if (!internship) {
+      return NextResponse.json(
+        { message: 'ไม่พบข้อมูลตำแหน่งฝึกงาน' },
+        { status: 404 }
+      );
+    }
+
+    // ตรวจสอบว่าเคยสมัครแล้วหรือไม่
+    const existingApplication = await prisma.application.findFirst({
+      where: {
+        studentId: studentId,
+        internshipId: internshipId
+      }
+    });
+
+    if (existingApplication) {
+      return NextResponse.json(
+        { message: 'คุณได้สมัครตำแหน่งนี้แล้ว' },
+        { status: 409 }
+      );
+    }
+
+    // สร้างใบสมัครใหม่
+    const newApplication = await prisma.application.create({
+      data: {
+        studentId: studentId,
+        internshipId: internshipId,
+        status: 'pending',
+        dateApplied: new Date(),
+      },
+      include: {
+        student: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        internship: {
+          select: {
+            id: true,
+            title: true,
+            company: {
+              select: {
+                name: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    return NextResponse.json({
+      message: 'ส่งใบสมัครเรียบร้อยแล้ว',
+      application: newApplication
+    }, { status: 201 });
+
+  } catch (error) {
+    console.error('Failed to create application:', error);
+    return NextResponse.json(
+      { message: 'ไม่สามารถส่งใบสมัครได้' },
+      { status: 500 }
+    );
   }
 }

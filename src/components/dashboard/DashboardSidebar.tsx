@@ -42,7 +42,9 @@ const navConfig = {
   student: [
     { href: '/student', icon: LayoutDashboard, label: 'แดชบอร์ด' },
     { href: '/student/internships', icon: Briefcase, label: 'การฝึกงาน' },
+    { href: '/student/application-form', icon: ClipboardList, label: 'สมัครฝึกงาน/สหกิจ' },
     { href: '/student/applications', icon: FileText, label: 'ใบสมัครของฉัน' },
+    { href: '/student/documents', icon: BookUser, label: 'จัดการเอกสาร' },
     { href: '/student/evaluation', icon: Star, label: 'ประเมินผล' },
   ],
   staff: [
@@ -75,9 +77,22 @@ const navConfig = {
       ]
     },
     { href: '/admin/companies', icon: Building, label: 'ข้อมูลสถานประกอบการ' },
+    { href: '/admin/academic', icon: GraduationCap, label: 'โครงสร้างวิชาการ' },
     { href: '/admin/schedules', icon: CalendarClock, label: 'นัดหมายนิเทศ' },
     { href: '/admin/reports', icon: ClipboardList, label: 'รายงานผลการนิเทศ' },
     { href: '/admin/summary', icon: BarChart2, label: 'รายงานสรุป' },
+    { 
+      id: 'documents',
+      icon: FileText, 
+      label: 'จัดการเอกสาร',
+      subItems: [
+        { href: '/admin/documents/pdf-templates', label: 'เทมเพลต PDF'},
+        { href: '/admin/documents/html-templates', label: 'เทมเพลต HTML'},
+        { href: '/admin/documents/templates', label: 'เทมเพลตเอกสาร'},
+        { href: '/admin/documents/fonts', label: 'จัดการฟอนต์'},
+        { href: '/admin/documents/generated', label: 'เอกสารที่สร้าง'},
+      ]
+    },
     { href: '/admin/settings', icon: Settings, label: 'ตั้งค่า' },
   ],
 };
@@ -87,7 +102,7 @@ export function DashboardSidebar() {
   const { user, loading } = useAuth();
   const { logo } = useAppTheme();
   const pathname = usePathname();
-  const [openMenus, setOpenMenus] = useState<Set<string>>(new Set(['applications']));
+  const [openMenus, setOpenMenus] = useState<Set<string>>(new Set(['applications', 'documents']));
 
   const getNavItems = () => {
     if (!user || !user.roles) return [];

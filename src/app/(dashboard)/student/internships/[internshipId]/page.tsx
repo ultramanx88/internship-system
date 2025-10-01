@@ -1,18 +1,24 @@
 'use client';
 
-import { notFound, useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { notFound, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { internships as mockInternships } from '@/lib/data';
+import { internships as mockInternships, applications as mockApplications } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Building, MapPin, Briefcase } from 'lucide-react';
+import { ArrowLeft, Building, MapPin, Briefcase, Loader2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function InternshipDetailsPage() {
   const params = useParams();
+  const router = useRouter();
   const internshipId = params.internshipId as string;
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [hasApplied, setHasApplied] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
 
   const internship = mockInternships.find(i => i.id === internshipId);
 
@@ -20,17 +26,52 @@ export default function InternshipDetailsPage() {
     notFound();
   }
 
+  // ตรวจสอบสถานะการสมัคร
+  useEffect(() => {
+    if (user) {
+      const existingApplication = mockApplications.find(
+        app => app.studentId === user.id && app.internshipId === internshipId
+      );
+      
+      if (existingApplication) {
+        setHasApplied(true);
+        setApplicationStatus(existingApplication.status);
+      }
+    }
+  }, [user, internshipId]);
+
   const handleApply = () => {
-    // In a real app, this would trigger an API call to create an application.
-    toast({
-      title: 'ส่งใบสมัครแล้ว',
-      description: `ใบสมัครของคุณสำหรับตำแหน่ง ${internship.title} ได้ถูกส่งเรียบร้อยแล้ว`,
-    });
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'เกิดข้อผิดพลาด',
+        description: 'กรุณาเข้าสู่ระบบก่อนสมัครฝึกงาน',
+      });
+      return;
+    }
+
+    // Navigate to application form with pre-selected internship
+    router.push(`/student/application-form/${internship.type}?internshipId=${internshipId}`);
   };
   
   const typeTranslations: { [key: string]: string } = {
     'internship': 'ฝึกงาน',
     'co_op': 'สหกิจศึกษา'
+  };
+
+  const statusTranslations: { [key: string]: string } = {
+    'pending': 'รอการตรวจสอบ',
+    'approved': 'อนุมัติแล้ว',
+    'rejected': 'ปฏิเสธ'
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved': return 'bg-green-500 text-white';
+      case 'rejected': return 'bg-red-500 text-white';
+      case 'pending': return 'bg-yellow-500 text-white';
+      default: return 'bg-gray-500 text-white';
+    }
   };
 
   return (
@@ -67,11 +108,27 @@ export default function InternshipDetailsPage() {
         <CardContent>
             <p className="whitespace-pre-wrap">{internship.description}</p>
         </CardContent>
-        <CardFooter>
-            <Button size="lg" className="w-full sm:w-auto" onClick={handleApply}>
+        <CardFooter className="flex flex-col gap-4">
+            {hasApplied && applicationStatus ? (
+              <div className="w-full">
+                <Badge className={`${getStatusColor(applicationStatus)} mb-2`}>
+                  <CheckCircle className="mr-2 h-4 w-4"/>
+                  {statusTranslations[applicationStatus]}
+                </Badge>
+                <p className="text-sm text-muted-foreground">
+                  คุณได้สมัครตำแหน่งนี้แล้ว สถานะปัจจุบัน: {statusTranslations[applicationStatus]}
+                </p>
+              </div>
+            ) : (
+              <Button 
+                size="lg" 
+                className="w-full sm:w-auto" 
+                onClick={handleApply}
+              >
                 <Briefcase className="mr-2 h-4 w-4"/>
                 สมัครงานนี้
-            </Button>
+              </Button>
+            )}
         </CardFooter>
       </Card>
     </div>

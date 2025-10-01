@@ -1,39 +1,75 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getAvailableTemplates } from '@/lib/document-generator';
+import { NextResponse } from 'next/server';
+import { readdir } from 'fs/promises';
+import path from 'path';
 
-export async function GET(request: NextRequest) {
+interface Template {
+  id: string;
+  name: string;
+  type: 'internship' | 'co_op';
+  language: 'th' | 'en';
+  format: 'pdf' | 'docx';
+  path: string;
+  displayName: string;
+}
+
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type') as 'internship' | 'co-op' | null;
-    const language = searchParams.get('language') as 'th' | 'en' | null;
-
-    const templates = getAvailableTemplates(
-      type || undefined,
-      language || undefined
-    );
-
-    // Group templates by type and language for easier frontend handling
-    const groupedTemplates = templates.reduce((acc, template) => {
-      const key = `${template.type}_${template.language}`;
-      if (!acc[key]) {
-        acc[key] = {
-          type: template.type,
-          language: template.language,
-          templates: []
-        };
+    const templates: Template[] = [];
+    
+    // Define template structure
+    const templateStructure = {
+      internship: {
+        th: [
+          { file: '01_หนังสือขอฝึกงาน', name: 'หนังสือขอฝึกงาน' },
+          { file: '02_หนังสือส่งตัวฝึกงาน', name: 'หนังสือส่งตัวฝึกงาน' }
+        ],
+        en: [
+          { file: '01_Request_Letter_Internship', name: 'Request Letter' },
+          { file: '02_Introduction_Letter_Internship', name: 'Introduction Letter' }
+        ]
+      },
+      co_op: {
+        th: [
+          { file: '01_แบบฟอร์มขอสหกิจศึกษา', name: 'แบบฟอร์มขอสหกิจศึกษา' },
+          { file: '02_หนังสือขอสหกิจศึกษา', name: 'หนังสือขอสหกิจศึกษา' },
+          { file: '03_หนังสือส่งตัวสหกิจศึกษา', name: 'หนังสือส่งตัวสหกิจศึกษา' },
+          { file: '04_แบบฟอร์มประเมินสหกิจศึกษา', name: 'แบบฟอร์มประเมินสหกิจศึกษา' }
+        ],
+        en: [
+          { file: '01_Application_Form_Cooperative_Education', name: 'Application Form' },
+          { file: '02_Request_Letter_Cooperative_Education', name: 'Request Letter' },
+          { file: '03_Introduction_Letter_Cooperative_Education', name: 'Introduction Letter' }
+        ]
       }
-      acc[key].templates.push(template);
-      return acc;
-    }, {} as Record<string, any>);
+    };
+
+    // Generate template list
+    Object.entries(templateStructure).forEach(([type, languages]) => {
+      Object.entries(languages).forEach(([lang, files]) => {
+        files.forEach((template, index) => {
+          ['pdf', 'docx'].forEach(format => {
+            templates.push({
+              id: `${type}_${lang}_${index}_${format}`,
+              name: template.name,
+              type: type as 'internship' | 'co_op',
+              language: lang as 'th' | 'en',
+              format: format as 'pdf' | 'docx',
+              path: `/document-templates/${type}/${lang}/${template.file}.${format}`,
+              displayName: `${template.name} (${format.toUpperCase()})`
+            });
+          });
+        });
+      });
+    });
 
     return NextResponse.json({
-      templates,
-      grouped: Object.values(groupedTemplates),
+      templates: templates
     });
+
   } catch (error) {
-    console.error('Error fetching document templates:', error);
+    console.error('Failed to fetch document templates:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { message: 'Failed to fetch document templates' },
       { status: 500 }
     );
   }

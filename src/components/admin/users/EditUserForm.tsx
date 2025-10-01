@@ -205,7 +205,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">ไม่ระบุ</SelectItem>
+                      <SelectItem value="none">ไม่ระบุ</SelectItem>
                       <SelectItem value="นาย">นาย</SelectItem>
                       <SelectItem value="นาง">นาง</SelectItem>
                       <SelectItem value="นางสาว">นางสาว</SelectItem>
@@ -277,7 +277,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Not specified</SelectItem>
+                      <SelectItem value="none">Not specified</SelectItem>
                       <SelectItem value="Mr.">Mr.</SelectItem>
                       <SelectItem value="Mrs.">Mrs.</SelectItem>
                       <SelectItem value="Ms.">Ms.</SelectItem>
