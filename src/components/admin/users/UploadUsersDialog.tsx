@@ -132,7 +132,7 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
   }
 
   return (
-    <DialogContent className="sm:max-w-md">
+    <DialogContent className="sm:max-w-4xl max-w-4xl">
       <DialogHeader>
         <DialogTitle>อัปโหลดรายชื่อผู้ใช้จาก Excel</DialogTitle>
         <DialogDescription>
@@ -172,9 +172,48 @@ export function UploadUsersDialog({ onSuccess, onCancel }: UploadUsersDialogProp
                 </div>
             )}
             </div>
-             <p className="text-xs text-muted-foreground">
-                * คอลัมน์ที่แนะนำ: <code className="font-mono bg-muted p-1 rounded">login_id</code>, <code className="font-mono bg-muted p-1 rounded">password</code>, <code className="font-mono bg-muted p-1 rounded">role_id</code>, <code className="font-mono bg-muted p-1 rounded">email</code>, และคอลัมน์ชื่อต่างๆ เช่น <code className="font-mono bg-muted p-1 rounded">t_name</code>, <code className="font-mono bg-muted p-1 rounded">t_surname</code>, <code className="font-mono bg-muted p-1 rounded">e_name</code> เป็นต้น
-            </p>
+            <div className="text-xs text-muted-foreground space-y-3">
+                <p className="font-semibold">รูปแบบคอลัมน์ที่แนะนำ:</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <p className="font-medium">ข้อมูลพื้นฐาน:</p>
+                        <div className="space-y-1">
+                            <p>• <code className="font-mono bg-muted p-1 rounded">student_id</code> - รหัสนักศึกษา</p>
+                            <p>• <code className="font-mono bg-muted p-1 rounded">major</code> - สาขาวิชา</p>
+                            <p>• <code className="font-mono bg-muted p-1 rounded">login_id</code> - ชื่อผู้ใช้</p>
+                            <p>• <code className="font-mono bg-muted p-1 rounded">password</code> - รหัสผ่าน</p>
+                            <p>• <code className="font-mono bg-muted p-1 rounded">email</code> - อีเมล</p>
+                            <p>• <code className="font-mono bg-muted p-1 rounded">role_id</code> - บทบาท</p>
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <p className="font-medium">ชื่อ-นามสกุล (ภาษาไทย):</p>
+                        <div className="space-y-1">
+                            <p>• <code className="font-mono bg-muted p-1 rounded">t_prefix</code> - คำนำหน้า</p>
+                            <p>• <code className="font-mono bg-muted p-1 rounded">t_name</code> - ชื่อ</p>
+                            <p>• <code className="font-mono bg-muted p-1 rounded">t_middle_name</code> - ชื่อกลาง</p>
+                            <p>• <code className="font-mono bg-muted p-1 rounded">t_surname</code> - นามสกุล</p>
+                        </div>
+                        
+                        <p className="font-medium mt-3">ชื่อ-นามสกุล (ภาษาอังกฤษ):</p>
+                        <div className="space-y-1">
+                            <p>• <code className="font-mono bg-muted p-1 rounded">e_prefix</code> - คำนำหน้า</p>
+                            <p>• <code className="font-mono bg-muted p-1 rounded">e_name</code> - ชื่อ</p>
+                            <p>• <code className="font-mono bg-muted p-1 rounded">e_middle_name</code> - ชื่อกลาง</p>
+                            <p>• <code className="font-mono bg-muted p-1 rounded">e_surname</code> - นามสกุล</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="font-medium text-blue-800">ตัวอย่างลำดับคอลัมน์ที่แนะนำ:</p>
+                    <p className="text-blue-700 mt-1">
+                        student_id | major | t_prefix | t_name | t_middle_name | t_surname | e_prefix | e_name | e_middle_name | e_surname | login_id | password | email | role_id
+                    </p>
+                </div>
+            </div>
         </div>
       ) : (
         <Alert>

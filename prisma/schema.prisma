@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,104 +8,93 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  password     String
-  roles        String   // เก็บ roles เป็น JSON string
-  skills       String?
-  statement    String?
-  
-  // ข้อมูลภาษาไทย
-  t_title      String?
-  t_name       String?
-  t_middle_name String?  // แก้ไขให้ตรงกับ Excel
-  t_surname    String?
-  
-  // ข้อมูลภาษาอังกฤษ
-  e_title      String?
-  e_name       String?
+  id            String        @id @default(cuid())
+  name          String
+  email         String        @unique
+  password      String
+  roles         String
+  skills        String?
+  statement     String?
+  t_title       String?
+  t_name        String?
+  t_middle_name String?
+  t_surname     String?
+  e_title       String?
+  e_name        String?
   e_middle_name String?
-  e_surname    String?
-
-  // Academic information
-  faculty      Faculty?     @relation(fields: [facultyId], references: [id])
-  facultyId    String?
-  department   Department?  @relation(fields: [departmentId], references: [id])
-  departmentId String?
-  curriculum   Curriculum?  @relation(fields: [curriculumId], references: [id])
-  curriculumId String?
-  major        Major?       @relation(fields: [majorId], references: [id])
-  majorId      String?
-  studentYear  Int?         // ชั้นปี (1, 2, 3, 4)
-
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  applications Application[]
-  printRecords PrintRecord[]
-  documents    Document[]
+  e_surname     String?
+  facultyId     String?
+  departmentId  String?
+  curriculumId  String?
+  majorId       String?
+  studentYear   Int?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  applications  Application[]
+  documents     Document[]
+  printRecords  PrintRecord[]
+  curriculum    Curriculum?   @relation(fields: [curriculumId], references: [id])
+  department    Department?   @relation(fields: [departmentId], references: [id])
+  faculty       Faculty?      @relation(fields: [facultyId], references: [id])
+  major         Major?        @relation(fields: [majorId], references: [id])
 
   @@map("users")
 }
 
 model Internship {
-  id          String        @id @default(cuid())
-  title       String
-  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   String
-  location    String
-  description String
-  type        InternshipType
-
+  id           String         @id @default(cuid())
+  title        String
+  companyId    String
+  location     String
+  description  String
+  type         InternshipType
   applications Application[]
+  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@map("internships")
 }
 
 model Application {
-  id           String            @id @default(cuid())
-  student      User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  studentId    String
-  internship   Internship        @relation(fields: [internshipId], references: [id], onDelete: Cascade)
-  internshipId String
-  status       ApplicationStatus
-  dateApplied  DateTime
-  feedback     String?
-  projectTopic String?
-
-  printRecord   PrintRecord? @relation(fields: [printRecordId], references: [id])
+  id            String            @id @default(cuid())
+  studentId     String
+  internshipId  String
+  status        ApplicationStatus
+  dateApplied   DateTime
+  feedback      String?
+  projectTopic  String?
   printRecordId String?
+  internship    Internship        @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  printRecord   PrintRecord?      @relation(fields: [printRecordId], references: [id])
+  student       User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@map("applications")
 }
 
 model Document {
   id         String         @id @default(cuid())
-  student    User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
   studentId  String
-  name       String         // ชื่อไฟล์
-  type       DocumentType   // ประเภทเอกสาร
+  name       String
+  type       DocumentType
   status     DocumentStatus @default(pending)
-  size       Int            // ขนาดไฟล์ (bytes)
-  url        String         // URL ของไฟล์
+  size       Int
+  url        String
   uploadDate DateTime       @default(now())
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
+  student    User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@map("documents")
 }
 
 model PrintRecord {
-  id            String      @id @default(cuid())
-  documentNumber String     @unique // เลขที่เอกสาร (ไม่ซ้ำ)
-  documentDate  DateTime   // วันที่เอกสาร
-  printedAt     DateTime   @default(now())
-  printedBy     User       @relation(fields: [printedById], references: [id])
-  printedById   String
-  
-  applications  Application[] // เอกสารหลายใบที่ใช้เลขเดียวกัน
-  
+  id             String        @id @default(cuid())
+  documentNumber String        @unique
+  documentDate   DateTime
+  printedAt      DateTime      @default(now())
+  printedById    String
+  applications   Application[]
+  printedBy      User          @relation(fields: [printedById], references: [id])
+
   @@map("print_records")
 }
 
@@ -116,11 +102,10 @@ model Faculty {
   id          String       @id @default(cuid())
   nameTh      String
   nameEn      String?
-  code        String?      // รหัสคณะ
+  code        String?
   isActive    Boolean      @default(true)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-
   departments Department[]
   users       User[]
 
@@ -131,55 +116,52 @@ model Department {
   id          String       @id @default(cuid())
   nameTh      String
   nameEn      String?
-  code        String?      // รหัสสาขา
-  faculty     Faculty      @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  code        String?
   facultyId   String
   isActive    Boolean      @default(true)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-
   curriculums Curriculum[]
+  faculty     Faculty      @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   users       User[]
 
   @@map("departments")
 }
 
 model Curriculum {
-  id            String       @id @default(cuid())
-  nameTh        String
-  nameEn        String?
-  code          String?      // รหัสหลักสูตร
-  degree        String?      // ระดับปริญญา (บธ.บ., ศศ.บ., วศ.บ.)
-  department    Department   @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  departmentId  String
-  isActive      Boolean      @default(true)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  majors        Major[]
-  users         User[]
+  id           String     @id @default(cuid())
+  nameTh       String
+  nameEn       String?
+  code         String?
+  degree       String?
+  departmentId String
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  majors       Major[]
+  users        User[]
 
   @@map("curriculums")
 }
 
 model Major {
-  id            String       @id @default(cuid())
-  nameTh        String
-  nameEn        String?
-  curriculum    Curriculum   @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
-  curriculumId  String
-  area          String?      // เขตพื้นที่
-  isActive      Boolean      @default(true)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  users         User[]
+  id           String     @id @default(cuid())
+  nameTh       String
+  nameEn       String?
+  curriculumId String
+  area         String?
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  curriculum   Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  users        User[]
 
   @@map("majors")
 }
 
 model Company {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   name        String
   nameEn      String?
   address     String?
@@ -193,10 +175,9 @@ model Company {
   description String?
   industry    String?
   size        CompanySize?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   internships Internship[]
 
   @@map("companies")

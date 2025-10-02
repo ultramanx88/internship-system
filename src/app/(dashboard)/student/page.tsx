@@ -1,237 +1,248 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import { internships, applications, users, progressReports } from '@/lib/data';
+import { internships, applications, users, companies } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Briefcase, CheckCircle, Clock, FileText, XCircle, BookOpen, Save } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-
-const statusIcons: { [key: string]: React.ReactNode } = {
-  approved: <CheckCircle className="text-white" />,
-  pending: <Clock className="text-secondary-foreground" />,
-  rejected: <XCircle className="text-white" />,
-};
-
-const statusColors: { [key: string]: string } = {
-    approved: "bg-[#2f7b69] text-white",
-    pending: "bg-[#f4a79d] text-secondary-foreground",
-    rejected: "bg-[#a01f38] text-white",
-};
-
+import {
+    FileText,
+    BookOpen,
+    MapPin,
+    Building,
+    User,
+    CheckCircle2
+} from 'lucide-react';
 
 export default function StudentPage() {
-  const { toast } = useToast();
-  const { user } = useAuth();
-  
-  // Use fallback for demo if no user
-  const studentId = user?.id || 'test001';
-  const student = users.find(u => u.id === studentId);
-  
-  // Use state to make applications data mutable
-  const [myApplications, setMyApplications] = useState(applications.filter(app => app.studentId === studentId));
+    const { user } = useAuth();
 
-  const approvedApplication = myApplications.find(app => app.status === 'approved');
-  const approvedInternship = approvedApplication ? internships.find(i => i.id === approvedApplication.internshipId) : null;
-  const myProgressReports = approvedApplication ? progressReports.filter(p => p.applicationId === approvedApplication.id) : [];
+    // Use fallback for demo if no user
+    const studentId = user?.id || 'test001';
+    const student = users.find(u => u.id === studentId);
 
-  const [projectTopic, setProjectTopic] = useState(approvedApplication?.projectTopic || '');
-  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+    // Use state to make applications data mutable
+    const myApplications = applications.filter(app => app.studentId === studentId);
 
+    const approvedApplication = myApplications.find(app => app.status === 'approved');
+    const approvedInternship = approvedApplication ? internships.find(i => i.id === approvedApplication.internshipId) : null;
+    const approvedCompany = approvedInternship ? companies.find(c => c.id === approvedInternship.companyId) : null;
 
-  const statusTranslations: { [key: string]: string } = {
-    approved: "อนุมัติ",
-    pending: "รอการตรวจสอบ",
-    rejected: "ปฏิเสธ",
-  };
+    const coopTimeline = [
+        {
+            step: 1,
+            title: 'กรอกข้อมูลสหกิจศึกษา',
+            date: '7 มี.ค. 68 - 19 มี.ค. 68',
+            status: 'completed'
+        },
+        {
+            step: 2,
+            title: 'ยื่นเอกสาร ณ ห้องธุรการชั้น 4',
+            date: '7 มี.ค. 68 - 19 มี.ค. 68',
+            status: 'current'
+        },
+        {
+            step: 3,
+            title: 'ยื่นเอกสารให้กับทางบริษัท',
+            date: '7 มี.ค. 68 - 19 มี.ค. 68',
+            status: 'upcoming'
+        },
+        {
+            step: 4,
+            title: 'สหกิจศึกษา',
+            date: '7 มี.ค. 68 - 19 มี.ค. 68',
+            status: 'upcoming'
+        },
+        {
+            step: 5,
+            title: 'กรอกข้อมูลโปรเจกต์',
+            date: '7 มี.ค. 68 - 19 มี.ค. 68',
+            status: 'upcoming'
+        }
+    ];
 
-  const isCoop = approvedInternship?.type === 'co_op';
+    return (
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">หน้าแรก</h1>
+                <p className="text-muted-foreground">
+                    ยินดีต้อนรับ, {student?.name}! ติดตามความคืบหน้าการฝึกงาน/สหกิจศึกษาของคุณ
+                </p>
+            </div>
 
-  const handleSaveProjectTopic = () => {
-    if (!approvedApplication) return;
-    
-    // Simulate updating the data
-    const appIndex = applications.findIndex(app => app.id === approvedApplication.id);
-    if (appIndex !== -1) {
-        applications[appIndex].projectTopic = projectTopic;
-    }
-
-    // Update local state to re-render
-    setMyApplications(prevApps => 
-        prevApps.map(app => 
-            app.id === approvedApplication.id ? { ...app, projectTopic: projectTopic } : app
-        )
-    );
-    
-    toast({
-        title: "บันทึกสำเร็จ",
-        description: "หัวข้อโปรเจคของคุณได้รับการอัปเดตแล้ว",
-    })
-    setIsProjectDialogOpen(false);
-  };
-
-
-  return (
-    <div className="grid gap-8 text-secondary-600">
-      <div>
-        <h1 className="text-3xl font-bold gradient-text">ยินดีต้อนรับ, {student?.name}!</h1>
-        <p>นี่คือสิ่งที่เกิดขึ้นกับการเดินทางฝึกงานของคุณ</p>
-      </div>
-
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-8">
-            <Card>
-                <CardHeader>
-                    <CardTitle>ใบสมัครของฉัน</CardTitle>
-                    <CardDescription>ติดตามสถานะใบสมัครที่คุณส่งไป</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        {myApplications.map(app => {
-                            const internship = internships.find(i => i.id === app.internshipId);
-                            return (
-                                <div key={app.id} className="flex items-center justify-between rounded-lg border p-4">
-                                    <div>
-                                        <h3 className="font-semibold">{internship?.title}</h3>
-                                        <p className="text-sm text-muted-foreground">{internship?.company}</p>
-                                    </div>
-                                    <Badge className={`capitalize ${statusColors[app.status]}`}>
-                                        {statusIcons[app.status]}
-                                        <span className="ml-2">{statusTranslations[app.status]}</span>
-                                    </Badge>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </CardContent>
-            </Card>
-
-            {isCoop && (
-                 <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+                {/* คอลัมน์ซ้าย 2/3 - มี 3 แถว */}
+                <div className="lg:col-span-2 space-y-6">
+                    {/* แถวที่ 1: กำหนดการใกล้ถึง */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                            <BookOpen />
-                            ข้อมูลโปรเจค (สหกิจศึกษา)
-                            </CardTitle>
-                            <CardDescription>จัดการหัวข้อและรายละเอียดโปรเจคสหกิจของคุณ</CardDescription>
+                            <CardTitle className="text-lg font-semibold text-amber-700">กำหนดการใกล้ถึง</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {/* กลุ่มวันที่ 11 มี.ค. 2568 */}
+                            <div className="space-y-2">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-24 flex-shrink-0 text-sm font-medium text-gray-700 pt-3">
+                                        11 มี.ค. 2568
+                                    </div>
+                                    <div className="flex-1 space-y-2">
+                                        <div className="flex items-center justify-between p-3 bg-gray-100 rounded-lg">
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-sm font-medium text-gray-700">9:00 - 16:30</span>
+                                                <span className="text-sm text-gray-900">ยื่นเอกสาร ณ ห้องธุรการชั้น 4</span>
+                                            </div>
+                                            <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">ธุรการ</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-3 bg-gray-100 rounded-lg">
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-sm font-medium text-gray-700">9:00 - 16:30</span>
+                                                <span className="text-sm text-gray-900">ยื่นเอกสาร ณ ห้องธุรการชั้น 4</span>
+                                            </div>
+                                            <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">ธุรการ</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* เส้นแบ่ง */}
+                            <div className="border-t border-gray-200 my-4"></div>
+
+                            {/* กลุ่มวันที่ 24 ก.ค. 2568 */}
+                            <div className="space-y-2">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-24 flex-shrink-0 text-sm font-medium text-gray-700 pt-3">
+                                        24 ก.ค. 2568
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between p-3 bg-gray-100 rounded-lg">
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-sm font-medium text-gray-700">9:00 - 16:30</span>
+                                                <span className="text-sm text-gray-900">อาจารย์ตรวจเยี่ยมสหกิจศึกษา</span>
+                                            </div>
+                                            <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">อจ.ภาคสี</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* แถวที่ 2: สถานะการยื่นขอฝึกงานของฉัน */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg font-semibold text-amber-700">สถานะการยื่นขอฝึกงานของฉัน</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {approvedApplication?.projectTopic ? (
-                                <div>
-                                    <p className="font-semibold">หัวข้อโปรเจค:</p>
-                                    <p className="text-muted-foreground">{approvedApplication.projectTopic}</p>
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline" size="sm" className="mt-2">แก้ไขหัวข้อ</Button>
-                                    </DialogTrigger>
+                            {myApplications.length > 0 ? (
+                                <div className="p-4 bg-orange-50 rounded-lg">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-8">
+                                            <span className="text-sm font-medium text-gray-700">เอกสาร 6400224415</span>
+                                            <span className="text-sm text-gray-900">อนุมัติแล้วจากการพิจารณา</span>
+                                        </div>
+                                        <span className="text-xs text-gray-500 bg-white px-3 py-1 rounded">อาจารย์ประจำวิชา</span>
+                                    </div>
                                 </div>
                             ) : (
-                                <div>
-                                    <p className="text-muted-foreground">คุณยังไม่ได้กำหนดหัวข้อโปรเจค</p>
-                                    <DialogTrigger asChild>
-                                        <Button size="sm" className="mt-2">กำหนดหัวข้อโปรเจค</Button>
-                                    </DialogTrigger>
+                                <div className="text-center py-8">
+                                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                    <p className="text-gray-500">ยังไม่มีการยื่นขอฝึกงาน</p>
+                                    <Button asChild className="mt-4">
+                                        <Link href="/student/application-form">ยื่นขอฝึกงาน</Link>
+                                    </Button>
                                 </div>
                             )}
                         </CardContent>
                     </Card>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>แก้ไขหัวข้อโปรเจค</DialogTitle>
-                            <DialogDescription>
-                                กรอกหรือแก้ไขหัวข้อโปรเจคสหกิจศึกษาของคุณที่นี่
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="project-topic" className="text-right">
-                                    หัวข้อ
-                                </Label>
-                                <Input
-                                    id="project-topic"
-                                    value={projectTopic}
-                                    onChange={(e) => setProjectTopic(e.target.value)}
-                                    className="col-span-3"
-                                    placeholder="เช่น การพัฒนาระบบ AI..."
-                                />
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <DialogClose asChild>
-                                <Button type="button" variant="secondary">ยกเลิก</Button>
-                            </DialogClose>
-                            <Button type="button" onClick={handleSaveProjectTopic}>
-                                <Save className="mr-2 h-4 w-4" />
-                                บันทึก
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            )}
 
-            {approvedApplication && (
-                <Card>
+                    {/* แถวที่ 3: รายละเอียดโปรเจกต์ของฉัน */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg font-semibold text-amber-700">รายละเอียดโปรเจกต์ของฉัน</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {approvedApplication && approvedInternship ? (
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-orange-50 rounded-lg">
+                                        <h3 className="font-semibold text-orange-800 mb-2">
+                                            พัฒนาเว็บไซต์การสืบค้นข้อมูลสำหรับร้านค้าขายปลีก
+                                        </h3>
+                                        <div className="space-y-2 text-sm">
+                                            <div className="flex items-center gap-2 text-orange-700">
+                                                <Building className="h-4 w-4" />
+                                                <span>{approvedCompany?.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-orange-700">
+                                                <User className="h-4 w-4" />
+                                                <span>ผู้ดูแล: คุณสมชาย ใจดี</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-orange-700">
+                                                <MapPin className="h-4 w-4" />
+                                                <span>กรุงเทพมหานคร</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                        <p><strong>คำอธิบายโดยสังเขป:</strong></p>
+                                        <p>นักศึกษาได้รับมอบหมายให้พัฒนาเว็บไซต์การสืบค้นข้อมูลสำหรับร้านค้าขายปลีก ตรวจสอบข้อมูลและแก้ไขข้อมูลในฐานข้อมูล และเขียนโปรแกรมในภาษา HTML, CSS, JavaScript และ MySQL</p>
+                                    </div>
+                                    <Button variant="outline" asChild className="w-full">
+                                        <Link href="/student/project-details">ดูรายละเอียดเพิ่มเติม</Link>
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="text-center py-8">
+                                    <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                    <p className="text-gray-500">ยังไม่มีโปรเจกต์</p>
+                                    <p className="text-sm text-gray-400 mt-2">
+                                        โปรเจกต์จะแสดงหลังจากได้รับการอนุมัติ
+                                    </p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* คอลัมน์ขวา 1/3 - Timeline ยาวลงมาตลอด */}
+                <Card className="lg:col-span-1">
                     <CardHeader>
-                        <CardTitle>ความคืบหน้าการฝึกงาน</CardTitle>
-                        <CardDescription>บันทึกความคืบหน้าการฝึกงานของคุณที่ {approvedInternship?.company}</CardDescription>
+                        <CardTitle className="text-lg font-semibold text-amber-700">ขั้นตอนการยื่นสหกิจศึกษา</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                       <form className="space-y-4" onSubmit={(e) => {
-                           e.preventDefault();
-                           toast({
-                               title: "ส่งรายงานสำเร็จ",
-                               description: "รายงานความคืบหน้าของคุณได้รับการบันทึกแล้ว",
-                           });
-                       }}>
-                           <Textarea placeholder="เขียนรายงานความคืบหน้าประจำสัปดาห์ของคุณ..." />
-                           <Button type="submit">ส่งรายงาน</Button>
-                       </form>
-                       <Separator />
-                       <h4 className="font-semibold text-lg">รายงานที่ส่งแล้ว</h4>
-                       <div className="space-y-4 max-h-60 overflow-y-auto">
-                        {myProgressReports.length > 0 ? myProgressReports.map(report => (
-                            <div key={report.id} className="p-4 bg-muted rounded-lg">
-                                <p className="text-sm">{report.report}</p>
-                                <p className="text-xs text-muted-foreground mt-2">{new Date(report.date).toLocaleDateString()}</p>
-                            </div>
-                        )) : <p className="text-sm text-muted-foreground">ยังไม่มีการส่งรายงาน</p>}
-                       </div>
+                    <CardContent>
+                        <div className="relative">
+                            {coopTimeline.map((item, index) => (
+                                <div key={index} className="relative flex items-start pb-8 last:pb-0">
+                                    {/* เส้นเชื่อม */}
+                                    {index < coopTimeline.length - 1 && (
+                                        <div className="absolute left-4 top-8 w-0.5 h-16 bg-orange-200" />
+                                    )}
+
+                                    {/* หมายเลขขั้นตอน */}
+                                    <div className={`relative z-10 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${item.status === 'completed' ? 'bg-orange-500 text-white' :
+                                        item.status === 'current' ? 'bg-orange-300 text-orange-800' :
+                                            'bg-orange-100 text-orange-400'
+                                        }`}>
+                                        {item.status === 'completed' ? (
+                                            <CheckCircle2 className="h-4 w-4" />
+                                        ) : (
+                                            item.step
+                                        )}
+                                    </div>
+
+                                    {/* เนื้อหา */}
+                                    <div className="ml-3 flex-1">
+                                        <h3 className={`font-medium text-xs ${item.status === 'current' ? 'text-gray-900' : 'text-gray-700'
+                                            }`}>
+                                            {item.title}
+                                        </h3>
+                                        <p className="text-xs text-gray-500 mt-0.5">{item.date}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </CardContent>
                 </Card>
-            )}
+            </div>
         </div>
-
-        <div className="space-y-8">
-            <Card>
-                <CardHeader>
-                    <CardTitle>การฝึกงานที่เปิดรับ</CardTitle>
-                    <CardDescription>สำรวจและสมัครโอกาสใหม่ๆ</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        {internships.map(internship => (
-                            <div key={internship.id} className="rounded-lg border p-4">
-                                <h3 className="font-semibold">{internship.title}</h3>
-                                <p className="text-sm text-muted-foreground">{internship.company}</p>
-                                <p className="text-sm mt-2 line-clamp-2">{internship.description}</p>
-                                <Button size="sm" variant="outline" className="mt-3" asChild>
-                                  <Link href={`/student/internships/${internship.id}`}>ดูและสมัคร</Link>
-                                </Button>
-                            </div>
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-      </div>
-    </div>
-  );
+    );
 }

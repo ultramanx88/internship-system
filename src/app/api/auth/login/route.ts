@@ -11,10 +11,15 @@ const loginSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    console.log('🔍 Login API called');
+    
     const body = await request.json();
+    console.log('📝 Request body:', { identifier: body.identifier, role: body.role, password: '***' });
+    
     const result = loginSchema.safeParse(body);
 
     if (!result.success) {
+      console.log('❌ Validation failed:', result.error.flatten());
       return NextResponse.json(
         { message: 'ข้อมูลไม่ถูกต้อง', errors: result.error.flatten() },
         { status: 400 }
@@ -22,6 +27,18 @@ export async function POST(request: Request) {
     }
 
     const { identifier, password, role } = result.data;
+
+    // Test database connection
+    try {
+      await prisma.$connect();
+      console.log('✅ Database connected');
+    } catch (dbError) {
+      console.error('❌ Database connection failed:', dbError);
+      return NextResponse.json(
+        { message: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้' },
+        { status: 500 }
+      );
+    }
 
     let user;
 
@@ -57,6 +74,7 @@ export async function POST(request: Request) {
     }
 
     if (!user) {
+      console.log('❌ User not found:', identifier);
       const errorMessage = role === 'student' 
         ? 'ไม่พบรหัสนักศึกษานี้ในระบบ' 
         : 'ไม่พบผู้ใช้งานนี้ในระบบ';
@@ -66,8 +84,12 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log('✅ User found:', user.name, user.email);
+
     // ตรวจสอบรหัสผ่าน
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log('🔐 Password valid:', isPasswordValid);
+    
     if (!isPasswordValid) {
       return NextResponse.json(
         { message: 'รหัสผ่านไม่ถูกต้อง' },
@@ -76,9 +98,20 @@ export async function POST(request: Request) {
     }
 
     // แปลง roles จาก JSON string เป็น array
-    const userRoles = JSON.parse(user.roles);
+    let userRoles;
+    try {
+      userRoles = JSON.parse(user.roles);
+      console.log('👤 User roles:', userRoles);
+    } catch (roleError) {
+      console.error('❌ Failed to parse roles:', user.roles, roleError);
+      return NextResponse.json(
+        { message: 'ข้อมูลบทบาทผู้ใช้ไม่ถูกต้อง' },
+        { status: 500 }
+      );
+    }
 
     // ตรวจสอบว่าผู้ใช้มีบทบาทที่เลือก
+    console.log('🔍 Checking role access:', role, 'in', userRoles);
     if (!userRoles.includes(role)) {
       return NextResponse.json(
         { message: 'คุณไม่มีสิทธิ์เข้าใช้งานในบทบาทนี้' },
@@ -94,15 +127,19 @@ export async function POST(request: Request) {
       roles: userRoles
     };
 
+    console.log('✅ Login successful for:', user.name);
     return NextResponse.json({
       message: 'เข้าสู่ระบบสำเร็จ',
       user: authUser
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('❌ Login error:', error);
     return NextResponse.json(
-      { message: 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ' },
+      { 
+        message: 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

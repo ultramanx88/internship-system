@@ -114,6 +114,8 @@ const excelUserSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔍 Users API called');
+    
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
     const role = searchParams.get('role') || 'all';
@@ -121,13 +123,28 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
+    console.log('📝 Query params:', { search, role, sort, page, limit });
+
     // คำนวณ offset สำหรับ pagination
     const offset = (page - 1) * limit;
+
+    // Test database connection first
+    try {
+      await prisma.$connect();
+      console.log('✅ Database connected');
+    } catch (dbError) {
+      console.error('❌ Database connection failed:', dbError);
+      return NextResponse.json({ 
+        message: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้',
+        error: dbError instanceof Error ? dbError.message : 'Unknown database error'
+      }, { status: 500 });
+    }
 
     // ดึงข้อมูลจากฐานข้อมูลจริง
     const whereClause: any = {};
     
     if (search) {
+      console.log('🔍 Searching for:', search);
       // SQLite ไม่รองรับ case insensitive search โดยตรง ใช้ LIKE แทน
       const searchLower = search.toLowerCase();
       whereClause.OR = [
@@ -142,8 +159,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (role && role !== 'all') {
+      console.log('🎭 Filtering by role:', role);
       whereClause.roles = { contains: `"${role}"` };
     }
+
+    console.log('📋 Where clause:', JSON.stringify(whereClause, null, 2));
 
     // กำหนดการจัดเรียง - ใช้ updatedAt หรือ createdAt สำหรับแสดงรายการล่าสุด
     const orderBy: any = sort === 'desc' 
@@ -151,11 +171,17 @@ export async function GET(request: NextRequest) {
       : [{ updatedAt: 'asc' }, { createdAt: 'asc' }, { name: 'asc' }];
 
     // นับจำนวนรายการทั้งหมดสำหรับ pagination
+    console.log('📊 Counting users...');
     const totalCount = await prisma.user.count({
       where: whereClause
     });
+    console.log(`📊 Total users found: ${totalCount}`);
+
+    // ตรวจสอบว่าต้องการ include relations หรือไม่
+    const includeRelations = searchParams.get('include') === 'relations';
 
     // ดึงข้อมูลพร้อม pagination
+    console.log('📥 Fetching users with pagination...');
     const dbUsers = await prisma.user.findMany({
       where: whereClause,
       orderBy,
@@ -170,23 +196,123 @@ export async function GET(request: NextRequest) {
         statement: true,
         t_title: true,
         t_name: true,
+        t_middle_name: true,
         t_surname: true,
         e_title: true,
         e_name: true,
         e_middle_name: true,
         e_surname: true,
+        studentYear: true,
         createdAt: true,
-        updatedAt: true
+        updatedAt: true,
+        ...(includeRelations && {
+          faculty: {
+            select: {
+              id: true,
+              nameTh: true,
+              nameEn: true,
+              code: true
+            }
+          },
+          department: {
+            select: {
+              id: true,
+              nameTh: true,
+              nameEn: true,
+              code: true,
+              faculty: {
+                select: {
+                  id: true,
+                  nameTh: true,
+                  nameEn: true,
+                  code: true
+                }
+              }
+            }
+          },
+          curriculum: {
+            select: {
+              id: true,
+              nameTh: true,
+              nameEn: true,
+              code: true,
+              degree: true,
+              department: {
+                select: {
+                  id: true,
+                  nameTh: true,
+                  nameEn: true,
+                  code: true,
+                  faculty: {
+                    select: {
+                      id: true,
+                      nameTh: true,
+                      nameEn: true,
+                      code: true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          major: {
+            select: {
+              id: true,
+              nameTh: true,
+              nameEn: true,
+              area: true,
+              curriculum: {
+                select: {
+                  id: true,
+                  nameTh: true,
+                  nameEn: true,
+                  code: true,
+                  degree: true,
+                  department: {
+                    select: {
+                      id: true,
+                      nameTh: true,
+                      nameEn: true,
+                      code: true,
+                      faculty: {
+                        select: {
+                          id: true,
+                          nameTh: true,
+                          nameEn: true,
+                          code: true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        })
+      }
+    });
+    console.log(`📥 Fetched ${dbUsers.length} users`);
+
+    // แปลง roles จาก JSON string กลับเป็น array และเพิ่ม username
+    console.log('🔄 Processing user roles...');
+    const usersWithParsedRoles = dbUsers.map(user => {
+      try {
+        return {
+          ...user,
+          username: user.id, // ใช้ id เป็น username (รหัสนักศึกษา)
+          roles: JSON.parse(user.roles)
+        };
+      } catch (roleError) {
+        console.error(`❌ Failed to parse roles for user ${user.id}:`, user.roles, roleError);
+        return {
+          ...user,
+          username: user.id,
+          roles: ['student'] // fallback role
+        };
       }
     });
 
-    // แปลง roles จาก JSON string กลับเป็น array และเพิ่ม username
-    const usersWithParsedRoles = dbUsers.map(user => ({
-      ...user,
-      username: user.id, // ใช้ id เป็น username (รหัสนักศึกษา)
-      roles: JSON.parse(user.roles)
-    }));
-
+    console.log('✅ Users API response ready');
     return NextResponse.json({
       users: usersWithParsedRoles,
       total: totalCount,
@@ -195,10 +321,11 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil(totalCount / limit)
     });
   } catch (error) {
-    console.error('Failed to fetch users:', error);
+    console.error('❌ Failed to fetch users:', error);
     return NextResponse.json({ 
       message: 'ไม่สามารถดึงข้อมูลผู้ใช้ได้', 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
     }, { status: 500 });
   }
 }

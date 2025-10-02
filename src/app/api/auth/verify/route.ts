@@ -10,10 +10,15 @@ const verifySchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    console.log('🔍 Auth verify API called');
+    
     const body = await request.json();
+    console.log('📝 Request body:', { identifier: body.identifier, password: '***' });
+    
     const result = verifySchema.safeParse(body);
 
     if (!result.success) {
+      console.log('❌ Validation failed:', result.error.flatten());
       return NextResponse.json(
         { message: 'ข้อมูลไม่ถูกต้อง', errors: result.error.flatten() },
         { status: 400 }
@@ -22,7 +27,20 @@ export async function POST(request: Request) {
 
     const { identifier, password } = result.data;
 
+    // Test database connection
+    try {
+      await prisma.$connect();
+      console.log('✅ Database connected');
+    } catch (dbError) {
+      console.error('❌ Database connection failed:', dbError);
+      return NextResponse.json(
+        { message: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้' },
+        { status: 500 }
+      );
+    }
+
     // ค้นหาผู้ใช้จาก ID หรืออีเมล
+    console.log('🔍 Searching for user:', identifier);
     const user = await prisma.user.findFirst({
       where: {
         OR: [
@@ -40,14 +58,19 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
+      console.log('❌ User not found:', identifier);
       return NextResponse.json(
         { message: 'ไม่พบผู้ใช้งานนี้ในระบบ' },
         { status: 401 }
       );
     }
 
+    console.log('✅ User found:', user.name, user.email);
+
     // ตรวจสอบรหัสผ่าน
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log('🔐 Password valid:', isPasswordValid);
+    
     if (!isPasswordValid) {
       return NextResponse.json(
         { message: 'รหัสผ่านไม่ถูกต้อง' },
@@ -56,7 +79,17 @@ export async function POST(request: Request) {
     }
 
     // แปลง roles จาก JSON string เป็น array
-    const userRoles = JSON.parse(user.roles);
+    let userRoles;
+    try {
+      userRoles = JSON.parse(user.roles);
+      console.log('👤 User roles:', userRoles);
+    } catch (roleError) {
+      console.error('❌ Failed to parse roles:', user.roles, roleError);
+      return NextResponse.json(
+        { message: 'ข้อมูลบทบาทผู้ใช้ไม่ถูกต้อง' },
+        { status: 500 }
+      );
+    }
 
     // ส่งข้อมูลผู้ใช้กลับ (ไม่รวมรหัสผ่าน)
     const authUser = {
@@ -66,15 +99,19 @@ export async function POST(request: Request) {
       roles: userRoles
     };
 
+    console.log('✅ Authentication successful for:', user.name);
     return NextResponse.json({
       message: 'ตรวจสอบข้อมูลสำเร็จ',
       user: authUser
     });
 
   } catch (error) {
-    console.error('Verify error:', error);
+    console.error('❌ Verify error:', error);
     return NextResponse.json(
-      { message: 'เกิดข้อผิดพลาดในการตรวจสอบข้อมูล' },
+      { 
+        message: 'เกิดข้อผิดพลาดในการตรวจสอบข้อมูล',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

@@ -2,14 +2,23 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function Home() {
   const router = useRouter();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    console.log('Home page mounted, redirecting to login...');
-    router.replace('/login');
-  }, [router]);
+    if (!loading) {
+      if (user) {
+        console.log('User is logged in, redirecting to dashboard...');
+        router.replace('/dashboard');
+      } else {
+        console.log('User not logged in, redirecting to login...');
+        router.replace('/login');
+      }
+    }
+  }, [router, user, loading]);
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-gray-100">

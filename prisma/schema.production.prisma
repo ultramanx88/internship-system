@@ -1,0 +1,229 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String        @id @default(cuid())
+  name          String
+  email         String        @unique
+  password      String
+  roles         String
+  skills        String?
+  statement     String?
+  t_title       String?
+  t_name        String?
+  t_middle_name String?
+  t_surname     String?
+  e_title       String?
+  e_name        String?
+  e_middle_name String?
+  e_surname     String?
+  facultyId     String?
+  departmentId  String?
+  curriculumId  String?
+  majorId       String?
+  studentYear   Int?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  applications  Application[]
+  documents     Document[]
+  printRecords  PrintRecord[]
+  major         Major?        @relation(fields: [majorId], references: [id])
+  curriculum    Curriculum?   @relation(fields: [curriculumId], references: [id])
+  department    Department?   @relation(fields: [departmentId], references: [id])
+  faculty       Faculty?      @relation(fields: [facultyId], references: [id])
+
+  @@map("users")
+}
+
+model Internship {
+  id           String         @id @default(cuid())
+  title        String
+  companyId    String
+  location     String
+  description  String
+  type         InternshipType
+  applications Application[]
+  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("internships")
+}
+
+model Application {
+  id            String            @id @default(cuid())
+  studentId     String
+  internshipId  String
+  status        ApplicationStatus
+  dateApplied   DateTime
+  feedback      String?
+  projectTopic  String?
+  printRecordId String?
+  printRecord   PrintRecord?      @relation(fields: [printRecordId], references: [id])
+  internship    Internship        @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  student       User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("applications")
+}
+
+model Document {
+  id         String         @id @default(cuid())
+  studentId  String
+  name       String
+  type       DocumentType
+  status     DocumentStatus @default(pending)
+  size       Int
+  url        String
+  uploadDate DateTime       @default(now())
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  student    User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+}
+
+model PrintRecord {
+  id             String        @id @default(cuid())
+  documentNumber String        @unique
+  documentDate   DateTime
+  printedAt      DateTime      @default(now())
+  printedById    String
+  applications   Application[]
+  printedBy      User          @relation(fields: [printedById], references: [id])
+
+  @@map("print_records")
+}
+
+model Faculty {
+  id          String       @id @default(cuid())
+  nameTh      String
+  nameEn      String?
+  code        String?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  departments Department[]
+  users       User[]
+
+  @@map("faculties")
+}
+
+model Department {
+  id          String       @id @default(cuid())
+  nameTh      String
+  nameEn      String?
+  code        String?
+  facultyId   String
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  curriculums Curriculum[]
+  faculty     Faculty      @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  users       User[]
+
+  @@map("departments")
+}
+
+model Curriculum {
+  id           String     @id @default(cuid())
+  nameTh       String
+  nameEn       String?
+  code         String?
+  degree       String?
+  departmentId String
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  majors       Major[]
+  users        User[]
+
+  @@map("curriculums")
+}
+
+model Major {
+  id           String     @id @default(cuid())
+  nameTh       String
+  nameEn       String?
+  curriculumId String
+  area         String?
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  curriculum   Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  users        User[]
+
+  @@map("majors")
+}
+
+model Company {
+  id          String       @id @default(cuid())
+  name        String
+  nameEn      String?
+  address     String?
+  province    String?
+  district    String?
+  subdistrict String?
+  postalCode  String?
+  phone       String?
+  email       String?
+  website     String?
+  description String?
+  industry    String?
+  size        CompanySize?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  internships Internship[]
+
+  @@map("companies")
+}
+
+enum Role {
+  admin
+  staff
+  courseInstructor
+  committee
+  visitor
+  student
+}
+
+enum ApplicationStatus {
+  pending
+  approved
+  rejected
+}
+
+enum InternshipType {
+  internship
+  co_op
+}
+
+enum CompanySize {
+  startup
+  small
+  medium
+  large
+  enterprise
+}
+
+enum DocumentType {
+  cv
+  transcript
+  certificate
+  request_letter
+  introduction_letter
+  application_form
+  evaluation_form
+  other
+}
+
+enum DocumentStatus {
+  pending
+  approved
+  rejected
+}

@@ -31,13 +31,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     try {
-      const storedUser = localStorage.getItem('internship-flow-user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+      // ตรวจสอบว่าอยู่ใน browser environment
+      if (typeof window !== 'undefined') {
+        const storedUser = localStorage.getItem('internship-flow-user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
       }
     } catch (error) {
       console.error('Failed to parse user from localStorage', error);
-      localStorage.removeItem('internship-flow-user');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('internship-flow-user');
+      }
     } finally {
       setLoading(false);
     }
@@ -66,10 +71,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             currentRole: selectedRole
           };
           setUser(authUser);
-          localStorage.setItem(
-            'internship-flow-user',
-            JSON.stringify(authUser)
-          );
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(
+              'internship-flow-user',
+              JSON.stringify(authUser)
+            );
+          }
           return authUser;
         } else {
           // แสดง error message ที่ได้จาก API
@@ -87,7 +94,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem('internship-flow-user');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('internship-flow-user');
+    }
     router.push('/login');
   }, [router]);
 
@@ -95,7 +104,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (user && user.roles.includes(role)) {
       const updatedUser = { ...user, currentRole: role };
       setUser(updatedUser);
-      localStorage.setItem('internship-flow-user', JSON.stringify(updatedUser));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('internship-flow-user', JSON.stringify(updatedUser));
+      }
       
       // Navigate to appropriate dashboard
       if (role === 'admin' || role === 'staff') {

@@ -101,12 +101,21 @@ export let users: DemoUser[] = [
   { id: 'u6800020', name: 'Student 020', email: 'u6800020@smart-solutions.com', password: '123456', roles: ['student'], skills: null, statement: null, t_name: 'นักศึกษา', t_surname: '020', e_name: 'Student', e_surname: '020' },
 ];
 
+// Companies data
+export const companies = [
+    { id: 'comp001', name: 'Tech Innovators Inc.' },
+    { id: 'comp002', name: 'Data Systems Ltd.' },
+    { id: 'comp003', name: 'Creative Solutions' },
+    { id: 'comp004', name: 'Insightful Analytics' },
+    { id: 'comp005', name: 'Agile Coders' },
+];
+
 export const internships: Omit<Internship, 'createdAt' | 'updatedAt'>[] = [
-    { id: 'int001', title: 'Frontend Developer', company: 'Tech Innovators Inc.', location: 'กรุงเทพฯ', description: 'พัฒนาและดูแลเว็บแอปพลิเคชันโดยใช้ React และ TypeScript สร้างส่วนประกอบที่นำกลับมาใช้ใหม่ได้และไลบรารีส่วนหน้าเพื่อใช้ในอนาคต', type: 'internship' },
-    { id: 'int002', title: 'Backend Developer (Co-op)', company: 'Data Systems Ltd.', location: 'เชียงใหม่', description: 'ออกแบบและใช้งาน API ของฝั่งเซิร์ฟเวอร์ ทำงานกับฐานข้อมูล และรับรองประสิทธิภาพของแอปพลิเคชัน', type: 'co_op' },
-    { id: 'int003', title: 'UI/UX Designer', company: 'Creative Solutions', location: 'กรุงเทพฯ', description: 'สร้าง wireframes, storyboards, user flows, process flows และ site maps เพื่อสื่อสารแนวคิดการออกแบบและการมีปฏิสัมพันธ์อย่างมีประสิทธิภาพ', type: 'internship' },
-    { id: 'int004', title: 'Data Analyst Intern', company: 'Insightful Analytics', location: 'ทำงานทางไกล', description: 'ตีความข้อมูล วิเคราะห์ผลลัพธ์โดยใช้เทคนิคทางสถิติ และจัดทำรายงานต่อเนื่อง', type: 'internship' },
-    { id: 'int005', title: 'Full Stack Developer (Co-op)', company: 'Agile Coders', location: 'กรุงเทพฯ', description: 'ทำงานทั้งส่วนหน้าและส่วนหลังของเว็บแอปพลิเคชัน มีส่วนร่วมในทุกขั้นตอนของวงจรการพัฒนาซอฟต์แวร์', type: 'co_op' },
+    { id: 'int001', title: 'Frontend Developer', companyId: 'comp001', location: 'กรุงเทพฯ', description: 'พัฒนาและดูแลเว็บแอปพลิเคชันโดยใช้ React และ TypeScript สร้างส่วนประกอบที่นำกลับมาใช้ใหม่ได้และไลบรารีส่วนหน้าเพื่อใช้ในอนาคต', type: 'internship' },
+    { id: 'int002', title: 'Backend Developer (Co-op)', companyId: 'comp002', location: 'เชียงใหม่', description: 'ออกแบบและใช้งาน API ของฝั่งเซิร์ฟเวอร์ ทำงานกับฐานข้อมูล และรับรองประสิทธิภาพของแอปพลิเคชัน', type: 'co_op' },
+    { id: 'int003', title: 'UI/UX Designer', companyId: 'comp003', location: 'กรุงเทพฯ', description: 'สร้าง wireframes, storyboards, user flows, process flows และ site maps เพื่อสื่อสารแนวคิดการออกแบบและการมีปฏิสัมพันธ์อย่างมีประสิทธิภาพ', type: 'internship' },
+    { id: 'int004', title: 'Data Analyst Intern', companyId: 'comp004', location: 'ทำงานทางไกล', description: 'ตีความข้อมูล วิเคราะห์ผลลัพธ์โดยใช้เทคนิคทางสถิติ และจัดทำรายงานต่อเนื่อง', type: 'internship' },
+    { id: 'int005', title: 'Full Stack Developer (Co-op)', companyId: 'comp005', location: 'กรุงเทพฯ', description: 'ทำงานทั้งส่วนหน้าและส่วนหลังของเว็บแอปพลิเคชัน มีส่วนร่วมในทุกขั้นตอนของวงจรการพัฒนาซอฟต์แวร์', type: 'co_op' },
 ];
 
 export let applications: Omit<Application, 'createdAt' | 'updatedAt'>[] = [

@@ -40,16 +40,21 @@ import { cn } from '@/lib/utils';
 
 const navConfig = {
   student: [
-    { href: '/student', icon: LayoutDashboard, label: 'แดชบอร์ด' },
-    { href: '/student/internships', icon: Briefcase, label: 'การฝึกงาน' },
-    { href: '/student/application-form', icon: ClipboardList, label: 'สมัครฝึกงาน/สหกิจ' },
-    { href: '/student/applications', icon: FileText, label: 'ใบสมัครของฉัน' },
-    { href: '/student/documents', icon: BookUser, label: 'จัดการเอกสาร' },
-    { href: '/student/evaluation', icon: Star, label: 'ประเมินผล' },
+    { href: '/student', icon: LayoutDashboard, label: 'หน้าแรก' },
+    { href: '/student/application-form', icon: FileText, label: 'ยื่นขอสหกิจศึกษา / ฝึกงาน' },
+    { href: '/student/project-details', icon: ClipboardList, label: 'รายละเอียดโปรเจกต์' },
+    { href: '/student/evaluation', icon: Star, label: 'แบบประเมิน' },
+    { href: '/student/settings', icon: Settings, label: 'ตั้งค่า' },
   ],
   staff: [
-    { href: '/admin/users', icon: Users, label: 'จัดการผู้ใช้' },
-    { href: '/admin/applications', icon: FileText, label: 'เอกสารขอฝึกงาน' },
+    { href: '/staff', icon: LayoutDashboard, label: 'หน้าแรก' },
+    { href: '/staff/students', icon: Users, label: 'อัปโหลดรายชื่อ' },
+    { href: '/staff/applications', icon: FileText, label: 'เอกสารขอสหกิจศึกษา / ฝึกงาน' },
+    { href: '/staff/documents', icon: BookUser, label: 'นัดหมายนิเทศ' },
+    { href: '/staff/reports', icon: BarChart2, label: 'รายงานผลการนิเทศ' },
+    { href: '/staff/summary', icon: ClipboardList, label: 'รายงานสรุปผลการ' },
+    { href: '/staff/evaluation', icon: Star, label: 'รายงานการประเมินสถานประกอบการ' },
+    { href: '/staff/settings', icon: Settings, label: 'ตั้งค่า' },
   ],
   courseInstructor: [
     { href: '/teacher', icon: LayoutDashboard, label: 'แดชบอร์ด (อ.ประจำวิชา)' },

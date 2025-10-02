@@ -36,6 +36,10 @@ export default function DashboardLayout({
     return <DashboardSkeleton />;
   }
 
+  if (!user) {
+    return <DashboardSkeleton />;
+  }
+
   return (
     <AuthRedirect>
         <SidebarProvider>
