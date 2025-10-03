@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from '@/hooks/use-auth';
+import { useProfileImage } from '@/hooks/use-profile-image';
 import {
   Avatar,
   AvatarFallback,
@@ -21,6 +22,7 @@ import { Skeleton } from '../ui/skeleton';
 
 export function DashboardHeader() {
   const { user, loading, logout } = useAuth();
+  const { profileImage } = useProfileImage();
 
   const getInitials = (name: string) => {
     return name
@@ -36,20 +38,40 @@ export function DashboardHeader() {
       </div>
       <div className="flex flex-1 items-center justify-end">
         {loading ? (
-          <Skeleton className="h-8 w-8 rounded-full" />
+          <div className="flex items-center gap-3">
+            <div className="text-right hidden sm:block">
+              <Skeleton className="h-4 w-24 mb-1" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+            <Skeleton className="h-8 w-8 rounded-full" />
+          </div>
         ) : user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="relative h-8 w-8 rounded-full"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={`https://avatar.vercel.sh/${user.email}.png`} alt={user.name} />
-                  <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
+          <div className="flex items-center gap-3">
+            {/* แสดงรหัสนักศึกษาและชื่อ */}
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-medium leading-none text-gray-900">
+                {user.name}
+              </p>
+              <p className="text-xs leading-none text-muted-foreground mt-1">
+                {user.id}
+              </p>
+            </div>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage 
+                      src={profileImage || `https://avatar.vercel.sh/${user.email}.png`} 
+                      alt={user.name} 
+                    />
+                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
@@ -70,7 +92,8 @@ export function DashboardHeader() {
                 <span>ออกจากระบบ</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+            </DropdownMenu>
+          </div>
         ) : null}
       </div>
     </header>

@@ -24,6 +24,10 @@ type AuthContextType = {
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
+const STORAGE_VERSION = '1.0';
+const STORAGE_KEY = 'internship-flow-user';
+const VERSION_KEY = 'internship-flow-version';
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,15 +37,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // ตรวจสอบว่าอยู่ใน browser environment
       if (typeof window !== 'undefined') {
-        const storedUser = localStorage.getItem('internship-flow-user');
+        const storedVersion = localStorage.getItem(VERSION_KEY);
+        const storedUser = localStorage.getItem(STORAGE_KEY);
+        
+        // Check version compatibility
+        if (storedVersion !== STORAGE_VERSION) {
+          console.log('Storage version mismatch, clearing localStorage...');
+          localStorage.clear();
+          localStorage.setItem(VERSION_KEY, STORAGE_VERSION);
+          return;
+        }
+        
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+          
+          // Validate user data structure
+          if (parsedUser && parsedUser.id && parsedUser.email && parsedUser.name) {
+            setUser(parsedUser);
+          } else {
+            console.warn('Invalid user data in localStorage, clearing...');
+            localStorage.removeItem(STORAGE_KEY);
+          }
         }
       }
     } catch (error) {
       console.error('Failed to parse user from localStorage', error);
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('internship-flow-user');
+        console.log('Clearing corrupted localStorage data...');
+        localStorage.clear();
+        localStorage.setItem(VERSION_KEY, STORAGE_VERSION);
       }
     } finally {
       setLoading(false);
@@ -72,10 +96,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
           setUser(authUser);
           if (typeof window !== 'undefined') {
-            localStorage.setItem(
-              'internship-flow-user',
-              JSON.stringify(authUser)
-            );
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser));
+            localStorage.setItem(VERSION_KEY, STORAGE_VERSION);
           }
           return authUser;
         } else {
@@ -95,7 +117,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     setUser(null);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('internship-flow-user');
+      localStorage.removeItem(STORAGE_KEY);
+      // Keep version for next login
     }
     router.push('/login');
   }, [router]);
@@ -105,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const updatedUser = { ...user, currentRole: role };
       setUser(updatedUser);
       if (typeof window !== 'undefined') {
-        localStorage.setItem('internship-flow-user', JSON.stringify(updatedUser));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedUser));
       }
       
       // Navigate to appropriate dashboard

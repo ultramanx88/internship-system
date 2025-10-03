@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+// Input component not needed in this file
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,7 +13,7 @@ import { ThaiDateInput } from '@/components/ui/thai-date-input';
 import { ArrowLeft, Send, Loader2, Briefcase, GraduationCap, Building, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import { internships as mockInternships } from '@/lib/data';
+// Remove mock data import - we'll use real API
 import { parseThaiDate, isThaiDateInPast } from '@/lib/date-utils';
 import { DocumentPreview } from '@/components/student/DocumentPreview';
 import Link from 'next/link';
@@ -23,11 +23,11 @@ interface ApplicationFormData {
   internshipId: string;
   studentReason: string;
   expectedSkills: string;
-  
+
   // ข้อมูลการฝึกงาน
   preferredStartDate: string;
   availableDuration: string;
-  
+
   // ข้อมูลเพิ่มเติมสำหรับสหกิจ (เบื้องต้น)
   projectProposal?: string;
 }
@@ -39,10 +39,12 @@ export default function ApplicationFormTypePage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const type = params.type as 'internship' | 'co_op';
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dateError, setDateError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [availableInternships, setAvailableInternships] = useState<any[]>([]);
+  const [isLoadingInternships, setIsLoadingInternships] = useState(true);
   const [formData, setFormData] = useState<ApplicationFormData>({
     internshipId: '',
     studentReason: '',
@@ -63,11 +65,47 @@ export default function ApplicationFormTypePage() {
     }
   }, [searchParams]);
 
-  // Filter internships by type
-  const availableInternships = mockInternships.filter(internship => internship.type === type);
-  
+  // Load internships from API
+  useEffect(() => {
+    const loadInternships = async () => {
+      try {
+        setIsLoadingInternships(true);
+        const response = await fetch(`/api/internships?type=${type}`);
+        const data = await response.json();
+
+        if (data.success) {
+          setAvailableInternships(data.internships);
+        } else {
+          console.error('Failed to load internships:', data.error);
+          toast({
+            title: "ข้อผิดพลาด",
+            description: "ไม่สามารถโหลดข้อมูลตำแหน่งฝึกงานได้",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error('Error loading internships:', error);
+        toast({
+          title: "ข้อผิดพลาด",
+          description: "เกิดข้อผิดพลาดในการโหลดข้อมูล",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingInternships(false);
+      }
+    };
+
+    loadInternships();
+  }, [type, toast]);
+
   // Get selected internship details
   const selectedInternship = availableInternships.find(i => i.id === formData.internshipId);
+
+  // Transform internship data for DocumentPreview (company data already included from API)
+  const selectedInternshipWithCompany = selectedInternship ? {
+    ...selectedInternship,
+    company: selectedInternship.company?.name || selectedInternship.companyId
+  } : null;
 
   const handleInputChange = (field: keyof ApplicationFormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -122,7 +160,7 @@ export default function ApplicationFormTypePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!user) {
       toast({
         variant: 'destructive',
@@ -174,7 +212,11 @@ export default function ApplicationFormTypePage() {
         body: JSON.stringify({
           studentId: user.id,
           internshipId: formData.internshipId,
-          applicationData: formData
+          studentReason: formData.studentReason,
+          expectedSkills: formData.expectedSkills,
+          preferredStartDate: formData.preferredStartDate,
+          availableDuration: formData.availableDuration,
+          projectProposal: formData.projectProposal
         }),
       });
 
@@ -185,7 +227,7 @@ export default function ApplicationFormTypePage() {
           title: 'ส่งใบสมัครเรียบร้อยแล้ว',
           description: `ใบสมัคร${type === 'co_op' ? 'สหกิจศึกษา' : 'ฝึกงาน'}ของคุณได้รับการส่งเรียบร้อยแล้ว`,
         });
-        
+
         // Redirect to applications page
         router.push('/student/applications');
       } else {
@@ -238,7 +280,7 @@ export default function ApplicationFormTypePage() {
             {selectedInternship ? "กลับไปดูรายละเอียด" : "กลับไปเลือกประเภท"}
           </Link>
         </Button>
-        
+
         <div className="flex items-center gap-4 mb-2">
           <div className={`p-3 ${type === 'internship' ? 'bg-primary/10' : 'bg-secondary/20'} rounded-full`}>
             {currentType.icon}
@@ -269,14 +311,29 @@ export default function ApplicationFormTypePage() {
                       <SelectValue placeholder={`เลือกตำแหน่ง${currentType.title}`} />
                     </SelectTrigger>
                     <SelectContent>
-                      {availableInternships.map(internship => (
-                        <SelectItem key={internship.id} value={internship.id}>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{internship.title}</span>
-                            <span className="text-sm text-muted-foreground">{internship.company}</span>
+                      {isLoadingInternships ? (
+                        <SelectItem value="" disabled>
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            กำลังโหลดข้อมูล...
                           </div>
                         </SelectItem>
-                      ))}
+                      ) : availableInternships.length === 0 ? (
+                        <SelectItem value="" disabled>
+                          ไม่มีตำแหน่ง{currentType.title}ที่เปิดรับสมัคร
+                        </SelectItem>
+                      ) : (
+                        availableInternships.map(internship => (
+                          <SelectItem key={internship.id} value={internship.id}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{internship.title}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {internship.company?.name || internship.companyId}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -302,7 +359,7 @@ export default function ApplicationFormTypePage() {
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">
                   <Building className="inline h-4 w-4 mr-1" />
-                  {selectedInternship.company} • {selectedInternship.location}
+                  {selectedInternship.company?.name || selectedInternship.companyId} • {selectedInternship.location}
                 </p>
                 <p className="text-sm mb-3">{selectedInternship.description}</p>
                 <div className="flex gap-2">
@@ -402,7 +459,7 @@ export default function ApplicationFormTypePage() {
                 </Select>
               </div>
             </div>
-            
+
             {/* Workflow Information for Internship */}
             {type === 'internship' && (
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -447,7 +504,7 @@ export default function ApplicationFormTypePage() {
                   💡 หัวข้อนี้เป็นเพียงแนวคิดเบื้องต้น อาจารย์ที่ปรึกษาจะช่วยปรับแต่งให้เหมาะสมภายหลัง
                 </p>
               </div>
-              
+
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <h4 className="font-medium text-blue-800 mb-2">📋 ข้อมูลที่จะได้รับการจัดสรรภายหลัง</h4>
                 <div className="space-y-2 text-sm text-blue-700">
@@ -484,7 +541,7 @@ export default function ApplicationFormTypePage() {
                 * ข้อมูลที่จำเป็นต้องกรอก
               </div>
               <div className="flex gap-3">
-                <Button 
+                <Button
                   type="button"
                   variant="outline"
                   onClick={handlePreview}
@@ -493,8 +550,8 @@ export default function ApplicationFormTypePage() {
                   <Eye className="mr-2 h-4 w-4" />
                   พรีวิวเอกสาร
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={isSubmitting}
                   className={type === 'internship' ? '' : 'bg-secondary hover:bg-secondary/90 text-secondary-foreground'}
                 >
@@ -517,13 +574,16 @@ export default function ApplicationFormTypePage() {
       </form>
 
       {/* Document Preview Dialog */}
-      {selectedInternship && (
+      {selectedInternshipWithCompany && (
         <DocumentPreview
           isOpen={showPreview}
           onClose={() => setShowPreview(false)}
           formData={formData}
-          internship={selectedInternship}
-          user={user!}
+          internship={selectedInternshipWithCompany}
+          user={{
+            ...user!,
+            studentId: user!.id // Use user ID as student ID
+          }}
           type={type}
         />
       )}

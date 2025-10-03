@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,35 +27,46 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { FileStorageService } from '@/lib/file-storage';
+import { useProfileImage } from '@/hooks/use-profile-image';
 
 export default function SettingsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const { profileImage, updateProfileImage } = useProfileImage();
 
-  // Mock user data - ในอนาคตจะดึงจาก API
+  // User data state - จะโหลดจาก API
   const [userData, setUserData] = useState({
     // ข้อมูลภาษาไทย
-    thaiTitle: 'นาย',
-    thaiName: 'สมชาย',
-    thaiMiddleName: '',
-    thaiSurname: 'ใจดี',
+    thaiTitle: user?.t_title || '',
+    thaiName: user?.t_name || user?.name || '',
+    thaiMiddleName: user?.t_middle_name || '',
+    thaiSurname: user?.t_surname || '',
     // ข้อมูลภาษาอังกฤษ
-    englishTitle: 'Mr.',
-    englishName: 'Somchai',
-    englishMiddleName: '',
-    englishSurname: 'Jaidee',
+    englishTitle: user?.e_title || '',
+    englishName: user?.e_name || user?.name || '',
+    englishMiddleName: user?.e_middle_name || '',
+    englishSurname: user?.e_surname || '',
+    // ข้อมูลเพิ่มเติม
+    nationality: user?.nationality || 'ไทย',
+    passportId: user?.passportId || '',
+    visaType: user?.visaType || 'none',
     // ข้อมูลอื่นๆ
-    email: user?.email || 'student@university.ac.th',
-    phone: '081-234-5678',
-    studentId: '6401234567',
-    faculty: 'คณะวิทยาศาสตร์และเทคโนโลยี',
-    department: 'สาขาวิชาเทคโนโลยีสารสนเทศ',
-    program: 'เทคโนโลยีสารสนเทศ',
-    major: 'เทคโนโลยีสารสนเทศ',
-    campus: 'วิทยาเขตหลัก',
-    gpa: '3.25'
+    email: user?.email || '',
+    phone: user?.phone || '',
+    studentId: user?.id || '',
+    faculty: '',
+    department: '',
+    program: '',
+    major: '',
+    campus: user?.campus || '',
+    gpa: user?.gpa || ''
   });
 
   const [notifications, setNotifications] = useState({
@@ -73,20 +84,254 @@ export default function SettingsPage() {
     dateFormat: 'thai'
   });
 
+  // Academic data for dropdowns
+  const [academicData, setAcademicData] = useState({
+    faculties: [],
+    departments: [],
+    curriculums: [],
+    majors: []
+  });
+
+  // ฟังก์ชันลองใหม่
+  const retryLoadSettings = () => {
+    setRetryCount(prev => prev + 1);
+    setSettingsError(null);
+  };
+
+  // โหลดข้อมูลจาก API เมื่อ component mount
+  useEffect(() => {
+    const loadUserSettings = async () => {
+      if (!user?.id) {
+        console.log('Settings - No user ID available');
+        setIsLoadingSettings(false);
+        return;
+      }
+      
+      console.log('Settings - Loading data for user:', user.id);
+      setIsLoadingSettings(true);
+      setSettingsError(null);
+      
+      try {
+        const response = await fetch('/api/user/settings', {
+          headers: {
+            'x-user-id': user.id
+          }
+        });
+        
+        console.log('Settings - API Response status:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Settings - API Response data:', data);
+          
+          if (data.success && data.settings) {
+            console.log('Settings - Setting user data:', data.settings);
+            setUserData(data.settings);
+            
+            if (data.settings.notifications) {
+              setNotifications(data.settings.notifications);
+            }
+            if (data.settings.preferences) {
+              setPreferences(data.settings.preferences);
+            }
+          } else {
+            console.log('Settings - API returned unsuccessful response:', data);
+          }
+        } else {
+          try {
+            const errorData = await response.json();
+            console.error('Settings - API Error:', {
+              status: response.status,
+              statusText: response.statusText,
+              error: errorData,
+              userId: user?.id
+            });
+            
+            // Show user-friendly error message based on status
+            if (response.status === 404) {
+              console.warn('User not found in database. This might be a new user.');
+              setSettingsError('ไม่พบข้อมูลผู้ใช้ในระบบ กรุณาติดต่อผู้ดูแลระบบ');
+            } else if (response.status === 400) {
+              console.warn('Invalid request. User ID might be missing.');
+              setSettingsError('ข้อมูลการร้องขอไม่ถูกต้อง');
+            } else if (response.status === 500) {
+              console.error('Server error occurred while loading settings.');
+              setSettingsError('เกิดข้อผิดพลาดของเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง');
+            } else {
+              setSettingsError(`เกิดข้อผิดพลาด (${response.status}): ${response.statusText}`);
+            }
+          } catch (parseError) {
+            console.error('Settings - Failed to parse error response:', {
+              status: response.status,
+              statusText: response.statusText,
+              parseError,
+              userId: user?.id
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user settings:', {
+          error,
+          userId: user?.id,
+          message: error instanceof Error ? error.message : 'Unknown error'
+        });
+        
+        // Fallback: Use user data from auth context if API fails
+        if (user) {
+          console.log('Settings - Using fallback data from auth context');
+          setUserData(prev => ({
+            ...prev,
+            thaiName: user.t_name || user.name || prev.thaiName,
+            thaiSurname: user.t_surname || prev.thaiSurname,
+            englishName: user.e_name || user.name || prev.englishName,
+            englishSurname: user.e_surname || prev.englishSurname,
+            email: user.email || prev.email,
+            phone: user.phone || prev.phone,
+            studentId: user.id || prev.studentId,
+            nationality: user.nationality || prev.nationality,
+            passportId: user.passportId || prev.passportId,
+            visaType: user.visaType || prev.visaType,
+            campus: user.campus || prev.campus,
+            gpa: user.gpa || prev.gpa
+          }));
+        }
+        
+        setSettingsError('ไม่สามารถโหลดข้อมูลจากเซิร์ฟเวอร์ได้ กำลังใช้ข้อมูลสำรอง');
+      } finally {
+        setIsLoadingSettings(false);
+      }
+    };
+
+    const loadAcademicData = async () => {
+      try {
+        const response = await fetch('/api/academic/faculties');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.faculties) {
+            setAcademicData({
+              faculties: data.faculties,
+              departments: data.faculties.flatMap((f: any) => f.departments),
+              curriculums: data.faculties.flatMap((f: any) => 
+                f.departments.flatMap((d: any) => d.curriculums)
+              ),
+              majors: data.faculties.flatMap((f: any) => 
+                f.departments.flatMap((d: any) => 
+                  d.curriculums.flatMap((c: any) => c.majors)
+                )
+              )
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading academic data:', error);
+      }
+    };
+    
+    loadUserSettings();
+    loadAcademicData();
+  }, [user?.id, retryCount]);
+
+  // Update userData เมื่อ user object เปลี่ยน
+  useEffect(() => {
+    if (user) {
+      console.log('Settings - User object changed:', user);
+      setUserData(prev => ({
+        ...prev,
+        thaiName: user.t_name || user.name || prev.thaiName,
+        thaiSurname: user.t_surname || prev.thaiSurname,
+        englishName: user.e_name || user.name || prev.englishName,
+        englishSurname: user.e_surname || prev.englishSurname,
+        email: user.email || prev.email,
+        phone: user.phone || prev.phone,
+        studentId: user.id || prev.studentId,
+        nationality: user.nationality || prev.nationality,
+        passportId: user.passportId || prev.passportId,
+        visaType: user.visaType || prev.visaType,
+        campus: user.campus || prev.campus,
+        gpa: user.gpa || prev.gpa
+      }));
+    }
+  }, [user]);
+
+  // บันทึกข้อมูลอัตโนมัติเมื่อมีการเปลี่ยนแปลง
+  const autoSave = async (data: any) => {
+    if (!user?.id) return;
+    
+    try {
+      await fetch('/api/user/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user.id
+        },
+        body: JSON.stringify({
+          ...userData,
+          notifications,
+          preferences,
+          ...data
+        }),
+      });
+    } catch (error) {
+      console.error('Error auto-saving settings:', error);
+    }
+  };
+
   const handleSave = async () => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
     
-    // Check if came from application-form timeline
-    const fromTimeline = searchParams.get('from') === 'timeline';
-    
-    if (fromTimeline) {
-      // Redirect back to application-form to continue timeline
-      router.push('/student/application-form');
+    try {
+      // Prepare data to save
+      const dataToSave = {
+        ...userData,
+        notifications,
+        preferences
+      };
+      
+      // Save to settings API
+      const settingsResponse = await fetch('/api/user/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user.id
+        },
+        body: JSON.stringify(dataToSave),
+      });
+
+      // Save profile image separately if exists
+      if (profileImage) {
+        const profileResponse = await fetch('/api/user/profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-id': user.id
+          },
+          body: JSON.stringify({ profileImage }),
+        });
+        
+        if (!profileResponse.ok) {
+          console.warn('Failed to save profile image to server, but kept in localStorage');
+        }
+      }
+
+      if (settingsResponse.ok) {
+        alert('บันทึกข้อมูลสำเร็จ!');
+        
+        // Check if came from application-form timeline
+        const fromTimeline = searchParams.get('from') === 'timeline';
+        
+        if (fromTimeline) {
+          // Redirect back to application-form to continue timeline
+          router.push('/student/application-form');
+        }
+      } else {
+        throw new Error('Failed to save settings');
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง');
+    } finally {
+      setIsLoading(false);
     }
-    // Show success message if not redirecting
   };
 
   return (
@@ -98,7 +343,43 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
+      {/* Loading State */}
+      {isLoadingSettings && (
+        <Card>
+          <CardContent className="flex items-center justify-center py-8">
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-600"></div>
+              <span className="text-muted-foreground">กำลังโหลดข้อมูล...</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Error State */}
+      {settingsError && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-red-700">
+                <span className="text-red-500">⚠️</span>
+                <span>{settingsError}</span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={retryLoadSettings}
+                className="border-red-300 text-red-700 hover:bg-red-100"
+              >
+                ลองใหม่
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {!isLoadingSettings && (
+        <>
+        <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="profile">ข้อมูลส่วนตัว</TabsTrigger>
           <TabsTrigger value="notifications">การแจ้งเตือน</TabsTrigger>
@@ -119,22 +400,169 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* รูปโปรไฟล์ */}
-              <div className="flex items-center gap-4">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src="/placeholder-avatar.jpg" />
-                  <AvatarFallback className="text-lg">
-                    {userData.thaiName.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="space-y-2">
-                  <Button variant="outline" size="sm">
+              {/* รูปโปรไฟล์และข้อมูลประจำตัว */}
+              <div className="flex items-start gap-6">
+                <div className="flex flex-col items-center space-y-3">
+                  <Avatar className="h-24 w-24 border-4 border-amber-200">
+                    <AvatarImage src={profileImage || "/placeholder-avatar.jpg"} />
+                    <AvatarFallback className="text-xl font-bold bg-amber-100 text-amber-700">
+                      {userData.thaiName.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <input
+                    type="file"
+                    id="profile-image"
+                    accept="image/jpeg,image/png,image/jpg,image/webp"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file && user?.id) {
+                        setIsUploading(true);
+                        
+                        try {
+                          // Upload file to server
+                          const result = await FileStorageService.uploadFile(file, user.id);
+                          
+                          if (result.success && result.url) {
+                            updateProfileImage(result.url);
+                            
+                            // Also save to server immediately
+                            try {
+                              await fetch('/api/user/profile', {
+                                method: 'PUT',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ profileImage: result.url }),
+                              });
+                            } catch (error) {
+                              console.warn('Failed to save to server immediately, but saved locally');
+                            }
+                            
+                            alert('อัปโหลดรูปโปรไฟล์สำเร็จ!');
+                          } else {
+                            alert(result.error || 'เกิดข้อผิดพลาดในการอัปโหลด');
+                          }
+                        } catch (error) {
+                          console.error('Upload error:', error);
+                          alert('เกิดข้อผิดพลาดในการอัปโหลดไฟล์');
+                        } finally {
+                          setIsUploading(false);
+                        }
+                      }
+                    }}
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => document.getElementById('profile-image')?.click()}
+                    disabled={isUploading}
+                    className="w-full"
+                  >
                     <Camera className="h-4 w-4 mr-2" />
-                    เปลี่ยนรูปโปรไฟล์
+                    {isUploading ? 'กำลังอัปโหลด...' : 'เปลี่ยนรูป'}
                   </Button>
-                  <p className="text-xs text-muted-foreground">
-                    รองรับไฟล์ JPG, PNG ขนาดไม่เกิน 2MB
+                  <p className="text-xs text-muted-foreground text-center">
+                    JPG, PNG, WebP<br/>ไม่เกิน 2MB
                   </p>
+                </div>
+                
+                {/* ข้อมูลประจำตัวข้าง Avatar */}
+                <div className="flex-1 space-y-4">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <h4 className="text-lg font-semibold text-amber-700 mb-3 flex items-center gap-2">
+                      <span className="bg-amber-600 text-white px-2 py-1 rounded text-sm font-bold">ID</span>
+                      ข้อมูลประจำตัว
+                    </h4>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <Label htmlFor="studentId" className="text-amber-700 font-semibold">รหัสนักศึกษา</Label>
+                        <p className="text-xs text-amber-600 mb-2">Student ID</p>
+                        <Input
+                          id="studentId"
+                          placeholder="รหัสนักศึกษา (Student ID)"
+                          value={userData.studentId}
+                          onChange={(e) => {
+                            const newData = {...userData, studentId: e.target.value};
+                            setUserData(newData);
+                            autoSave(newData);
+                          }}
+                          className="font-mono text-lg font-bold border-2 border-amber-300 focus:border-amber-500 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="nationality" className="text-amber-700 font-semibold">สัญชาติ</Label>
+                        <p className="text-xs text-amber-600 mb-2">Nationality</p>
+                        <Select value={userData.nationality || 'ไทย'} onValueChange={(value) => {
+                          const newData = {...userData, nationality: value};
+                          setUserData(newData);
+                          autoSave(newData);
+                        }}>
+                          <SelectTrigger className="border-2 border-amber-300 focus:border-amber-500">
+                            <SelectValue placeholder="สัญชาติ (Nationality)" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ไทย">🇹🇭 ไทย (Thai)</SelectItem>
+                            <SelectItem value="จีน">🇨🇳 จีน (Chinese)</SelectItem>
+                            <SelectItem value="ญี่ปุ่น">🇯🇵 ญี่ปุ่น (Japanese)</SelectItem>
+                            <SelectItem value="เกาหลี">🇰🇷 เกาหลี (Korean)</SelectItem>
+                            <SelectItem value="อินเดีย">🇮🇳 อินเดีย (Indian)</SelectItem>
+                            <SelectItem value="อเมริกัน">🇺🇸 อเมริกัน (American)</SelectItem>
+                            <SelectItem value="อังกฤษ">🇬🇧 อังกฤษ (British)</SelectItem>
+                            <SelectItem value="ออสเตรเลีย">🇦🇺 ออสเตรเลีย (Australian)</SelectItem>
+                            <SelectItem value="อื่นๆ">🌍 อื่นๆ (Others)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 mt-4">
+                      <div>
+                        <Label htmlFor="passportId" className="text-amber-700 font-semibold">หมายเลขพาสปอร์ต/เลขบัตรประชาชน</Label>
+                        <p className="text-xs text-amber-600 mb-2">Passport Number / Thai ID</p>
+                        <Input
+                          id="passportId"
+                          placeholder="หมายเลขพาสปอร์ต หรือ เลขบัตรประชาชน 13 หลัก"
+                          value={userData.passportId || ''}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            // Allow only numbers and letters for passport/ID
+                            const cleanValue = value.replace(/[^0-9A-Za-z]/g, '');
+                            const newData = {...userData, passportId: cleanValue};
+                            setUserData(newData);
+                            autoSave(newData);
+                          }}
+                          className="font-mono border-2 border-amber-300 focus:border-amber-500"
+                          maxLength={13}
+                        />
+                        <p className="text-xs text-amber-600 mt-1">
+                          {userData.nationality === 'ไทย' ? 
+                            '📋 กรอกเลขบัตรประชาชน 13 หลัก' : 
+                            '🛂 กรอกหมายเลขพาสปอร์ต'
+                          }
+                        </p>
+                      </div>
+                      <div>
+                        <Label htmlFor="visaType" className="text-amber-700 font-semibold">ประเภทวีซ่า</Label>
+                        <p className="text-xs text-amber-600 mb-2">Visa Type</p>
+                        <Select value={userData.visaType || 'none'} onValueChange={(value) => {
+                          const newData = {...userData, visaType: value};
+                          setUserData(newData);
+                          autoSave(newData);
+                        }}>
+                          <SelectTrigger className="border-2 border-amber-300 focus:border-amber-500">
+                            <SelectValue placeholder="ประเภทวีซ่า (Optional)" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">ไม่ระบุ</SelectItem>
+                            <SelectItem value="ED">📚 ED - Education Visa</SelectItem>
+                            <SelectItem value="NON-ED">📄 NON-ED - Non-Education</SelectItem>
+                            <SelectItem value="Tourist">🏖️ Tourist Visa</SelectItem>
+                            <SelectItem value="Other">📋 อื่นๆ (Others)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -146,124 +574,202 @@ export default function SettingsPage() {
                   <div className="w-8 h-8 bg-amber-600 text-white rounded-full flex items-center justify-center font-bold">
                     1
                   </div>
-                  <h3 className="text-lg font-medium text-amber-700">ข้อมูลส่วนตัว</h3>
+                  <div>
+                    <h3 className="text-lg font-medium text-amber-700">ข้อมูลส่วนตัว</h3>
+                    <p className="text-sm text-gray-500">กรุณากรอกข้อมูลให้ครบถ้วน สำหรับนักศึกษาต่างชาติสามารถกรอกเฉพาะภาษาอังกฤษได้</p>
+                  </div>
                 </div>
 
                 {/* ชื่อภาษาไทย */}
-                <div className="grid gap-4 md:grid-cols-4">
-                  <div>
-                    <Label htmlFor="thaiTitle">คำนำหน้า</Label>
-                    <p className="text-xs text-muted-foreground mb-1">Title</p>
-                    <Select value={userData.thaiTitle} onValueChange={(value) => setUserData({...userData, thaiTitle: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="คำนำหน้า (Title)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="นาย">นาย</SelectItem>
-                        <SelectItem value="นาง">นาง</SelectItem>
-                        <SelectItem value="นางสาว">นางสาว</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="thaiName">ชื่อจริง</Label>
-                    <p className="text-xs text-muted-foreground mb-1">Name</p>
-                    <Input
-                      id="thaiName"
-                      placeholder="ชื่อจริง (Name)"
-                      value={userData.thaiName}
-                      onChange={(e) => setUserData({...userData, thaiName: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="thaiMiddleName">ชื่อกลาง</Label>
-                    <p className="text-xs text-muted-foreground mb-1">Middle name</p>
-                    <Input
-                      id="thaiMiddleName"
-                      placeholder="ชื่อกลาง (Middle name)"
-                      value={userData.thaiMiddleName}
-                      onChange={(e) => setUserData({...userData, thaiMiddleName: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="thaiSurname">นามสกุล</Label>
-                    <p className="text-xs text-muted-foreground mb-1">Surname</p>
-                    <Input
-                      id="thaiSurname"
-                      placeholder="นามสกุล (Surname)"
-                      value={userData.thaiSurname}
-                      onChange={(e) => setUserData({...userData, thaiSurname: e.target.value})}
-                    />
+                <div className="space-y-2">
+                  <h4 className="text-md font-medium text-gray-700">ชื่อภาษาไทย (Thai Name)</h4>
+                  <div className="grid gap-4 md:grid-cols-4">
+                    <div>
+                      <Label htmlFor="thaiTitle">คำนำหน้า</Label>
+                      <p className="text-xs text-muted-foreground mb-1">Title</p>
+                      <Select value={userData.thaiTitle} onValueChange={(value) => setUserData({...userData, thaiTitle: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="คำนำหน้า (Title)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="นาย">นาย</SelectItem>
+                          <SelectItem value="นาง">นาง</SelectItem>
+                          <SelectItem value="นางสาว">นางสาว</SelectItem>
+                          <SelectItem value="ดร.">ดร.</SelectItem>
+                          <SelectItem value="ผศ.ดร.">ผศ.ดร.</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="thaiName">ชื่อจริง</Label>
+                      <p className="text-xs text-muted-foreground mb-1">First Name</p>
+                      <Input
+                        id="thaiName"
+                        placeholder="ชื่อจริง (First Name)"
+                        value={userData.thaiName}
+                        onChange={(e) => setUserData({...userData, thaiName: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="thaiMiddleName">ชื่อกลาง</Label>
+                      <p className="text-xs text-muted-foreground mb-1">Middle Name</p>
+                      <Input
+                        id="thaiMiddleName"
+                        placeholder="ชื่อกลาง (Middle Name)"
+                        value={userData.thaiMiddleName}
+                        onChange={(e) => setUserData({...userData, thaiMiddleName: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="thaiSurname">นามสกุล</Label>
+                      <p className="text-xs text-muted-foreground mb-1">Last Name</p>
+                      <Input
+                        id="thaiSurname"
+                        placeholder="นามสกุล (Last Name)"
+                        value={userData.thaiSurname}
+                        onChange={(e) => setUserData({...userData, thaiSurname: e.target.value})}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* รหัสนักศึกษา */}
-                <div className="grid gap-4 md:grid-cols-4">
-                  <div>
-                    <Label htmlFor="studentId">รหัสนักศึกษา</Label>
-                    <p className="text-xs text-muted-foreground mb-1">Student ID</p>
-                    <Input
-                      id="studentId"
-                      placeholder="รหัสนักศึกษา (Student ID)"
-                      value={userData.studentId}
-                      onChange={(e) => setUserData({...userData, studentId: e.target.value})}
-                    />
+                {/* ชื่อภาษาอังกฤษ */}
+                <div className="space-y-2">
+                  <h4 className="text-md font-medium text-gray-700">ชื่อภาษาอังกฤษ (English Name)</h4>
+                  <div className="grid gap-4 md:grid-cols-4">
+                    <div>
+                      <Label htmlFor="englishTitle">คำนำหน้า</Label>
+                      <p className="text-xs text-muted-foreground mb-1">Title</p>
+                      <Select value={userData.englishTitle} onValueChange={(value) => setUserData({...userData, englishTitle: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Title" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Mr.">Mr.</SelectItem>
+                          <SelectItem value="Mrs.">Mrs.</SelectItem>
+                          <SelectItem value="Ms.">Ms.</SelectItem>
+                          <SelectItem value="Miss">Miss</SelectItem>
+                          <SelectItem value="Dr.">Dr.</SelectItem>
+                          <SelectItem value="Prof.">Prof.</SelectItem>
+                          <SelectItem value="Asst. Prof.">Asst. Prof.</SelectItem>
+                          <SelectItem value="Assoc. Prof.">Assoc. Prof.</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="englishName">ชื่อจริง</Label>
+                      <p className="text-xs text-muted-foreground mb-1">First Name</p>
+                      <Input
+                        id="englishName"
+                        placeholder="First Name"
+                        value={userData.englishName}
+                        onChange={(e) => setUserData({...userData, englishName: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="englishMiddleName">ชื่อกลาง</Label>
+                      <p className="text-xs text-muted-foreground mb-1">Middle Name</p>
+                      <Input
+                        id="englishMiddleName"
+                        placeholder="Middle Name (Optional)"
+                        value={userData.englishMiddleName}
+                        onChange={(e) => setUserData({...userData, englishMiddleName: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="englishSurname">นามสกุล</Label>
+                      <p className="text-xs text-muted-foreground mb-1">Last Name</p>
+                      <Input
+                        id="englishSurname"
+                        placeholder="Last Name"
+                        value={userData.englishSurname}
+                        onChange={(e) => setUserData({...userData, englishSurname: e.target.value})}
+                      />
+                    </div>
                   </div>
                 </div>
+
+
 
                 {/* ข้อมูลการศึกษา */}
                 <div className="grid gap-4 md:grid-cols-4">
                   <div>
                     <Label htmlFor="faculty">คณะ</Label>
                     <p className="text-xs text-muted-foreground mb-1">Faculty</p>
-                    <Select value={userData.faculty} onValueChange={(value) => setUserData({...userData, faculty: value})}>
+                    <Select value={userData.faculty} onValueChange={(value) => {
+                      const newData = {...userData, faculty: value};
+                      setUserData(newData);
+                      autoSave(newData);
+                    }}>
                       <SelectTrigger>
                         <SelectValue placeholder="คณะ (Faculty)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="คณะวิทยาศาสตร์และเทคโนโลยี">คณะวิทยาศาสตร์และเทคโนโลยี</SelectItem>
-                        <SelectItem value="คณะบริหารธุรกิจ">คณะบริหารธุรกิจ</SelectItem>
-                        <SelectItem value="คณะวิศวกรรมศาสตร์">คณะวิศวกรรมศาสตร์</SelectItem>
+                        {academicData.faculties.map((faculty: any) => (
+                          <SelectItem key={faculty.id} value={faculty.nameTh}>
+                            {faculty.nameTh}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
                     <Label htmlFor="department">สาขา</Label>
                     <p className="text-xs text-muted-foreground mb-1">Department</p>
-                    <Select value={userData.department} onValueChange={(value) => setUserData({...userData, department: value})}>
+                    <Select value={userData.department} onValueChange={(value) => {
+                      const newData = {...userData, department: value};
+                      setUserData(newData);
+                      autoSave(newData);
+                    }}>
                       <SelectTrigger>
                         <SelectValue placeholder="สาขา (Department)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="เทคโนโลยีสารสนเทศ">เทคโนโลยีสารสนเทศ</SelectItem>
-                        <SelectItem value="วิทยาการคอมพิวเตอร์">วิทยาการคอมพิวเตอร์</SelectItem>
-                        <SelectItem value="การจัดการธุรกิจ">การจัดการธุรกิจ</SelectItem>
+                        {academicData.departments.map((department: any) => (
+                          <SelectItem key={department.id} value={department.nameTh}>
+                            {department.nameTh}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
                     <Label htmlFor="program">หลักสูตร</Label>
                     <p className="text-xs text-muted-foreground mb-1">Program</p>
-                    <Select value={userData.program} onValueChange={(value) => setUserData({...userData, program: value})}>
+                    <Select value={userData.program} onValueChange={(value) => {
+                      const newData = {...userData, program: value};
+                      setUserData(newData);
+                      autoSave(newData);
+                    }}>
                       <SelectTrigger>
                         <SelectValue placeholder="หลักสูตร (Program)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="เทคโนโลยีสารสนเทศ">เทคโนโลยีสารสนเทศ</SelectItem>
-                        <SelectItem value="วิทยาการคอมพิวเตอร์">วิทยาการคอมพิวเตอร์</SelectItem>
+                        {academicData.curriculums.map((curriculum: any) => (
+                          <SelectItem key={curriculum.id} value={curriculum.nameTh}>
+                            {curriculum.nameTh}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
                     <Label htmlFor="major">วิชาเอก</Label>
                     <p className="text-xs text-muted-foreground mb-1">Major</p>
-                    <Select value={userData.major} onValueChange={(value) => setUserData({...userData, major: value})}>
+                    <Select value={userData.major} onValueChange={(value) => {
+                      const newData = {...userData, major: value};
+                      setUserData(newData);
+                      autoSave(newData);
+                    }}>
                       <SelectTrigger>
                         <SelectValue placeholder="วิชาเอก (Major)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="เทคโนโลยีสารสนเทศ">เทคโนโลยีสารสนเทศ</SelectItem>
-                        <SelectItem value="การพัฒนาซอฟต์แวร์">การพัฒนาซอฟต์แวร์</SelectItem>
+                        {academicData.majors.map((major: any) => (
+                          <SelectItem key={major.id} value={major.nameTh}>
+                            {major.nameTh}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -312,7 +818,11 @@ export default function SettingsPage() {
                       id="phone"
                       placeholder="เบอร์โทรศัพท์ (Phone number)"
                       value={userData.phone}
-                      onChange={(e) => setUserData({...userData, phone: e.target.value})}
+                      onChange={(e) => {
+                        const newData = {...userData, phone: e.target.value};
+                        setUserData(newData);
+                        autoSave(newData);
+                      }}
                     />
                   </div>
                   <div>
@@ -323,58 +833,17 @@ export default function SettingsPage() {
                       type="email"
                       placeholder="อีเมล (E-mail)"
                       value={userData.email}
-                      onChange={(e) => setUserData({...userData, email: e.target.value})}
+                      onChange={(e) => {
+                        const newData = {...userData, email: e.target.value};
+                        setUserData(newData);
+                        autoSave(newData);
+                      }}
                     />
                   </div>
                 </div>
               </div>
 
-              {/* ส่วนที่ 3: อัปโหลดภาพถ่าย */}
-              <Separator />
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 bg-amber-600 text-white rounded-full flex items-center justify-center font-bold">
-                    3
-                  </div>
-                  <h3 className="text-lg font-medium text-amber-700">อัปโหลดภาพถ่าย</h3>
-                </div>
 
-                {/* Upload Area */}
-                <div className="border-2 border-dashed border-orange-300 rounded-lg p-8 text-center bg-orange-50">
-                  <div className="flex flex-col items-center space-y-4">
-                    <div className="w-12 h-12 bg-orange-200 rounded-full flex items-center justify-center">
-                      <Camera className="h-6 w-6 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="text-orange-600 font-medium">0 / 1</p>
-                      <p className="text-orange-600 text-lg font-medium">Choose a file or drag & drop it here</p>
-                      <p className="text-orange-400 text-sm">JPEG and PNG up to 1 MB</p>
-                    </div>
-                    <Button variant="outline" className="border-orange-300 text-orange-600 hover:bg-orange-100">
-                      Browse File
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-4 justify-end">
-                  <Button 
-                    variant="outline" 
-                    className="bg-amber-600 text-white hover:bg-amber-700 border-amber-600"
-                    onClick={handleSave}
-                    disabled={isLoading}
-                  >
-                    บันทึกแบบร่าง
-                  </Button>
-                  <Button 
-                    className="bg-amber-600 hover:bg-amber-700"
-                    onClick={handleSave}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'กำลังบันทึก...' : 'บันทึกและส่ง'}
-                  </Button>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -596,6 +1065,8 @@ export default function SettingsPage() {
           {isLoading ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}
         </Button>
       </div>
+      </>
+      )}
     </div>
   );
 }

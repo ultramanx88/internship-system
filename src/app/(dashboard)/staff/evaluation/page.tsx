@@ -112,8 +112,8 @@ export default function EvaluationPage() {
 
     const totalRatingSum = evaluations.reduce((sum, evaluation) => sum + evaluation.overallRating, 0);
     // Calculate average rating across all student evaluations
-    const averageOverallRating = totalEvaluations > 0 
-        ? (totalRatingSum / totalEvaluations).toFixed(2) 
+    const averageOverallRating = totalEvaluations > 0
+        ? (totalRatingSum / totalEvaluations).toFixed(2)
         : '0.00';
 
     // NOTE: Hardcoded counts for Students (37) and Companies (25) are kept for now 
@@ -142,11 +142,10 @@ export default function EvaluationPage() {
                 {[1, 2, 3, 4, 5].map((star) => (
                     <Star
                         key={star}
-                        className={`w-4 h-4 ${
-                            star <= rating 
-                                ? 'fill-amber-400 text-amber-400' // Changed to amber for better theme match
-                                : 'text-gray-300'
-                        }`}
+                        className={`w-4 h-4 ${star <= rating
+                            ? 'fill-amber-400 text-amber-400' // Changed to amber for better theme match
+                            : 'text-gray-300'
+                            }`}
                         fill={star <= rating ? 'currentColor' : 'none'}
                     />
                 ))}
@@ -188,7 +187,7 @@ export default function EvaluationPage() {
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto space-y-6">
-                
+
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
@@ -225,7 +224,7 @@ export default function EvaluationPage() {
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">คะแนนเฉลี่ย</p>
                                     {/* Updated to use dynamically calculated value */}
-                                    <p className="text-3xl font-bold text-gray-900">{averageOverallRating}</p> 
+                                    <p className="text-3xl font-bold text-gray-900">{averageOverallRating}</p>
                                 </div>
                                 <div className="p-3 rounded-full bg-green-100">
                                     <TrendingUp className="h-6 w-6 text-green-600" />
@@ -240,7 +239,7 @@ export default function EvaluationPage() {
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">นักศึกษาที่ประเมิน</p>
                                     {/* Using mock count for visualization, should be dynamic */}
-                                    <p className="text-3xl font-bold text-gray-900">{totalStudentEvaluatedCount}</p> 
+                                    <p className="text-3xl font-bold text-gray-900">{totalStudentEvaluatedCount}</p>
                                 </div>
                                 <div className="p-3 rounded-full bg-purple-100">
                                     <Users className="h-6 w-6 text-purple-600" />
@@ -255,7 +254,7 @@ export default function EvaluationPage() {
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">สถานประกอบการ</p>
                                     {/* Using mock count for visualization, should be dynamic */}
-                                    <p className="text-3xl font-bold text-gray-900">{totalUniqueCompanies}</p> 
+                                    <p className="text-3xl font-bold text-gray-900">{totalUniqueCompanies}</p>
                                 </div>
                                 <div className="p-3 rounded-full bg-orange-100">
                                     <Building className="h-6 w-6 text-orange-600" />
@@ -332,8 +331,8 @@ export default function EvaluationPage() {
                                                     <TableCell>
                                                         <div className="flex items-center justify-center gap-2">
                                                             {/* View Button (Placeholder for action) */}
-                                                            <Button 
-                                                                variant="outline" 
+                                                            <Button
+                                                                variant="outline"
                                                                 size="sm"
                                                                 onClick={() => handleView(evaluation.id)}
                                                                 aria-label={`View ${evaluation.id}`}
@@ -341,8 +340,8 @@ export default function EvaluationPage() {
                                                                 <Eye className="h-4 w-4" />
                                                             </Button>
                                                             {/* Download Button (Placeholder for action) */}
-                                                            <Button 
-                                                                variant="outline" 
+                                                            <Button
+                                                                variant="outline"
                                                                 size="sm"
                                                                 onClick={() => handleDownload(evaluation.id)}
                                                                 aria-label={`Download ${evaluation.id}`}
@@ -379,7 +378,7 @@ export default function EvaluationPage() {
                                                     <h3 className="text-xl font-bold text-gray-900">{company.company}</h3>
                                                     {getTrendIcon(company.trend)}
                                                 </div>
-                                                
+
                                                 {/* Average Rating and Student Count */}
                                                 <div className="text-left sm:text-right">
                                                     <div className="flex items-center gap-2">
@@ -388,7 +387,7 @@ export default function EvaluationPage() {
                                                     <p className="text-sm text-gray-500 mt-1">{company.totalStudents} นักศึกษา</p>
                                                 </div>
                                             </div>
-                                            
+
                                             {/* Category Breakdowns */}
                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                                                 <div className="text-center p-3 bg-white rounded-lg shadow-sm">

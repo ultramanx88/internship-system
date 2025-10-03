@@ -3,6 +3,11 @@ import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/use-auth-provider';
 
+// Development helpers
+if (process.env.NODE_ENV === 'development') {
+  import('@/lib/dev-helpers');
+}
+
 export const metadata: Metadata = {
   title: 'Internship',
   description: 'ระบบจัดการการฝึกงานและสหกิจศึกษา',
