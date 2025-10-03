@@ -377,6 +377,28 @@ async function main() {
     }
   });
 
+  // สุดา ธุรการ - Staff
+  await prisma.user.upsert({
+    where: { id: 'staff_suda' },
+    update: {},
+    create: {
+      id: 'staff_suda',
+      name: 'นางสาวสุดา ธุรการ',
+      email: 'suda.admin@university.ac.th',
+      password: hashedPassword,
+      roles: '["staff"]',
+      t_title: 'นางสาว',
+      t_name: 'สุดา',
+      t_surname: 'ธุรการ',
+      e_title: 'Ms.',
+      e_name: 'Suda',
+      e_surname: 'Thurakar',
+      phone: '02-123-4567',
+      nationality: 'ไทย',
+      campus: 'วิทยาเขตหลัก'
+    }
+  });
+
   // Instructor Users
   await prisma.user.upsert({
     where: { id: 'user_t6800001' },
@@ -438,6 +460,28 @@ async function main() {
     }
   });
 
+  // สมศักดิ์ วิชาการ - พี่เลี้ยง/อาจารย์
+  await prisma.user.upsert({
+    where: { id: 'teacher_somsak' },
+    update: {},
+    create: {
+      id: 'teacher_somsak',
+      name: 'นายสมศักดิ์ วิชาการ',
+      email: 'somsak.wichakan@university.ac.th',
+      password: hashedPassword,
+      roles: '["courseInstructor","committee"]',
+      t_title: 'นาย',
+      t_name: 'สมศักดิ์',
+      t_surname: 'วิชาการ',
+      e_title: 'Mr.',
+      e_name: 'Somsak',
+      e_surname: 'Wichakan',
+      phone: '02-234-5678',
+      nationality: 'ไทย',
+      campus: 'วิทยาเขตหลัก'
+    }
+  });
+
   // Student Users
   await prisma.user.upsert({
     where: { id: 'test001' },
@@ -471,6 +515,96 @@ async function main() {
     }
   });
 
+  // สมชาย ใจดี - นักศึกษาตัวอย่าง
+  await prisma.user.upsert({
+    where: { id: '65010999' },
+    update: {},
+    create: {
+      id: '65010999',
+      name: 'นายสมชาย ใจดี',
+      email: 'somchai.jaidee@student.university.ac.th',
+      password: hashedPassword,
+      roles: '["student"]',
+      t_title: 'นาย',
+      t_name: 'สมชาย',
+      t_surname: 'ใจดี',
+      e_title: 'Mr.',
+      e_name: 'Somchai',
+      e_surname: 'Jaidee',
+      phone: '081-234-5678',
+      nationality: 'ไทย',
+      campus: 'วิทยาเขตหลัก',
+      gpa: '3.75',
+      skills: 'React, TypeScript, Node.js, ใจดีมาก',
+      statement: 'นักศึกษาที่มีใจรักในการเรียนรู้และพัฒนาตนเอง พร้อมที่จะนำความรู้ไปใช้ในการทำงานจริง',
+      studentYear: 4,
+      facultyId: faculty1.id,
+      departmentId: dept1.id,
+      curriculumId: curriculum1.id,
+      majorId: major1.id
+    }
+  });
+
+  // สมหญิง รักเรียน - นักศึกษาตัวอย่าง
+  await prisma.user.upsert({
+    where: { id: '65010998' },
+    update: {},
+    create: {
+      id: '65010998',
+      name: 'นางสาวสมหญิง รักเรียน',
+      email: 'somying.rakrian@student.university.ac.th',
+      password: hashedPassword,
+      roles: '["student"]',
+      t_title: 'นางสาว',
+      t_name: 'สมหญิง',
+      t_surname: 'รักเรียน',
+      e_title: 'Ms.',
+      e_name: 'Somying',
+      e_surname: 'Rakrian',
+      phone: '082-345-6789',
+      nationality: 'ไทย',
+      campus: 'วิทยาเขตหลัก',
+      gpa: '3.85',
+      skills: 'UI/UX Design, Figma, Adobe Creative Suite',
+      statement: 'นักศึกษาที่หลงใหลในการออกแบบและสร้างสรรค์ผลงานที่สวยงามและใช้งานได้จริง',
+      studentYear: 3,
+      facultyId: faculty1.id,
+      departmentId: dept1.id,
+      curriculumId: curriculum1.id,
+      majorId: major1.id
+    }
+  });
+
+  // วิชัย เก่งดี - นักศึกษาตัวอย่าง
+  await prisma.user.upsert({
+    where: { id: '65010997' },
+    update: {},
+    create: {
+      id: '65010997',
+      name: 'นายวิชัย เก่งดี',
+      email: 'wichai.kengdee@student.university.ac.th',
+      password: hashedPassword,
+      roles: '["student"]',
+      t_title: 'นาย',
+      t_name: 'วิชัย',
+      t_surname: 'เก่งดี',
+      e_title: 'Mr.',
+      e_name: 'Wichai',
+      e_surname: 'Kengdee',
+      phone: '083-456-7890',
+      nationality: 'ไทย',
+      campus: 'วิทยาเขตหลัก',
+      gpa: '3.95',
+      skills: 'Python, Machine Learning, Data Science, AI',
+      statement: 'นักศึกษาที่สนใจในด้าน AI และ Machine Learning พร้อมที่จะพัฒนาเทคโนโลยีเพื่อสังคม',
+      studentYear: 4,
+      facultyId: faculty1.id,
+      departmentId: dept1.id,
+      curriculumId: curriculum1.id,
+      majorId: major1.id
+    }
+  });
+
   await prisma.user.upsert({
     where: { id: 'u6800021' },
     update: {},
@@ -480,6 +614,109 @@ async function main() {
       email: 'u6800021@smart-solutions.com',
       password: hashedPassword,
       roles: '["student"]',
+      t_title: 'นาย',
+      t_name: 'ไพฑูรย์',
+      t_surname: 'นิคม',
+      e_title: 'Mr.',
+      e_name: 'Paitoon',
+      e_surname: 'Nikhom',
+      phone: '084-567-8901',
+      nationality: 'ไทย',
+      campus: 'วิทยาเขตหลัก',
+      gpa: '3.65',
+      skills: 'Java, Spring Boot, Database Design',
+      statement: 'นักศึกษาที่มีความสนใจในการพัฒนาระบบ Backend และการจัดการฐานข้อมูล',
+      studentYear: 3,
+      facultyId: faculty1.id,
+      departmentId: dept1.id,
+      curriculumId: curriculum1.id,
+      majorId: major1.id
+    }
+  });
+
+  // รักดี จิตดี - นักศึกษาที่ปรากฏใน mock data บ่อย
+  await prisma.user.upsert({
+    where: { id: '6400112233' },
+    update: {},
+    create: {
+      id: '6400112233',
+      name: 'นายรักดี จิตดี',
+      email: 'rakdee.jitdee@student.university.ac.th',
+      password: hashedPassword,
+      roles: '["student"]',
+      t_title: 'นาย',
+      t_name: 'รักดี',
+      t_surname: 'จิตดี',
+      e_title: 'Mr.',
+      e_name: 'Rakdee',
+      e_surname: 'Jitdee',
+      phone: '085-678-9012',
+      nationality: 'ไทย',
+      campus: 'วิทยาเขตหลัก',
+      gpa: '3.55',
+      skills: 'Java, Spring Boot, MySQL, Software Development',
+      statement: 'นักศึกษาที่มีจิตใจดีและรักในการเรียนรู้เทคโนโลยีใหม่ๆ',
+      studentYear: 4,
+      facultyId: faculty1.id,
+      departmentId: dept1.id,
+      curriculumId: curriculum1.id,
+      majorId: major1.id
+    }
+  });
+
+  // มาลี สวยงาม - นางสาว
+  await prisma.user.upsert({
+    where: { id: '6400112234' },
+    update: {},
+    create: {
+      id: '6400112234',
+      name: 'นางสาวมาลี สวยงาม',
+      email: 'malee.suayngam@student.university.ac.th',
+      password: hashedPassword,
+      roles: '["student"]',
+      t_title: 'นางสาว',
+      t_name: 'มาลี',
+      t_surname: 'สวยงาม',
+      e_title: 'Ms.',
+      e_name: 'Malee',
+      e_surname: 'Suayngam',
+      phone: '086-789-0123',
+      nationality: 'ไทย',
+      campus: 'วิทยาเขตหลัก',
+      gpa: '3.70',
+      skills: 'System Analysis, Database Design, Business Analysis',
+      statement: 'นักศึกษาที่สนใจในการวิเคราะห์ระบบและการออกแบบฐานข้อมูล',
+      studentYear: 3,
+      facultyId: faculty1.id,
+      departmentId: dept1.id,
+      curriculumId: curriculum1.id,
+      majorId: major1.id
+    }
+  });
+
+  // สุดา ขยัน - นางสาว
+  await prisma.user.upsert({
+    where: { id: '6400112236' },
+    update: {},
+    create: {
+      id: '6400112236',
+      name: 'นางสาวสุดา ขยัน',
+      email: 'suda.kayan@student.university.ac.th',
+      password: hashedPassword,
+      roles: '["student"]',
+      t_title: 'นางสาว',
+      t_name: 'สุดา',
+      t_surname: 'ขยัน',
+      e_title: 'Ms.',
+      e_name: 'Suda',
+      e_surname: 'Kayan',
+      phone: '087-890-1234',
+      nationality: 'ไทย',
+      campus: 'วิทยาเขตหลัก',
+      gpa: '3.80',
+      skills: 'Software Testing, Quality Assurance, Test Automation',
+      statement: 'นักศึกษาที่มีความขยันและสนใจในด้านการทดสอบซอฟต์แวร์',
+      studentYear: 4,
       facultyId: faculty1.id,
       departmentId: dept1.id,
       curriculumId: curriculum1.id,

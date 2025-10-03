@@ -45,7 +45,14 @@
     "start:dev": "./start-dev.sh",
     "stop:dev": "./stop-dev.sh",
     "start:dev:win": "powershell -ExecutionPolicy Bypass -File start-dev.ps1",
-    "stop:dev:win": "powershell -ExecutionPolicy Bypass -File stop-dev.ps1"
+    "stop:dev:win": "powershell -ExecutionPolicy Bypass -File stop-dev.ps1",
+    "deploy:safe": "./safe-update.sh",
+    "deploy:safe:seed": "./safe-update.sh --seed",
+    "deploy:safe:import": "./safe-update.sh --import",
+    "schema:prod": "cp prisma/schema.production.prisma prisma/schema.prisma",
+    "schema:local": "cp prisma/schema.local.prisma prisma/schema.prisma",
+    "db:switch:local": "./scripts/db-switch.sh local",
+    "db:switch:prod": "./scripts/db-switch.sh production"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -114,9 +121,11 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.21",
     "genkit-cli": "^1.14.1",
     "postcss": "^8",
     "prisma": "^6.16.2",
+    "tailwindcss": "^3.4.18",
     "typescript": "5.9.2"
   }
 }

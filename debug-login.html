@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Login</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        button { margin: 5px; padding: 10px; }
+        input { margin: 5px; padding: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>Debug Login API</h1>
+    
+    <div>
+        <input type="text" id="identifier" placeholder="Email or ID" value="admin@smart-solutions.com">
+        <input type="password" id="password" placeholder="Password" value="123456">
+        <input type="text" id="role" placeholder="Role" value="admin">
+    </div>
+    
+    <div>
+        <button onclick="testVerify()">Test Verify API</button>
+        <button onclick="testLogin()">Test Login API</button>
+        <button onclick="testFullFlow()">Test Full Flow</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        function addResult(message, isSuccess = true) {
+            const div = document.createElement('div');
+            div.className = 'result ' + (isSuccess ? 'success' : 'error');
+            div.innerHTML = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        async function testVerify() {
+            const identifier = document.getElementById('identifier').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                addResult('🔍 Testing /api/auth/verify...');
+                
+                const response = await fetch('/api/auth/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(`✅ Verify Success: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    addResult(`❌ Verify Failed: ${response.status} - ${JSON.stringify(data)}`, false);
+                }
+            } catch (error) {
+                addResult(`❌ Verify Error: ${error.message}`, false);
+            }
+        }
+
+        async function testLogin() {
+            const identifier = document.getElementById('identifier').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            
+            try {
+                addResult('🔍 Testing /api/auth/login...');
+                
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier, password, role })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(`✅ Login Success: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    addResult(`❌ Login Failed: ${response.status} - ${JSON.stringify(data)}`, false);
+                }
+            } catch (error) {
+                addResult(`❌ Login Error: ${error.message}`, false);
+            }
+        }
+
+        async function testFullFlow() {
+            addResult('🚀 Testing Full Login Flow...');
+            await testVerify();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testLogin();
+        }
+    </script>
+</body>
+</html>

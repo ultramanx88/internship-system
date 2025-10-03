@@ -99,24 +99,23 @@
   }
 }
 
-@layer components {
-  .gradient-text {
-    background: linear-gradient(
-      137deg,
-      #d89967 16.63%,
-      #966033 37.95%,
-      #412610 88.14%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .bg-gradient {
-    background: linear-gradient(
-      137deg,
-      #d89967 16.63%,
-      #966033 37.95%,
-      #412610 88.14%
-    );
-  }
+.gradient-text {
+  background: linear-gradient(
+    137deg,
+    #d89967 16.63%,
+    #966033 37.95%,
+    #412610 88.14%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bg-gradient {
+  background: linear-gradient(
+    137deg,
+    #d89967 16.63%,
+    #966033 37.95%,
+    #412610 88.14%
+  );
 }

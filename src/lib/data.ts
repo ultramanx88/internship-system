@@ -49,35 +49,9 @@ type DemoUser = {
   e_middle_name?: string | null;
 };
 
-// Data from DEMO_USERS.md, adapted for multi-role structure
+// Data from actual database seed, updated to match dev.db
 export let users: DemoUser[] = [
-  // Admin Users
-  {
-    id: "user_admin2",
-    name: "System Administrator",
-    email: "admin2@smart-solutions.com",
-    password: "admin123",
-    roles: ["admin"],
-    skills: null,
-    statement: null,
-    t_name: "System",
-    t_surname: "Administrator",
-    e_name: "System",
-    e_surname: "Administrator",
-  },
-  {
-    id: "user_demo001",
-    name: "Demo Admin 001",
-    email: "demo001@smart-solutions.com",
-    password: "123456",
-    roles: ["admin"],
-    skills: null,
-    statement: null,
-    t_name: "เดโม่",
-    t_surname: "แอดมิน 001",
-    e_name: "Demo",
-    e_surname: "Admin 001",
-  },
+  // Admin Users (from actual database)
   {
     id: "user_admin",
     name: "System Administrator",
@@ -92,44 +66,32 @@ export let users: DemoUser[] = [
     e_surname: "Administrator",
   },
   {
-    id: "user_admin001",
-    name: "Admin 001",
-    email: "admin001@smart-solutions.com",
+    id: "adminPick",
+    name: "ธเนศ บุญทัพ",
+    email: "ultramanx88@gmail.com",
     password: "123456",
     roles: ["admin"],
     skills: null,
     statement: null,
-    t_name: "แอดมิน",
-    t_surname: "001",
-    e_name: "Admin",
-    e_surname: "001",
+    t_name: "ธเนศ",
+    t_surname: "บุญทัพ",
+    e_name: "Thanet",
+    e_surname: "Boontap",
   },
   {
-    id: "user_admin002",
-    name: "Admin 002",
-    email: "admin002@smart-solutions.com",
+    id: "admin001",
+    name: "ผู้ดูแลระบบ",
+    email: "admin@university.ac.th",
     password: "123456",
     roles: ["admin"],
     skills: null,
     statement: null,
-    t_name: "แอดมิน",
-    t_surname: "002",
-    e_name: "Admin",
-    e_surname: "002",
+    t_name: "ผู้ดูแล",
+    t_surname: "ระบบ",
+    e_name: "System",
+    e_surname: "Admin",
   },
-  {
-    id: "user_admin003",
-    name: "Admin 003",
-    email: "admin003@smart-solutions.com",
-    password: "123456",
-    roles: ["admin"],
-    skills: null,
-    statement: null,
-    t_name: "แอดมิน",
-    t_surname: "003",
-    e_name: "Admin",
-    e_surname: "003",
-  },
+
 
   // Staff Users
   {

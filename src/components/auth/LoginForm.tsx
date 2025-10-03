@@ -16,7 +16,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { LogIn } from 'lucide-react';
 import { Role } from '@prisma/client';
-import { users } from '@/lib/data';
+import { demoUsers } from '@/lib/demo-users';
 import { RoleSelector } from './RoleSelector';
 
 export function LoginForm() {
@@ -123,11 +123,10 @@ export function LoginForm() {
   };
   
   const handleUserSelect = (email: string) => {
-      const user = users.find(u => u.email === email);
+      const user = demoUsers.find(u => u.email === email);
       if (user) {
           setIdentifier(user.email);
           setPassword(user.password || '123456');
-          // setRole(user.roles[0]); // Remove this line since we don't have setRole anymore
       }
   }
 
@@ -180,7 +179,7 @@ export function LoginForm() {
             <SelectValue placeholder="เลือกผู้ใช้สาิธิต" />
           </SelectTrigger>
           <SelectContent>
-            {users?.filter(user => user?.email && user?.name).map(user => (
+            {demoUsers?.filter(user => user?.email && user?.name).map(user => (
               <SelectItem key={user.id} value={user.email}>
                 {user.name} ({Array.isArray(user.roles) ? user.roles.join(', ') : user.roles})
               </SelectItem>
