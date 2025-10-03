@@ -133,7 +133,7 @@
       "id": "user_admin",
       "name": "System Administrator",
       "email": "admin@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"admin\"]",
       "skills": null,
       "statement": null,
@@ -167,13 +167,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.406Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "adminPick",
       "name": "ธเนศ บุญทัพ",
       "email": "ultramanx88@gmail.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"admin\"]",
       "skills": null,
       "statement": null,
@@ -207,13 +207,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.421Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "admin001",
       "name": "ผู้ดูแลระบบ",
       "email": "admin@university.ac.th",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"admin\"]",
       "skills": null,
       "statement": null,
@@ -247,13 +247,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.442Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "user_s6800001",
       "name": "Staff 001",
       "email": "s6800001@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"staff\"]",
       "skills": null,
       "statement": null,
@@ -287,13 +287,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.503Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "user_s6800002",
       "name": "Staff 002",
       "email": "s6800002@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"staff\"]",
       "skills": null,
       "statement": null,
@@ -327,13 +327,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.508Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "user_t6800001",
       "name": "Instructor 001",
       "email": "t6800001@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"courseInstructor\"]",
       "skills": null,
       "statement": null,
@@ -367,13 +367,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.514Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "user_t6800002",
       "name": "Instructor 002 (and Visitor)",
       "email": "t6800002@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"courseInstructor\",\"visitor\"]",
       "skills": null,
       "statement": null,
@@ -407,13 +407,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.518Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "user_t6800003",
       "name": "Instructor 003 (and Committee, Visitor)",
       "email": "t6800003@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"courseInstructor\",\"committee\",\"visitor\"]",
       "skills": null,
       "statement": null,
@@ -447,13 +447,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.567Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "user_t6800004",
       "name": "Committee 004",
       "email": "t6800004@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"committee\"]",
       "skills": null,
       "statement": null,
@@ -487,13 +487,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.577Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "user_t6800005",
       "name": "Committee 005 (and Visitor)",
       "email": "t6800005@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"committee\",\"visitor\"]",
       "skills": null,
       "statement": null,
@@ -527,13 +527,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.591Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "test001",
       "name": "Test User",
       "email": "test@test.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -567,13 +567,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.605Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "65010001",
       "name": "Student User",
       "email": "student@test.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -607,13 +607,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.614Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800021",
       "name": "นาย ไพฑูรย์ นิคม",
       "email": "u6800021@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -647,13 +647,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.619Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800001",
       "name": "Student 001",
       "email": "u6800001@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": "",
       "statement": "",
@@ -687,13 +687,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.625Z",
-      "updatedAt": "2025-10-03T16:53:24.010Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800002",
       "name": "Student 002",
       "email": "u6800002@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -727,13 +727,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.633Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800003",
       "name": "Student 003",
       "email": "u6800003@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -767,13 +767,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.638Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800004",
       "name": "Student 004",
       "email": "u6800004@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -807,13 +807,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.645Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800005",
       "name": "Student 005",
       "email": "u6800005@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -847,13 +847,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.650Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800006",
       "name": "Student 006",
       "email": "u6800006@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -887,13 +887,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.657Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800007",
       "name": "Student 007",
       "email": "u6800007@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -927,13 +927,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.663Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800008",
       "name": "Student 008",
       "email": "u6800008@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -967,13 +967,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.669Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800009",
       "name": "Student 009",
       "email": "u6800009@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -1007,13 +1007,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.675Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800010",
       "name": "Student 010",
       "email": "u6800010@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -1047,13 +1047,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.681Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800011",
       "name": "Student 011",
       "email": "u6800011@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -1087,13 +1087,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.686Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800012",
       "name": "Student 012",
       "email": "u6800012@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -1127,13 +1127,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.692Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800013",
       "name": "Student 013",
       "email": "u6800013@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -1167,13 +1167,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.698Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800014",
       "name": "Student 014",
       "email": "u6800014@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -1207,13 +1207,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.705Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800015",
       "name": "Student 015",
       "email": "u6800015@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -1247,13 +1247,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.711Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800016",
       "name": "Student 016",
       "email": "u6800016@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -1287,13 +1287,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.716Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800017",
       "name": "Student 017",
       "email": "u6800017@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -1327,13 +1327,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.722Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800018",
       "name": "Student 018",
       "email": "u6800018@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -1367,13 +1367,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.729Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800019",
       "name": "Student 019",
       "email": "u6800019@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -1407,13 +1407,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.735Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "u6800020",
       "name": "Student 020",
       "email": "u6800020@smart-solutions.com",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": null,
       "statement": null,
@@ -1447,13 +1447,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T12:43:52.742Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "65010999",
       "name": "นายสมชาย ใจดี",
       "email": "somchai.jaidee@student.university.ac.th",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": "React, TypeScript, Node.js, ใจดีมาก",
       "statement": "นักศึกษาที่มีใจรักในการเรียนรู้และพัฒนาตนเอง พร้อมที่จะนำความรู้ไปใช้ในการทำงานจริง",
@@ -1487,13 +1487,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T13:35:47.338Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "65010998",
       "name": "นางสาวสมหญิง รักเรียน",
       "email": "somying.rakrian@student.university.ac.th",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": "UI/UX Design, Figma, Adobe Creative Suite",
       "statement": "นักศึกษาที่หลงใหลในการออกแบบและสร้างสรรค์ผลงานที่สวยงามและใช้งานได้จริง",
@@ -1527,13 +1527,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T13:39:47.910Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "65010997",
       "name": "นายวิชัย เก่งดี",
       "email": "wichai.kengdee@student.university.ac.th",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": "Python, Machine Learning, Data Science, AI",
       "statement": "นักศึกษาที่สนใจในด้าน AI และ Machine Learning พร้อมที่จะพัฒนาเทคโนโลยีเพื่อสังคม",
@@ -1567,13 +1567,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T13:39:47.914Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "staff_suda",
       "name": "นางสาวสุดา ธุรการ",
       "email": "suda.admin@university.ac.th",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"staff\"]",
       "skills": null,
       "statement": null,
@@ -1607,13 +1607,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T13:44:03.831Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "teacher_somsak",
       "name": "นายสมศักดิ์ วิชาการ",
       "email": "somsak.wichakan@university.ac.th",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"courseInstructor\",\"committee\"]",
       "skills": null,
       "statement": null,
@@ -1647,13 +1647,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T13:44:03.851Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "6400112233",
       "name": "นายรักดี จิตดี",
       "email": "rakdee.jitdee@student.university.ac.th",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": "Java, Spring Boot, MySQL, Software Development",
       "statement": "นักศึกษาที่มีจิตใจดีและรักในการเรียนรู้เทคโนโลยีใหม่ๆ",
@@ -1687,13 +1687,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T13:44:03.878Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "6400112234",
       "name": "นางสาวมาลี สวยงาม",
       "email": "malee.suayngam@student.university.ac.th",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": "System Analysis, Database Design, Business Analysis",
       "statement": "นักศึกษาที่สนใจในการวิเคราะห์ระบบและการออกแบบฐานข้อมูล",
@@ -1727,13 +1727,13 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T13:44:03.887Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     },
     {
       "id": "6400112236",
       "name": "นางสาวสุดา ขยัน",
       "email": "suda.kayan@student.university.ac.th",
-      "password": "$2a$10$Z28H7ZDF8Fg5RxkHC1wBj.dZw.wVjf9QVp6KwGC7t/0iWy6c/1zMC",
+      "password": "$2a$12$M9l9tTKeZMhzm.HZK2./Nu7GkU.CPPINQ1j.3WCcUo37UChv48A1K",
       "roles": "[\"student\"]",
       "skills": "Software Testing, Quality Assurance, Test Automation",
       "statement": "นักศึกษาที่มีความขยันและสนใจในด้านการทดสอบซอฟต์แวร์",
@@ -1767,7 +1767,7 @@
       "theme": "light",
       "dateFormat": "thai",
       "createdAt": "2025-10-03T13:44:03.892Z",
-      "updatedAt": "2025-10-03T14:09:43.491Z"
+      "updatedAt": "2025-10-03T19:38:17.400Z"
     }
   ],
   "companies": [
