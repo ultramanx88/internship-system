@@ -62,7 +62,9 @@ VPS_PASSWORD="rp4QkUUvmbi5qB"
 
 echo "📡 Connecting to VPS..."
 
-sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" << 'EOF'
+# Run everything in a single SSH session and pass flags as env vars
+sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" \
+    "export SEED_DATA='$SEED_DATA' IMPORT_DATA='$IMPORT_DATA'; bash -s" << 'EOF'
 echo "🔍 Connected to VPS"
 
 # Find project directory
@@ -99,27 +101,24 @@ if [ -f ".env.production" ]; then
     echo "✅ Production environment configured"
 fi
 
-# Only generate Prisma client (no build)
+## Generate Prisma client (no build)
 echo "🔧 Generating Prisma client..."
-npx prisma generate
+NODE_ENV=production npx prisma generate
 
-# Run database migrations
+## Run database migrations
 echo "🗄️ Running database migrations..."
-npx prisma migrate deploy || {
+NODE_ENV=production npx prisma migrate deploy || {
     echo "⚠️  Migration failed, trying db push..."
-    npx prisma db push
+    NODE_ENV=production npx prisma db push
 }
-EOF
 
-# Pass arguments to the remote script
-sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" << EOF
 # Data management operations
 if [ "$SEED_DATA" = true ]; then
     echo "🌱 Running database seed..."
     cd "$PROJECT_DIR"
-    npm run db:seed || {
+    NODE_ENV=production npm run db:seed:prod || {
         echo "⚠️  Seed failed, trying alternative..."
-        npx tsx prisma/seed.ts
+        NODE_ENV=production npx tsx prisma/seed.ts
     }
     echo "✅ Database seed completed"
 fi
@@ -128,7 +127,7 @@ if [ "$IMPORT_DATA" = true ]; then
     echo "📥 Running database import..."
     cd "$PROJECT_DIR"
     if [ -f "scripts/import-data.ts" ]; then
-        npm run db:import || npx tsx scripts/import-data.ts
+        NODE_ENV=production npm run db:import || NODE_ENV=production npx tsx scripts/import-data.ts
         echo "✅ Database import completed"
     else
         echo "⚠️  Import script not found, skipping..."
@@ -143,10 +142,6 @@ pm2 restart internship-system || {
 }
 
 # Show status
-echo "📊 PM2 Status:"
 pm2 status
 
 echo "✅ Safe update completed!"
-EOF
-
-echo "🎉 Safe update finished!"

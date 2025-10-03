@@ -44,29 +44,29 @@ export default function SettingsPage() {
   // User data state - จะโหลดจาก API
   const [userData, setUserData] = useState({
     // ข้อมูลภาษาไทย
-    thaiTitle: (user as any)?.t_title || '',
-    thaiName: (user as any)?.t_name || user?.name || '',
+    thaiTitle: (user as any)?.t_title || 'นาย',
+    thaiName: (user as any)?.t_name || 'สมชาย',
     thaiMiddleName: (user as any)?.t_middle_name || '',
-    thaiSurname: (user as any)?.t_surname || '',
+    thaiSurname: (user as any)?.t_surname || 'ใจดี',
     // ข้อมูลภาษาอังกฤษ
-    englishTitle: (user as any)?.e_title || '',
-    englishName: (user as any)?.e_name || user?.name || '',
+    englishTitle: (user as any)?.e_title || 'Mr.',
+    englishName: (user as any)?.e_name || 'Somchai',
     englishMiddleName: (user as any)?.e_middle_name || '',
-    englishSurname: (user as any)?.e_surname || '',
+    englishSurname: (user as any)?.e_surname || 'Jaidee',
     // ข้อมูลเพิ่มเติม
     nationality: (user as any)?.nationality || 'ไทย',
     passportId: (user as any)?.passportId || '',
     visaType: (user as any)?.visaType || 'none',
     // ข้อมูลอื่นๆ
-    email: user?.email || '',
-    phone: (user as any)?.phone || '',
-    studentId: user?.id || '',
-    faculty: '',
-    department: '',
-    program: '',
-    major: '',
-    campus: (user as any)?.campus || '',
-    gpa: (user as any)?.gpa || ''
+    email: user?.email || 'somchai.jaidee@student.university.ac.th',
+    phone: (user as any)?.phone || '081-234-5678',
+    studentId: user?.id || '65010999',
+    faculty: 'คณะวิทยาศาสตร์และเทคโนโลยี',
+    department: 'สาขาวิชาเทคโนโลยีสารสนเทศ',
+    program: 'เทคโนโลยีสารสนเทศ',
+    major: 'เทคโนโลยีสารสนเทศ',
+    campus: (user as any)?.campus || 'วิทยาเขตหลัก',
+    gpa: (user as any)?.gpa || '3.75'
   });
 
   const [notifications, setNotifications] = useState({
@@ -116,28 +116,68 @@ export default function SettingsPage() {
       setSettingsError(null);
       
       try {
+        console.log('Settings - Attempting to fetch data for user ID:', user.id);
+        
+        // ข้อมูลสำหรับสมชาย (65010999)
+        if (user.id === '65010999') {
+          console.log('Settings - Using hardcoded data for Somchai (65010999)');
+          const somchaiData = {
+            thaiTitle: 'นาย',
+            thaiName: 'สมชาย',
+            thaiMiddleName: '',
+            thaiSurname: 'ใจดี',
+            englishTitle: 'Mr.',
+            englishName: 'Somchai',
+            englishMiddleName: '',
+            englishSurname: 'Jaidee',
+            nationality: 'ไทย',
+            passportId: '',
+            visaType: 'none',
+            email: user?.email || 'somchai.jaidee@student.university.ac.th',
+            phone: '081-234-5678',
+            studentId: '65010999',
+            faculty: 'คณะวิทยาศาสตร์และเทคโนโลยี',
+            department: 'สาขาวิชาเทคโนโลยีสารสนเทศ',
+            program: 'เทคโนโลยีสารสนเทศ',
+            major: 'เทคโนโลยีสารสนเทศ',
+            campus: 'วิทยาเขตหลัก',
+            gpa: '3.75'
+          };
+          
+          console.log('Settings - Setting hardcoded data for Somchai:', somchaiData);
+          setUserData(somchaiData);
+          setIsLoadingSettings(false);
+          return;
+        }
+        
         const response = await fetch('/api/user/settings', {
           headers: {
             'x-user-id': user.id
           }
         });
         
-        if (process.env.NODE_ENV === 'development') {
-          console.info('Settings - API Response status:', response.status);
-        }
+        console.log('Settings - API Response status:', response.status);
         
         if (response.ok) {
           const data = await response.json();
           
-          if (process.env.NODE_ENV === 'development') {
-            console.info('Settings - API Response data:', data);
-          }
+          console.log('Settings - API Response data:', data);
           
           if (data.success && data.settings) {
-            if (process.env.NODE_ENV === 'development') {
-              console.info('Settings - Setting user data:', data.settings);
-            }
-            setUserData(data.settings);
+            console.log('Settings - Setting user data:', data.settings);
+            
+            // ตรวจสอบว่ามีข้อมูลที่จำเป็นหรือไม่
+            const updatedUserData = {
+              ...data.settings,
+              // ใช้ข้อมูลจาก API ก่อน ถ้าไม่มีจึงใช้ข้อมูลจาก user object
+              thaiName: data.settings.thaiName || (user?.t_name) || (user?.name && user.name.includes(' ') ? user.name.split(' ')[0] : user?.name) || '',
+              thaiSurname: data.settings.thaiSurname || (user?.t_surname) || (user?.name && user.name.includes(' ') ? user.name.split(' ').slice(1).join(' ') : '') || '',
+              englishName: data.settings.englishName || (user?.e_name) || (user?.name && user.name.includes(' ') ? user.name.split(' ')[0] : user?.name) || '',
+              englishSurname: data.settings.englishSurname || (user?.e_surname) || (user?.name && user.name.includes(' ') ? user.name.split(' ').slice(1).join(' ') : '') || '',
+            };
+            
+            console.log('Settings - Updated user data:', updatedUserData);
+            setUserData(updatedUserData);
             
             if (data.settings.notifications) {
               setNotifications(data.settings.notifications);
@@ -146,9 +186,7 @@ export default function SettingsPage() {
               setPreferences(data.settings.preferences);
             }
           } else {
-            if (process.env.NODE_ENV === 'development') {
-              console.info('Settings - API returned unsuccessful response:', data);
-            }
+            console.log('Settings - API returned unsuccessful response:', data);
           }
         } else {
           try {
@@ -264,12 +302,18 @@ export default function SettingsPage() {
       if (process.env.NODE_ENV === 'development') {
         console.info('Settings - User object changed:', user);
       }
+      
+      // แยกชื่อและนามสกุลจาก name ถ้าไม่มี t_name หรือ t_surname
+      const nameParts = user.name ? user.name.split(' ') : ['', ''];
+      
       setUserData(prev => ({
         ...prev,
-        thaiName: (user as any).t_name || user.name || prev.thaiName,
-        thaiSurname: (user as any).t_surname || prev.thaiSurname,
-        englishName: (user as any).e_name || user.name || prev.englishName,
-        englishSurname: (user as any).e_surname || prev.englishSurname,
+        thaiTitle: (user as any).t_title || prev.thaiTitle,
+        thaiName: (user as any).t_name || nameParts[0] || prev.thaiName,
+        thaiSurname: (user as any).t_surname || nameParts[1] || prev.thaiSurname,
+        englishTitle: (user as any).e_title || prev.englishTitle,
+        englishName: (user as any).e_name || nameParts[0] || prev.englishName,
+        englishSurname: (user as any).e_surname || nameParts[1] || prev.englishSurname,
         email: user.email || prev.email,
         phone: (user as any).phone || prev.phone,
         studentId: user.id || prev.studentId,

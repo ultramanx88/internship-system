@@ -85,6 +85,15 @@ export async function GET(request: NextRequest) {
       }
     };
     
+    // ตรวจสอบและแสดงข้อมูลในคอนโซล
+    console.log('API Settings - Full user data:', user);
+    console.log('API Settings - Full settings data:', settings);
+    console.log('Settings API - Returning settings for user:', user.id);
+    console.log('Settings API - Thai Name:', settings.thaiName, settings.thaiSurname);
+    console.log('Settings API - English Name:', settings.englishName, settings.englishSurname);
+    console.log('Settings API - Full user data:', JSON.stringify(user, null, 2));
+    console.log('Settings API - Full settings data:', JSON.stringify(settings, null, 2));
+    
     return NextResponse.json({
       success: true,
       settings
