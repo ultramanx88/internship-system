@@ -71,7 +71,7 @@ export default function StudentApplicationsPage() {
                   myApplications.map((app) => (
                     <TableRow key={app.id}>
                       <TableCell className="font-medium">{app.internship?.title}</TableCell>
-                      <TableCell>{app.internship?.company}</TableCell>
+                      <TableCell>Company ID: {app.internship?.companyId}</TableCell>
                       <TableCell>{formatThaiDateLong(new Date(app.dateApplied))}</TableCell>
                       <TableCell className="text-center">
                         <Badge className={`capitalize ${statusColors[app.status]}`}>

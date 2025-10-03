@@ -313,43 +313,199 @@ async function main() {
   });
 
   // สร้างข้อมูลผู้ใช้ทดสอบ
-  const testUser = await prisma.user.upsert({
-    where: { id: 'test001' },
+  const hashedPassword = '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'; // password: 123456
+
+  // Admin Users
+  await prisma.user.upsert({
+    where: { id: 'user_admin' },
     update: {},
     create: {
-      id: 'test001',
-      name: 'นักศึกษาทดสอบ',
-      email: 'test@student.ac.th',
-      password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-      roles: '["student"]',
-      t_name: 'สมชาย',
-      t_surname: 'ใจดี',
-      e_name: 'Somchai',
-      e_surname: 'Jaidee',
-      facultyId: faculty1.id,
-      departmentId: dept1.id,
-      curriculumId: curriculum1.id,
-      majorId: major1.id,
-      nationality: 'ไทย',
-      campus: 'วิทยาเขตหลัก'
+      id: 'user_admin',
+      name: 'System Administrator',
+      email: 'admin@smart-solutions.com',
+      password: hashedPassword,
+      roles: '["admin"]'
     }
   });
 
-  const adminUser = await prisma.user.upsert({
+  await prisma.user.upsert({
+    where: { id: 'adminPick' },
+    update: {},
+    create: {
+      id: 'adminPick',
+      name: 'ธเนศ บุญทัพ',
+      email: 'ultramanx88@gmail.com',
+      password: hashedPassword,
+      roles: '["admin"]'
+    }
+  });
+
+  await prisma.user.upsert({
     where: { id: 'admin001' },
     update: {},
     create: {
       id: 'admin001',
       name: 'ผู้ดูแลระบบ',
       email: 'admin@university.ac.th',
-      password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-      roles: '["admin"]',
-      t_name: 'สมหญิง',
-      t_surname: 'ดูแลดี',
-      e_name: 'Somying',
-      e_surname: 'Doolaidee'
+      password: hashedPassword,
+      roles: '["admin"]'
     }
   });
+
+  // Staff Users
+  await prisma.user.upsert({
+    where: { id: 'user_s6800001' },
+    update: {},
+    create: {
+      id: 'user_s6800001',
+      name: 'Staff 001',
+      email: 's6800001@smart-solutions.com',
+      password: hashedPassword,
+      roles: '["staff"]'
+    }
+  });
+
+  await prisma.user.upsert({
+    where: { id: 'user_s6800002' },
+    update: {},
+    create: {
+      id: 'user_s6800002',
+      name: 'Staff 002',
+      email: 's6800002@smart-solutions.com',
+      password: hashedPassword,
+      roles: '["staff"]'
+    }
+  });
+
+  // Instructor Users
+  await prisma.user.upsert({
+    where: { id: 'user_t6800001' },
+    update: {},
+    create: {
+      id: 'user_t6800001',
+      name: 'Instructor 001',
+      email: 't6800001@smart-solutions.com',
+      password: hashedPassword,
+      roles: '["courseInstructor"]'
+    }
+  });
+
+  await prisma.user.upsert({
+    where: { id: 'user_t6800002' },
+    update: {},
+    create: {
+      id: 'user_t6800002',
+      name: 'Instructor 002 (and Visitor)',
+      email: 't6800002@smart-solutions.com',
+      password: hashedPassword,
+      roles: '["courseInstructor","visitor"]'
+    }
+  });
+
+  await prisma.user.upsert({
+    where: { id: 'user_t6800003' },
+    update: {},
+    create: {
+      id: 'user_t6800003',
+      name: 'Instructor 003 (and Committee, Visitor)',
+      email: 't6800003@smart-solutions.com',
+      password: hashedPassword,
+      roles: '["courseInstructor","committee","visitor"]'
+    }
+  });
+
+  await prisma.user.upsert({
+    where: { id: 'user_t6800004' },
+    update: {},
+    create: {
+      id: 'user_t6800004',
+      name: 'Committee 004',
+      email: 't6800004@smart-solutions.com',
+      password: hashedPassword,
+      roles: '["committee"]'
+    }
+  });
+
+  await prisma.user.upsert({
+    where: { id: 'user_t6800005' },
+    update: {},
+    create: {
+      id: 'user_t6800005',
+      name: 'Committee 005 (and Visitor)',
+      email: 't6800005@smart-solutions.com',
+      password: hashedPassword,
+      roles: '["committee","visitor"]'
+    }
+  });
+
+  // Student Users
+  await prisma.user.upsert({
+    where: { id: 'test001' },
+    update: {},
+    create: {
+      id: 'test001',
+      name: 'Test User',
+      email: 'test@test.com',
+      password: hashedPassword,
+      roles: '["student"]',
+      facultyId: faculty1.id,
+      departmentId: dept1.id,
+      curriculumId: curriculum1.id,
+      majorId: major1.id
+    }
+  });
+
+  await prisma.user.upsert({
+    where: { id: '65010001' },
+    update: {},
+    create: {
+      id: '65010001',
+      name: 'Student User',
+      email: 'student@test.com',
+      password: hashedPassword,
+      roles: '["student"]',
+      facultyId: faculty1.id,
+      departmentId: dept1.id,
+      curriculumId: curriculum1.id,
+      majorId: major1.id
+    }
+  });
+
+  await prisma.user.upsert({
+    where: { id: 'u6800021' },
+    update: {},
+    create: {
+      id: 'u6800021',
+      name: 'นาย ไพฑูรย์ นิคม',
+      email: 'u6800021@smart-solutions.com',
+      password: hashedPassword,
+      roles: '["student"]',
+      facultyId: faculty1.id,
+      departmentId: dept1.id,
+      curriculumId: curriculum1.id,
+      majorId: major1.id
+    }
+  });
+
+  // Create multiple students
+  for (let i = 1; i <= 20; i++) {
+    const studentId = `u68000${i.toString().padStart(2, '0')}`;
+    await prisma.user.upsert({
+      where: { id: studentId },
+      update: {},
+      create: {
+        id: studentId,
+        name: `Student ${i.toString().padStart(3, '0')}`,
+        email: `${studentId}@smart-solutions.com`,
+        password: hashedPassword,
+        roles: '["student"]',
+        facultyId: faculty1.id,
+        departmentId: dept1.id,
+        curriculumId: curriculum1.id,
+        majorId: major1.id
+      }
+    });
+  }
 
   console.log('Seed data created successfully!');
   console.log('Created:');
@@ -359,7 +515,7 @@ async function main() {
   console.log('- 4 Majors');
   console.log('- 4 Companies');
   console.log('- 6 Internships');
-  console.log('- 2 Users (test001, admin001)');
+  console.log('- 30+ Users (admins, staff, instructors, students)');
 }
 
 main()

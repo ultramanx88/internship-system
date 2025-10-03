@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
           studentId: app.studentId,
           studentName: student?.name || 'N/A',
           major: 'เทคโนโลยีสารสนเทศ', // Mock data
-          companyName: internship?.company || 'N/A',
+          companyName: internship?.companyId || 'N/A',
           status: app.status,
           dateApplied: app.dateApplied,
           feedback: app.feedback,

@@ -66,15 +66,15 @@ export default function GeneratedDocumentsPage() {
     setFilteredDocuments(filtered)
   }, [searchTerm, documents])
 
-  const handleDownload = async (document: GeneratedDocument) => {
+  const handleDownload = async (doc: GeneratedDocument) => {
     try {
       // ในการใช้งานจริงจะเรียก API เพื่อดาวน์โหลดไฟล์
-      console.log('Downloading:', document.filename)
+      console.log('Downloading:', doc.filename)
       
       // Mock download
       const link = document.createElement('a')
       link.href = '#'
-      link.download = document.filename
+      link.download = doc.filename
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)

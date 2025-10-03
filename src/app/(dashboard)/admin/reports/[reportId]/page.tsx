@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 
 export default function ReportDetailsPage() {
   const pathname = usePathname();
-  const reportId = pathname.split('/').pop();
+  const reportId = pathname?.split('/').pop();
   
   const application = applications.find(app => app.id === reportId);
 
@@ -78,7 +78,7 @@ export default function ReportDetailsPage() {
                     <CardTitle className="flex items-center gap-2"><Building />ข้อมูลสถานประกอบการ</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
-                    <p><strong>บริษัท:</strong> {internship.company}</p>
+                    <p><strong>บริษัท:</strong> Company ID: {internship.companyId}</p>
                     <p><strong>ตำแหน่ง:</strong> {internship.title}</p>
                     <p><strong>ที่ตั้ง:</strong> {internship.location}</p>
                     <p><strong>ประเภท:</strong> {internship.type === 'co_op' ? 'สหกิจศึกษา' : 'ฝึกงาน'}</p>

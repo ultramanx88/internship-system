@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const applicationId = params.id;
+    const { id } = await params;
+    const applicationId = id;
 
     // Find the application with its print record
     const application = await prisma.application.findUnique({
@@ -18,33 +19,37 @@ export async function POST(
             company: true,
           },
         },
-        printRecords: {
-          orderBy: {
-            printedAt: 'desc',
-          },
-          take: 1,
-        },
+        printRecord: true,
       },
     });
 
     if (!application) {
       return NextResponse.json(
-        { error: 'ไม่พบเอกสารที่ต้องการ' },
+        { error: "ไม่พบเอกสารที่ต้องการ" },
         { status: 404 }
       );
     }
 
-    if (application.printRecords.length === 0) {
+    if (!application.printRecord) {
       return NextResponse.json(
-        { error: 'เอกสารนี้ยังไม่เคยถูกพิมพ์' },
+        { error: "เอกสารนี้ยังไม่เคยถูกพิมพ์" },
         { status: 400 }
       );
     }
 
-    const printRecord = application.printRecords[0];
+    const printRecord = application.printRecord;
+
+    if (!printRecord) {
+      return NextResponse.json(
+        { error: "ไม่พบข้อมูลการพิมพ์" },
+        { status: 400 }
+      );
+    }
 
     // Log reprint activity (optional)
-    console.log(`Reprinting document ${printRecord.documentNumber} for application ${applicationId}`);
+    console.log(
+      `Reprinting document ${printRecord.documentNumber} for application ${applicationId}`
+    );
 
     return NextResponse.json({
       success: true,
@@ -55,12 +60,12 @@ export async function POST(
         documentNumber: printRecord.documentNumber,
         documentDate: printRecord.documentDate,
       },
-      message: 'พิมพ์ซ้ำเอกสารสำเร็จ',
+      message: "พิมพ์ซ้ำเอกสารสำเร็จ",
     });
   } catch (error) {
-    console.error('Error reprinting document:', error);
+    console.error("Error reprinting document:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

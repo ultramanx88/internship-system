@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Briefcase, GraduationCap, Mail, Phone, Link as LinkIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
-export default function ApplicationDetailsPage({ params }: { params: { applicationId: string } }) {
-  const { applicationId } = params;
+export default async function ApplicationDetailsPage({ params }: { params: Promise<{ applicationId: string }> }) {
+  const { applicationId } = await params;
   const application = applications.find(app => app.id === applicationId);
 
   if (!application) {
@@ -104,7 +104,7 @@ export default function ApplicationDetailsPage({ params }: { params: { applicati
                     <div className="flex items-start justify-between">
                          <div>
                             <h3 className="text-xl font-semibold">{internship.title}</h3>
-                            <p className="text-muted-foreground">{internship.company}</p>
+                            <p className="text-muted-foreground">Company ID: {internship.companyId}</p>
                         </div>
                         <Badge variant={internship.type === 'co_op' ? 'default' : 'secondary'}>{internship.type === 'co_op' ? 'สหกิจศึกษา' : 'ฝึกงาน'}</Badge>
                     </div>

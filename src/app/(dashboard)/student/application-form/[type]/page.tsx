@@ -38,7 +38,7 @@ export default function ApplicationFormTypePage() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { user } = useAuth();
-  const type = params.type as 'internship' | 'co_op';
+  const type = params?.type as 'internship' | 'co_op';
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dateError, setDateError] = useState('');
@@ -56,7 +56,7 @@ export default function ApplicationFormTypePage() {
 
   // Pre-select internship if provided in URL
   useEffect(() => {
-    const preSelectedInternshipId = searchParams.get('internshipId');
+    const preSelectedInternshipId = searchParams?.get('internshipId');
     if (preSelectedInternshipId) {
       setFormData(prev => ({
         ...prev,

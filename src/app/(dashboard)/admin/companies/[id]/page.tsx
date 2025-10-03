@@ -1,15 +1,16 @@
 import { EditCompanyForm } from '@/components/admin/companies/EditCompanyForm';
 
 interface CompanyEditPageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
-export default function CompanyEditPage({ params }: CompanyEditPageProps) {
+export default async function CompanyEditPage({ params }: CompanyEditPageProps) {
+    const { id } = await params;
     return (
         <div className="container mx-auto py-6">
-            <EditCompanyForm companyId={params.id} />
+            <EditCompanyForm companyId={id} />
         </div>
     );
 }

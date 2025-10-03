@@ -45,7 +45,7 @@ export default function AdminReportsPage() {
                 return {
                     ...app,
                     studentName: student?.name || 'N/A',
-                    companyName: internship?.company || 'N/A',
+                    companyName: internship?.companyId || 'N/A',
                     teacherName: teacher?.name || 'N/A',
                     reportStatus: ['มีรายงานแล้ว', 'ยังไม่มีรายงาน'][index % 2],
                     priority: priority,

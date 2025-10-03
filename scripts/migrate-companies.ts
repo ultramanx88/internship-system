@@ -18,7 +18,7 @@ async function migrateCompanies() {
     console.log(`Found ${internships.length} internships`);
 
     // Get unique company names
-    const uniqueCompanies = [...new Set(internships.map(i => i.company))];
+    const uniqueCompanies = [...new Set(internships.map(i => (i.company as any)?.name || 'Unknown Company'))];
     console.log(`Found ${uniqueCompanies.length} unique companies`);
 
     // Create companies
@@ -29,7 +29,7 @@ async function migrateCompanies() {
 
       if (!existingCompany) {
         // Extract province from location if possible
-        const sampleInternship = internships.find(i => i.company === companyName);
+        const sampleInternship = internships.find(i => (i.company as any)?.name === companyName);
         const province = sampleInternship?.location || '';
 
         await prisma.company.create({
@@ -46,7 +46,7 @@ async function migrateCompanies() {
     // Update internships with companyId
     for (const internship of internships) {
       const company = await prisma.company.findFirst({
-        where: { name: internship.company },
+        where: { name: (internship.company as any)?.name || 'Unknown Company' },
       });
 
       if (company) {

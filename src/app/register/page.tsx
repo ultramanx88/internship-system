@@ -13,7 +13,7 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-lg">
-         <CardHeader className="text-center">
+        <CardHeader className="text-center">
           <div className="mb-4 flex justify-center">
             <Icons.logo className="h-12 w-12 text-primary" />
           </div>

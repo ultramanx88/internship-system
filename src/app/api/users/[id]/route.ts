@@ -35,11 +35,12 @@ const updateUserSchema = z.object({
 // GET single user
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       select: {
         id: true,
         name: true,
@@ -83,9 +84,10 @@ export async function GET(
 // PUT update user
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     console.log('PUT request body:', body);
     console.log('Params:', params);
@@ -108,7 +110,7 @@ export async function PUT(
 
     // ตรวจสอบว่าผู้ใช้มีอยู่จริง
     const existingUser = await prisma.user.findUnique({
-      where: { id: params.id }
+      where: { id: id }
     });
 
     if (!existingUser) {
@@ -116,7 +118,7 @@ export async function PUT(
     }
 
     // ตรวจสอบว่า Login ID ใหม่ซ้ำกับผู้ใช้อื่นหรือไม่ (ถ้ามีการเปลี่ยน ID)
-    if (newId && newId !== params.id) {
+    if (newId && newId !== id) {
       const idExists = await prisma.user.findUnique({
         where: { id: newId }
       });
@@ -140,7 +142,7 @@ export async function PUT(
     let updatedUser;
 
     // ถ้ามีการเปลี่ยน Login ID ต้องสร้างผู้ใช้ใหม่และลบผู้ใช้เก่า
-    if (newId && newId !== params.id) {
+    if (newId && newId !== id) {
       // สร้างชื่อเต็มจากข้อมูลใหม่หรือเก่า (ไม่รวม title เพื่อให้ชื่อสั้นลง)
       const t_fullName = [
         t_name !== undefined ? t_name : (existingUser as any).t_name,
@@ -197,7 +199,7 @@ export async function PUT(
 
         // ลบผู้ใช้เก่า
         await tx.user.delete({
-          where: { id: params.id }
+          where: { id: id }
         });
 
         return newUser;
@@ -248,7 +250,7 @@ export async function PUT(
       }
 
       updatedUser = await prisma.user.update({
-        where: { id: params.id },
+        where: { id: id },
         data: updateData,
         select: {
           id: true,
@@ -281,12 +283,13 @@ export async function PUT(
 // DELETE single user
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // ตรวจสอบว่าผู้ใช้มีอยู่จริง
     const existingUser = await prisma.user.findUnique({
-      where: { id: params.id }
+      where: { id: id }
     });
 
     if (!existingUser) {
@@ -295,7 +298,7 @@ export async function DELETE(
 
     // ลบผู้ใช้
     await prisma.user.delete({
-      where: { id: params.id }
+      where: { id: id }
     });
 
     return NextResponse.json({ message: 'ลบผู้ใช้สำเร็จ' });

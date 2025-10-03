@@ -51,7 +51,7 @@ export function ThaiCalendar({
   const generateCalendarDays = () => {
     const daysInMonth = getDaysInMonth(viewYear, viewMonth);
     const firstDay = getFirstDayOfMonth(viewYear, viewMonth);
-    const days = [];
+    const days: (Date | null)[] = [];
 
     // Add empty cells for days before the first day of month
     for (let i = 0; i < firstDay; i++) {
@@ -194,7 +194,7 @@ export function ThaiCalendar({
                   isDateDisabled(date) && 'opacity-50 cursor-not-allowed'
                 )}
               >
-                {date.getDate()}
+                {date?.getDate()}
               </Button>
             ) : (
               <div className="h-8 w-8" />

@@ -24,7 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function UserProfilePage() {
   const router = useRouter();
   const params = useParams();
-  const userId = params.id as string;
+  const userId = params?.id as string;
   const { toast } = useToast();
   
   const [user, setUser] = useState<User | null>(null);

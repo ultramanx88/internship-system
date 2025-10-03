@@ -8,7 +8,7 @@ export async function GET() {
     const bestFont = getBestThaiFont()
     
     // ทดสอบโหลดฟอนต์
-    let fontTestResult = null
+    let fontTestResult: any = null
     if (bestFont) {
       try {
         const fontBytes = await loadFont(bestFont.path)

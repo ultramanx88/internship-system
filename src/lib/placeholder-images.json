@@ -2,9 +2,21 @@
   "placeholderImages": [
     {
       "id": "login-background",
-      "description": "Abstract office building",
-      "imageUrl": "https://images.unsplash.com/photo-1574958269340-fa927503f3dd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxvZmZpY2UlMjBidWlsZGluZ3xlbnwwfHx8fDE3NTkwMjExMjh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "office building"
+      "description": "Modern office building background",
+      "imageUrl": "https://picsum.photos/1920/1080?random=1",
+      "imageHint": "modern office building"
+    },
+    {
+      "id": "dashboard-hero",
+      "description": "University campus background",
+      "imageUrl": "https://picsum.photos/1920/1080?random=2",
+      "imageHint": "university campus"
+    },
+    {
+      "id": "internship-banner",
+      "description": "Professional workspace",
+      "imageUrl": "https://picsum.photos/1920/1080?random=3",
+      "imageHint": "professional workspace"
     }
   ]
 }

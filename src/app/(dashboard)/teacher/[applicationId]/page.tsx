@@ -7,8 +7,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
-export default async function ApplicationReviewPage({ params }: { params: { applicationId: string } }) {
-  const { applicationId } = params;
+export default async function ApplicationReviewPage({ params }: { params: Promise<{ applicationId: string }> }) {
+  const { applicationId } = await params;
   const application = applications.find(app => app.id === applicationId);
 
   if (!application) {
@@ -69,7 +69,7 @@ export default async function ApplicationReviewPage({ params }: { params: { appl
              <Card>
                 <CardHeader>
                     <CardTitle>รายละเอียดการฝึกงาน</CardTitle>
-                    <CardDescription>{internship.title} ที่ {internship.company}</CardDescription>
+                    <CardDescription>{internship.title} ที่ Company ID: {internship.companyId}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-muted-foreground">{internship.description}</p>

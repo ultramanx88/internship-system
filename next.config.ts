@@ -30,6 +30,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Enable external packages for Socket.io
+  serverExternalPackages: ['socket.io'],
 };
 
 export default nextConfig;

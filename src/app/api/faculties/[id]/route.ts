@@ -3,11 +3,12 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const faculty = await prisma.faculty.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         departments: {
           where: { isActive: true },
@@ -56,9 +57,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { nameTh, nameEn, code, isActive } = body;
 
@@ -71,7 +73,7 @@ export async function PUT(
 
     // Check if faculty exists
     const existingFaculty = await prisma.faculty.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingFaculty) {
@@ -85,7 +87,7 @@ export async function PUT(
     const duplicateFaculty = await prisma.faculty.findFirst({
       where: {
         nameTh,
-        id: { not: params.id },
+        id: { not: id },
       },
     });
 
@@ -97,7 +99,7 @@ export async function PUT(
     }
 
     const faculty = await prisma.faculty.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         nameTh,
         nameEn,
@@ -126,12 +128,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Check if faculty exists
     const existingFaculty = await prisma.faculty.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         _count: {
           select: {
@@ -165,7 +168,7 @@ export async function DELETE(
     }
 
     await prisma.faculty.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ success: true });

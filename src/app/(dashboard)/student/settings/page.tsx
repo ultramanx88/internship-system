@@ -44,29 +44,29 @@ export default function SettingsPage() {
   // User data state - จะโหลดจาก API
   const [userData, setUserData] = useState({
     // ข้อมูลภาษาไทย
-    thaiTitle: user?.t_title || '',
-    thaiName: user?.t_name || user?.name || '',
-    thaiMiddleName: user?.t_middle_name || '',
-    thaiSurname: user?.t_surname || '',
+    thaiTitle: (user as any)?.t_title || '',
+    thaiName: (user as any)?.t_name || user?.name || '',
+    thaiMiddleName: (user as any)?.t_middle_name || '',
+    thaiSurname: (user as any)?.t_surname || '',
     // ข้อมูลภาษาอังกฤษ
-    englishTitle: user?.e_title || '',
-    englishName: user?.e_name || user?.name || '',
-    englishMiddleName: user?.e_middle_name || '',
-    englishSurname: user?.e_surname || '',
+    englishTitle: (user as any)?.e_title || '',
+    englishName: (user as any)?.e_name || user?.name || '',
+    englishMiddleName: (user as any)?.e_middle_name || '',
+    englishSurname: (user as any)?.e_surname || '',
     // ข้อมูลเพิ่มเติม
-    nationality: user?.nationality || 'ไทย',
-    passportId: user?.passportId || '',
-    visaType: user?.visaType || 'none',
+    nationality: (user as any)?.nationality || 'ไทย',
+    passportId: (user as any)?.passportId || '',
+    visaType: (user as any)?.visaType || 'none',
     // ข้อมูลอื่นๆ
     email: user?.email || '',
-    phone: user?.phone || '',
+    phone: (user as any)?.phone || '',
     studentId: user?.id || '',
     faculty: '',
     department: '',
     program: '',
     major: '',
-    campus: user?.campus || '',
-    gpa: user?.gpa || ''
+    campus: (user as any)?.campus || '',
+    gpa: (user as any)?.gpa || ''
   });
 
   const [notifications, setNotifications] = useState({
@@ -102,12 +102,16 @@ export default function SettingsPage() {
   useEffect(() => {
     const loadUserSettings = async () => {
       if (!user?.id) {
-        console.log('Settings - No user ID available');
+        if (process.env.NODE_ENV === 'development') {
+          console.info('Settings - No user ID available');
+        }
         setIsLoadingSettings(false);
         return;
       }
       
-      console.log('Settings - Loading data for user:', user.id);
+      if (process.env.NODE_ENV === 'development') {
+        console.info('Settings - Loading data for user:', user.id);
+      }
       setIsLoadingSettings(true);
       setSettingsError(null);
       
@@ -118,14 +122,21 @@ export default function SettingsPage() {
           }
         });
         
-        console.log('Settings - API Response status:', response.status);
+        if (process.env.NODE_ENV === 'development') {
+          console.info('Settings - API Response status:', response.status);
+        }
         
         if (response.ok) {
           const data = await response.json();
-          console.log('Settings - API Response data:', data);
+          
+          if (process.env.NODE_ENV === 'development') {
+            console.info('Settings - API Response data:', data);
+          }
           
           if (data.success && data.settings) {
-            console.log('Settings - Setting user data:', data.settings);
+            if (process.env.NODE_ENV === 'development') {
+              console.info('Settings - Setting user data:', data.settings);
+            }
             setUserData(data.settings);
             
             if (data.settings.notifications) {
@@ -135,64 +146,78 @@ export default function SettingsPage() {
               setPreferences(data.settings.preferences);
             }
           } else {
-            console.log('Settings - API returned unsuccessful response:', data);
+            if (process.env.NODE_ENV === 'development') {
+              console.info('Settings - API returned unsuccessful response:', data);
+            }
           }
         } else {
           try {
             const errorData = await response.json();
-            console.error('Settings - API Error:', {
-              status: response.status,
-              statusText: response.statusText,
-              error: errorData,
-              userId: user?.id
-            });
+            
+            // Log error for debugging (only in development)
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('Settings - API Error:', {
+                status: response.status,
+                statusText: response.statusText,
+                error: errorData,
+                userId: user?.id
+              });
+            }
             
             // Show user-friendly error message based on status
             if (response.status === 404) {
-              console.warn('User not found in database. This might be a new user.');
+              console.info('User not found in database. This might be a new user.');
               setSettingsError('ไม่พบข้อมูลผู้ใช้ในระบบ กรุณาติดต่อผู้ดูแลระบบ');
             } else if (response.status === 400) {
-              console.warn('Invalid request. User ID might be missing.');
+              console.info('Invalid request. User ID might be missing.');
               setSettingsError('ข้อมูลการร้องขอไม่ถูกต้อง');
             } else if (response.status === 500) {
-              console.error('Server error occurred while loading settings.');
+              console.info('Server error occurred while loading settings.');
               setSettingsError('เกิดข้อผิดพลาดของเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง');
             } else {
               setSettingsError(`เกิดข้อผิดพลาด (${response.status}): ${response.statusText}`);
             }
           } catch (parseError) {
-            console.error('Settings - Failed to parse error response:', {
-              status: response.status,
-              statusText: response.statusText,
-              parseError,
-              userId: user?.id
-            });
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('Settings - Failed to parse error response:', {
+                status: response.status,
+                statusText: response.statusText,
+                parseError,
+                userId: user?.id
+              });
+            }
+            setSettingsError('เกิดข้อผิดพลาดในการติดต่อเซิร์ฟเวอร์');
           }
         }
       } catch (error) {
-        console.error('Error loading user settings:', {
-          error,
-          userId: user?.id,
-          message: error instanceof Error ? error.message : 'Unknown error'
-        });
+        // Log error for debugging (only in development)
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Error loading user settings:', {
+            error,
+            userId: user?.id,
+            message: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
         
         // Fallback: Use user data from auth context if API fails
         if (user) {
-          console.log('Settings - Using fallback data from auth context');
+          if (process.env.NODE_ENV === 'development') {
+            console.info('Settings - Using fallback data from auth context');
+          }
           setUserData(prev => ({
             ...prev,
-            thaiName: user.t_name || user.name || prev.thaiName,
-            thaiSurname: user.t_surname || prev.thaiSurname,
-            englishName: user.e_name || user.name || prev.englishName,
-            englishSurname: user.e_surname || prev.englishSurname,
+            thaiName: (user as any).t_name || user.name || prev.thaiName,
+            thaiSurname: (user as any).t_surname || prev.thaiSurname,
+            englishName: (user as any).e_name || user.name || prev.englishName,
+            englishSurname: (user as any).e_surname || prev.englishSurname,
             email: user.email || prev.email,
-            phone: user.phone || prev.phone,
+            phone: (user as any).phone || prev.phone,
             studentId: user.id || prev.studentId,
-            nationality: user.nationality || prev.nationality,
-            passportId: user.passportId || prev.passportId,
-            visaType: user.visaType || prev.visaType,
-            campus: user.campus || prev.campus,
-            gpa: user.gpa || prev.gpa
+            nationality: (user as any).nationality || prev.nationality,
+            passportId: (user as any).passportId || prev.passportId,
+            visaType: (user as any).visaType || prev.visaType,
+            campus: (user as any).campus || prev.campus,
+            gpa: (user as any).gpa || prev.gpa
           }));
         }
         
@@ -223,7 +248,9 @@ export default function SettingsPage() {
           }
         }
       } catch (error) {
-        console.error('Error loading academic data:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Error loading academic data:', error);
+        }
       }
     };
     
@@ -234,21 +261,23 @@ export default function SettingsPage() {
   // Update userData เมื่อ user object เปลี่ยน
   useEffect(() => {
     if (user) {
-      console.log('Settings - User object changed:', user);
+      if (process.env.NODE_ENV === 'development') {
+        console.info('Settings - User object changed:', user);
+      }
       setUserData(prev => ({
         ...prev,
-        thaiName: user.t_name || user.name || prev.thaiName,
-        thaiSurname: user.t_surname || prev.thaiSurname,
-        englishName: user.e_name || user.name || prev.englishName,
-        englishSurname: user.e_surname || prev.englishSurname,
+        thaiName: (user as any).t_name || user.name || prev.thaiName,
+        thaiSurname: (user as any).t_surname || prev.thaiSurname,
+        englishName: (user as any).e_name || user.name || prev.englishName,
+        englishSurname: (user as any).e_surname || prev.englishSurname,
         email: user.email || prev.email,
-        phone: user.phone || prev.phone,
+        phone: (user as any).phone || prev.phone,
         studentId: user.id || prev.studentId,
-        nationality: user.nationality || prev.nationality,
-        passportId: user.passportId || prev.passportId,
-        visaType: user.visaType || prev.visaType,
-        campus: user.campus || prev.campus,
-        gpa: user.gpa || prev.gpa
+        nationality: (user as any).nationality || prev.nationality,
+        passportId: (user as any).passportId || prev.passportId,
+        visaType: (user as any).visaType || prev.visaType,
+        campus: (user as any).campus || prev.campus,
+        gpa: (user as any).gpa || prev.gpa
       }));
     }
   }, [user]);
@@ -272,11 +301,18 @@ export default function SettingsPage() {
         }),
       });
     } catch (error) {
-      console.error('Error auto-saving settings:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Error auto-saving settings:', error);
+      }
     }
   };
 
   const handleSave = async () => {
+    if (!user?.id) {
+      alert('ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่');
+      return;
+    }
+
     setIsLoading(true);
     
     try {
@@ -287,6 +323,11 @@ export default function SettingsPage() {
         preferences
       };
       
+      if (process.env.NODE_ENV === 'development') {
+        console.info('Saving settings for user:', user.id);
+        console.info('Data to save:', dataToSave);
+      }
+      
       // Save to settings API
       const settingsResponse = await fetch('/api/user/settings', {
         method: 'PUT',
@@ -296,6 +337,10 @@ export default function SettingsPage() {
         },
         body: JSON.stringify(dataToSave),
       });
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.info('Settings API response status:', settingsResponse.status);
+      }
 
       // Save profile image separately if exists
       if (profileImage) {
@@ -308,27 +353,51 @@ export default function SettingsPage() {
           body: JSON.stringify({ profileImage }),
         });
         
-        if (!profileResponse.ok) {
+        if (!profileResponse.ok && process.env.NODE_ENV === 'development') {
           console.warn('Failed to save profile image to server, but kept in localStorage');
         }
       }
 
       if (settingsResponse.ok) {
-        alert('บันทึกข้อมูลสำเร็จ!');
+        const result = await settingsResponse.json();
         
-        // Check if came from application-form timeline
-        const fromTimeline = searchParams.get('from') === 'timeline';
-        
-        if (fromTimeline) {
-          // Redirect back to application-form to continue timeline
-          router.push('/student/application-form');
+        if (result.success) {
+          alert('บันทึกข้อมูลสำเร็จ!');
+          
+          // Check if came from application-form timeline
+          const fromTimeline = searchParams?.get('from') === 'timeline';
+          
+          if (fromTimeline) {
+            // Redirect back to application-form to continue timeline
+            router.push('/student/application-form');
+          }
+        } else {
+          throw new Error(result.error || 'API returned unsuccessful response');
         }
       } else {
-        throw new Error('Failed to save settings');
+        const errorData = await settingsResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${settingsResponse.status}: ${settingsResponse.statusText}`);
       }
     } catch (error) {
-      console.error('Error saving settings:', error);
-      alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง');
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Error saving settings:', error);
+      }
+      
+      let errorMessage = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('404')) {
+          errorMessage = 'ไม่พบข้อมูลผู้ใช้ในระบบ กรุณาติดต่อผู้ดูแลระบบ';
+        } else if (error.message.includes('400')) {
+          errorMessage = 'ข้อมูลที่ส่งไม่ถูกต้อง กรุณาตรวจสอบข้อมูลและลองใหม่';
+        } else if (error.message.includes('500')) {
+          errorMessage = 'เกิดข้อผิดพลาดของเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง';
+        } else if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต';
+        }
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -436,7 +505,9 @@ export default function SettingsPage() {
                                 body: JSON.stringify({ profileImage: result.url }),
                               });
                             } catch (error) {
-                              console.warn('Failed to save to server immediately, but saved locally');
+                              if (process.env.NODE_ENV === 'development') {
+                                console.warn('Failed to save to server immediately, but saved locally');
+                              }
                             }
                             
                             alert('อัปโหลดรูปโปรไฟล์สำเร็จ!');
@@ -444,7 +515,9 @@ export default function SettingsPage() {
                             alert(result.error || 'เกิดข้อผิดพลาดในการอัปโหลด');
                           }
                         } catch (error) {
-                          console.error('Upload error:', error);
+                          if (process.env.NODE_ENV === 'development') {
+                            console.warn('Upload error:', error);
+                          }
                           alert('เกิดข้อผิดพลาดในการอัปโหลดไฟล์');
                         } finally {
                           setIsUploading(false);

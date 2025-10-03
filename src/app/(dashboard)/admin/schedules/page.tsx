@@ -57,7 +57,7 @@ export default function AdminSchedulesPage() {
                     ...app,
                     studentName: student?.name || 'N/A',
                     studentId: student?.id || 'N/A',
-                    companyName: internship?.company || 'N/A',
+                    companyName: internship?.companyId || 'N/A',
                     teacherName: teacher?.name || 'ยังไม่ได้มอบหมาย',
                     visitDate: 'ยังไม่ได้นัดหมาย', // Mock data for visit date
                     scheduleStatus: teacher ? 'รอนัดหมาย' : 'ยังไม่มอบหมาย',

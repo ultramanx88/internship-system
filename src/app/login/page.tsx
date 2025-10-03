@@ -1,10 +1,9 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { Icons } from '@/components/icons';
+import { GradientBackground } from '@/components/ui/gradient-background';
 import {
   Card,
   CardContent,
@@ -16,23 +15,13 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 
 export default function LoginPage() {
   const { logo } = useAppTheme();
-  const loginImage = PlaceHolderImages.find(
-    (img) => img.id === 'login-background'
-  );
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center">
-      {loginImage && (
-        <Image
-          src={loginImage.imageUrl}
-          alt={loginImage.description}
-          data-ai-hint={loginImage.imageHint}
-          fill
-          sizes="100vw"
-          className="absolute inset-0 -z-10 h-full w-full object-cover brightness-50"
-        />
-      )}
-      <Card className="z-10 w-full max-w-md bg-background/80 backdrop-blur-sm">
+    <GradientBackground 
+      variant="login" 
+      className="flex min-h-screen w-full flex-col items-center justify-center"
+    >
+      <Card className="w-96 bg-background/90 backdrop-blur-sm shadow-2xl border-0">
         <CardHeader className="text-center">
           <div className="flex justify-center">
             <Icons.logo className="h-12 w-12 text-primary" logoUrl={logo} />
@@ -52,6 +41,6 @@ export default function LoginPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </GradientBackground>
   );
 }

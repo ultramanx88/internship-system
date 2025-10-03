@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/use-auth-provider';
+import { RealtimeProvider } from '@/contexts/RealtimeContext';
 
 // Development helpers
 if (process.env.NODE_ENV === 'development') {
@@ -33,7 +34,11 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <RealtimeProvider>
+            {children}
+          </RealtimeProvider>
+        </AuthProvider>
         <Toaster />
       </body>
     </html>

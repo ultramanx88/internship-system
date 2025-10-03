@@ -24,7 +24,7 @@ export function HtmlDocumentRenderer({
     if (documentType === 'application' && type === 'co_op') {
       return HTML_TEMPLATES.co_op[language]?.application_form;
     } else if (documentType === 'request') {
-      return HTML_TEMPLATES.co_op[language]?.request_letter;
+      return (HTML_TEMPLATES.co_op[language] as any)?.request_letter;
     }
     
     return null;

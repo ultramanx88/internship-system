@@ -4,11 +4,12 @@ import { CompanySize } from '@prisma/client';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const company = await prisma.company.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         internships: {
           include: {
@@ -42,9 +43,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const {
       name,
@@ -73,7 +75,7 @@ export async function PUT(
 
     // Check if company exists
     const existingCompany = await prisma.company.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingCompany) {
@@ -87,7 +89,7 @@ export async function PUT(
     const duplicateCompany = await prisma.company.findFirst({
       where: {
         name,
-        id: { not: params.id },
+        id: { not: id },
       },
     });
 
@@ -99,7 +101,7 @@ export async function PUT(
     }
 
     const company = await prisma.company.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         name,
         nameEn,
@@ -130,12 +132,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Check if company exists
     const existingCompany = await prisma.company.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingCompany) {
@@ -146,7 +149,7 @@ export async function DELETE(
     }
 
     await prisma.company.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ success: true });

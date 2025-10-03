@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function EvaluationFormPage() {
   const params = useParams();
-  const companyId = params.companyId as string;
+  const companyId = params?.companyId as string;
   const { toast } = useToast();
   const router = useRouter();
 

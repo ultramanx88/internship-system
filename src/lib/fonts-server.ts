@@ -1,26 +1,26 @@
 // Server-side font utilities
-import { readFile } from 'fs/promises'
-import { join } from 'path'
-import { existsSync } from 'fs'
-import type { FontInfo } from './fonts'
+import { readFile } from "fs/promises";
+import { join } from "path";
+import { existsSync } from "fs";
+import type { FontInfo } from "./fonts";
 
 /**
  * โหลดฟอนต์จากไฟล์ (server-side only)
  */
 export async function loadFont(fontPath: string): Promise<ArrayBuffer | null> {
   try {
-    const fullPath = join(process.cwd(), fontPath)
-    
+    const fullPath = join(process.cwd(), fontPath);
+
     if (!existsSync(fullPath)) {
-      console.log(`Font file not found: ${fullPath}`)
-      return null
+      console.log(`Font file not found: ${fullPath}`);
+      return null;
     }
 
-    const fontBytes = await readFile(fullPath)
-    return fontBytes.buffer
+    const fontBytes = await readFile(fullPath);
+    return new Uint8Array(fontBytes).buffer;
   } catch (error) {
-    console.error(`Error loading font: ${fontPath}`, error)
-    return null
+    console.error(`Error loading font: ${fontPath}`, error);
+    return null;
   }
 }
 
@@ -29,10 +29,10 @@ export async function loadFont(fontPath: string): Promise<ArrayBuffer | null> {
  */
 export function checkFontExists(fontPath: string): boolean {
   try {
-    const fullPath = join(process.cwd(), fontPath)
-    return existsSync(fullPath)
+    const fullPath = join(process.cwd(), fontPath);
+    return existsSync(fullPath);
   } catch (error) {
-    return false
+    return false;
   }
 }
 
@@ -40,5 +40,5 @@ export function checkFontExists(fontPath: string): boolean {
  * รับรายการฟอนต์ที่ใช้ได้ (server-side only)
  */
 export function getAvailableFonts(fonts: FontInfo[]): FontInfo[] {
-  return fonts.filter(font => checkFontExists(font.path))
+  return fonts.filter((font) => checkFontExists(font.path));
 }

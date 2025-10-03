@@ -26,7 +26,7 @@ export default function StudentInternshipsPage() {
         return mockInternships.filter(internship => {
             const matchesSearch =
                 internship.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                internship.company.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+                internship.companyId.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
                 internship.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
             
             const matchesType = typeFilter === 'all' || internship.type === typeFilter;
@@ -85,7 +85,7 @@ export default function StudentInternshipsPage() {
                                         </div>
                                         <CardDescription className="flex items-center pt-1">
                                             <Building className="h-4 w-4 mr-2"/>
-                                            {internship.company}
+                                            Company ID: {internship.companyId}
                                         </CardDescription>
                                         <CardDescription className="flex items-center">
                                             <MapPin className="h-4 w-4 mr-2"/>

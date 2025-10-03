@@ -14,7 +14,7 @@ import { useAuth } from '@/hooks/use-auth';
 export default function InternshipDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const internshipId = params.internshipId as string;
+  const internshipId = params?.internshipId as string;
   const { toast } = useToast();
   const { user } = useAuth();
   const [hasApplied, setHasApplied] = useState(false);
@@ -88,7 +88,7 @@ export default function InternshipDetailsPage() {
                 <h1 className="text-3xl font-bold gradient-text">{internship.title}</h1>
                 <p className="flex items-center gap-2 mt-1">
                     <Building className="h-5 w-5 text-primary" />
-                    <span className="text-xl">{internship.company}</span>
+                    <span className="text-xl">Company ID: {internship.companyId}</span>
                 </p>
                 <p className="flex items-center gap-2 text-muted-foreground mt-1">
                     <MapPin className="h-4 w-4" />

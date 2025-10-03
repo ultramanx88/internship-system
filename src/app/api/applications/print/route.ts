@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
     // Get all approved applications with print status
     const applications = await prisma.application.findMany({
       where: {
-        status: 'approved',
+        status: "approved",
       },
       include: {
         student: true,
@@ -15,42 +15,39 @@ export async function GET() {
             company: true,
           },
         },
-        printRecords: {
-          orderBy: {
-            printedAt: 'desc',
-          },
-          take: 1,
-        },
+        printRecord: true,
       },
       orderBy: {
-        dateApplied: 'desc',
+        dateApplied: "desc",
       },
     });
 
-    const formattedApplications = applications.map(app => ({
+    const formattedApplications = applications.map((app) => ({
       id: app.id,
       studentId: app.student.id,
       studentName: app.student.name,
-      major: 'วิศวกรรมคอมพิวเตอร์', // Mock data
+      major: "วิศวกรรมคอมพิวเตอร์", // Mock data
       companyName: app.internship.company.name,
       status: app.status,
       dateApplied: app.dateApplied.toISOString(),
-      isPrinted: app.printRecords.length > 0,
-      printRecord: app.printRecords.length > 0 ? {
-        id: app.printRecords[0].id,
-        documentNumber: app.printRecords[0].documentNumber,
-        documentDate: app.printRecords[0].documentDate.toISOString(),
-        printedAt: app.printRecords[0].printedAt.toISOString(),
-      } : undefined,
+      isPrinted: !!app.printRecord,
+      printRecord: app.printRecord
+        ? {
+            id: app.printRecord.id,
+            documentNumber: app.printRecord.documentNumber,
+            documentDate: app.printRecord.documentDate.toISOString(),
+            printedAt: app.printRecord.printedAt.toISOString(),
+          }
+        : undefined,
     }));
 
     return NextResponse.json({
       applications: formattedApplications,
     });
   } catch (error) {
-    console.error('Error fetching applications for print:', error);
+    console.error("Error fetching applications for print:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -61,16 +58,20 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { applicationIds, documentNumber, documentDate } = body;
 
-    if (!applicationIds || !Array.isArray(applicationIds) || applicationIds.length === 0) {
+    if (
+      !applicationIds ||
+      !Array.isArray(applicationIds) ||
+      applicationIds.length === 0
+    ) {
       return NextResponse.json(
-        { error: 'กรุณาเลือกเอกสารที่ต้องการพิมพ์' },
+        { error: "กรุณาเลือกเอกสารที่ต้องการพิมพ์" },
         { status: 400 }
       );
     }
 
     if (!documentNumber || !documentDate) {
       return NextResponse.json(
-        { error: 'กรุณากรอกเลขที่เอกสารและวันที่เอกสาร' },
+        { error: "กรุณากรอกเลขที่เอกสารและวันที่เอกสาร" },
         { status: 400 }
       );
     }
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     if (existingRecord) {
       return NextResponse.json(
-        { error: 'เลขที่เอกสารนี้ถูกใช้แล้ว' },
+        { error: "เลขที่เอกสารนี้ถูกใช้แล้ว" },
         { status: 400 }
       );
     }
@@ -92,7 +93,7 @@ export async function POST(request: NextRequest) {
       data: {
         documentNumber,
         documentDate: new Date(documentDate),
-        printedById: 'user-1', // Mock user ID - should get from auth
+        printedById: "user-1", // Mock user ID - should get from auth
         applications: {
           connect: applicationIds.map((id: string) => ({ id })),
         },
@@ -117,9 +118,9 @@ export async function POST(request: NextRequest) {
       message: `พิมพ์เอกสาร ${applicationIds.length} ฉบับสำเร็จ`,
     });
   } catch (error) {
-    console.error('Error printing documents:', error);
+    console.error("Error printing documents:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

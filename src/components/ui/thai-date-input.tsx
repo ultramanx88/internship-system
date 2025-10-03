@@ -37,7 +37,7 @@ export function ThaiDateInput({
   const [displayValue, setDisplayValue] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  
+
   const { min, max } = getDateLimits(allowPastDates);
   const minDate = new Date(min);
   const maxDate = new Date(max);
@@ -60,10 +60,10 @@ export function ThaiDateInput({
 
   const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let inputValue = e.target.value;
-    
+
     // Remove non-numeric characters except /
     inputValue = inputValue.replace(/[^\d/]/g, '');
-    
+
     // Auto-format as user types
     if (inputValue.length <= 10) {
       // Add slashes automatically
@@ -72,9 +72,9 @@ export function ThaiDateInput({
       } else if (inputValue.length === 5 && inputValue.split('/').length === 2) {
         inputValue = inputValue + '/';
       }
-      
+
       setDisplayValue(inputValue);
-      
+
       // Validate and convert to HTML format
       if (inputValue.length === 10 && isValidThaiDate(inputValue)) {
         // Check if date is in the past (if not allowed)
@@ -82,7 +82,7 @@ export function ThaiDateInput({
           // Don't update, will show error on blur
           return;
         }
-        
+
         onChange?.(inputValue);
       }
     }
@@ -90,7 +90,7 @@ export function ThaiDateInput({
 
   const handleTextInputBlur = () => {
     setIsInputFocused(false);
-    
+
     // Validate final input
     if (displayValue) {
       if (!isValidThaiDate(displayValue)) {
@@ -113,9 +113,10 @@ export function ThaiDateInput({
     }
   };
 
-  const getSelectedDate = () => {
+  const getSelectedDate = (): Date | undefined => {
     if (value) {
-      return parseThaiDate(value);
+      const parsed = parseThaiDate(value);
+      return parsed || undefined;
     }
     return undefined;
   };
@@ -127,7 +128,7 @@ export function ThaiDateInput({
           {label}
         </Label>
       )}
-      
+
       <div className="relative">
         {/* Visible text input for Thai format */}
         <Input
@@ -145,11 +146,11 @@ export function ThaiDateInput({
           )}
           maxLength={10}
         />
-        
+
         {/* Thai Calendar Picker */}
         <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
           <PopoverTrigger asChild>
-            <div 
+            <div
               className={cn(
                 "absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded border bg-background",
                 !disabled && "cursor-pointer hover:bg-accent hover:text-accent-foreground",
@@ -169,11 +170,11 @@ export function ThaiDateInput({
           </PopoverContent>
         </Popover>
       </div>
-      
+
       {error && (
         <p className="text-sm text-destructive">{error}</p>
       )}
-      
+
       {!error && (
         <p className="text-xs text-muted-foreground">
           รูปแบบ: วว/ดด/ปปปป (พุทธศักราช) เช่น 03/15/2567

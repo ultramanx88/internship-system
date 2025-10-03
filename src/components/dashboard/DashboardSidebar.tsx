@@ -171,7 +171,7 @@ export function DashboardSidebar() {
                              <SidebarMenuButton 
                                 variant="outline" 
                                 className="w-full justify-between"
-                                isActive={pathname.startsWith(`/admin/${item.id}`)}
+                                isActive={pathname?.startsWith(`/admin/${item.id}`) || false}
                             >
                                 <div className="flex items-center gap-2">
                                     <item.icon />

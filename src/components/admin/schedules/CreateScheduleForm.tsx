@@ -36,13 +36,13 @@ const formSchema = z.object({
 });
 
 type ScheduleData = {
-    id: string;
-    studentName: string;
-    studentId: string;
-    companyName: string;
-    teacherName: string;
-    visitDate: string;
-    scheduleStatus: string;
+  id: string;
+  studentName: string;
+  studentId: string;
+  companyName: string;
+  teacherName: string;
+  visitDate: string;
+  scheduleStatus: string;
 };
 
 type CreateScheduleFormProps = {
@@ -71,19 +71,19 @@ export function CreateScheduleForm({ onSuccess, onCancel, schedule }: CreateSche
 
   useEffect(() => {
     if (isEditMode && schedule) {
-        // Find the visitor associated with the teacherName
-        const visitorUser = visitors.find(v => v.name === schedule.teacherName);
-        reset({
-            studentId: schedule.studentId,
-            visitorId: visitorUser?.id,
-            visitDate: schedule.visitDate !== 'ยังไม่ได้นัดหมาย' ? new Date(schedule.visitDate) : undefined,
-        });
+      // Find the visitor associated with the teacherName
+      const visitorUser = visitors.find(v => v.name === schedule.teacherName);
+      reset({
+        studentId: schedule.studentId,
+        visitorId: visitorUser?.id,
+        visitDate: schedule.visitDate !== 'ยังไม่ได้นัดหมาย' ? new Date(schedule.visitDate) : undefined,
+      });
     } else {
-        reset({
-            studentId: undefined,
-            visitorId: undefined,
-            visitDate: undefined,
-        });
+      reset({
+        studentId: undefined,
+        visitorId: undefined,
+        visitDate: undefined,
+      });
     }
   }, [schedule, isEditMode, reset]);
 
@@ -93,8 +93,8 @@ export function CreateScheduleForm({ onSuccess, onCancel, schedule }: CreateSche
     console.log(isEditMode ? 'Updating schedule:' : 'Creating schedule:', values);
 
     toast({
-        title: isEditMode ? 'อัปเดตนัดหมายสำเร็จ' : 'สร้างนัดหมายสำเร็จ',
-        description: `ได้บันทึกนัดหมายสำหรับวันที่ ${format(values.visitDate, 'PPP', { locale: th })} เรียบร้อยแล้ว`,
+      title: isEditMode ? 'อัปเดตนัดหมายสำเร็จ' : 'สร้างนัดหมายสำเร็จ',
+      description: `ได้บันทึกนัดหมายสำหรับวันที่ ${format(values.visitDate, 'PPP', { locale: th })} เรียบร้อยแล้ว`,
     });
     onSuccess();
   }
@@ -146,7 +146,7 @@ export function CreateScheduleForm({ onSuccess, onCancel, schedule }: CreateSche
             </FormItem>
           )}
         />
-         <FormField
+        <FormField
           control={control}
           name="visitDate"
           render={({ field }) => (
@@ -186,15 +186,15 @@ export function CreateScheduleForm({ onSuccess, onCancel, schedule }: CreateSche
             </FormItem>
           )}
         />
-        
+
         <div className="flex justify-end gap-4 pt-4">
-            <Button type="button" variant="outline" onClick={onCancel} disabled={formState.isSubmitting}>
-                ยกเลิก
-            </Button>
-            <Button type="submit" disabled={formState.isSubmitting}>
-                {formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                {formState.isSubmitting ? 'กำลังบันทึก...' : isEditMode ? 'บันทึกการเปลี่ยนแปลง' : 'บันทึกนัดหมาย'}
-            </Button>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={formState.isSubmitting}>
+            ยกเลิก
+          </Button>
+          <Button type="submit" disabled={formState.isSubmitting}>
+            {formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            {formState.isSubmitting ? 'กำลังบันทึก...' : isEditMode ? 'บันทึกการเปลี่ยนแปลง' : 'บันทึกนัดหมาย'}
+          </Button>
         </div>
       </form>
     </Form>
