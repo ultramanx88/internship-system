@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -28,25 +28,6 @@ model User {
   curriculumId  String?
   majorId       String?
   studentYear   Int?
-  // เพิ่ม fields สำหรับ settings
-  phone         String?
-  campus        String?
-  gpa           String?
-  nationality   String?
-  passportId    String?
-  visaType      String?
-  profileImage  String?
-  // การตั้งค่าการแจ้งเตือน
-  notifyEmail   Boolean       @default(true)
-  notifyPush    Boolean       @default(false)
-  notifySms     Boolean       @default(false)
-  notifyAppUpdates Boolean    @default(true)
-  notifyDeadlines Boolean     @default(true)
-  notifyNews    Boolean       @default(false)
-  // การตั้งค่าทั่วไป
-  language      String        @default("th")
-  theme         String        @default("light")
-  dateFormat    String        @default("thai")
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   applications  Application[]
