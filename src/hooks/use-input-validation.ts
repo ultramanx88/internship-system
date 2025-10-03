@@ -49,7 +49,7 @@ export function useInputValidation(options: UseInputValidationOptions): UseInput
                   options.type === 'english' ? VALIDATION_RULES.ENGLISH_NAME.errorMessage :
                   options.type === 'numbers' ? VALIDATION_RULES.STUDENT_ID.errorMessage :
                   'ข้อมูลไม่ถูกต้อง'
-  };
+  } as any;
 
   // ตรวจสอบความถูกต้อง
   const validate = useCallback(() => {
