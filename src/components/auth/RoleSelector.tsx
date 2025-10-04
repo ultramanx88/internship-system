@@ -27,21 +27,42 @@ const roleConfig = {
     description: 'จัดการรายวิชาและประเมินนักศึกษา',
     icon: User,
     color: 'bg-green-500',
-    route: '/teacher'
+    route: '/educator'
+  },
+  'อาจารย์ประจำวิชา': {
+    label: 'อาจารย์ประจำวิชา',
+    description: 'จัดการรายวิชาและประเมินนักศึกษา',
+    icon: User,
+    color: 'bg-green-500',
+    route: '/educator'
   },
   committee: {
     label: 'กรรมการ',
     description: 'พิจารณาและอนุมัติใบสมัครฝึกงาน',
     icon: Users,
     color: 'bg-purple-500',
-    route: '/teacher'
+    route: '/educator'
+  },
+  'กรรมการ': {
+    label: 'กรรมการ',
+    description: 'พิจารณาและอนุมัติใบสมัครฝึกงาน',
+    icon: Users,
+    color: 'bg-purple-500',
+    route: '/educator'
   },
   visitor: {
     label: 'อาจารย์นิเทศ',
     description: 'นิเทศและติดตามนักศึกษาฝึกงาน',
     icon: Eye,
     color: 'bg-orange-500',
-    route: '/teacher'
+    route: '/educator'
+  },
+  'อาจารย์นิเทศ': {
+    label: 'อาจารย์นิเทศ',
+    description: 'นิเทศและติดตามนักศึกษาฝึกงาน',
+    icon: Eye,
+    color: 'bg-orange-500',
+    route: '/educator'
   },
   staff: {
     label: 'เจ้าหน้าที่ธุรการ',

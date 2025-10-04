@@ -19,7 +19,20 @@ export async function GET(request: NextRequest) {
       where: { id: userId },
       select: {
         id: true,
-        profileImage: true
+        name: true,
+        email: true,
+        roles: true,
+        profileImage: true,
+        educatorRoleId: true,
+        educatorRole: {
+          select: {
+            id: true,
+            name: true,
+            nameEn: true,
+            description: true,
+            isActive: true
+          }
+        }
       }
     });
     
@@ -30,10 +43,13 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    return NextResponse.json({
-      success: true,
-      profileImage: user.profileImage
-    });
+    // แปลง roles จาก JSON string เป็น array
+    const userWithParsedRoles = {
+      ...user,
+      roles: JSON.parse(user.roles)
+    };
+    
+    return NextResponse.json(userWithParsedRoles);
   } catch (error) {
     console.error('Error getting profile:', error);
     return NextResponse.json(

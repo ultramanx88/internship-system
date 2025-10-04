@@ -9,9 +9,10 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Save, User, Bell, Shield, Database, Mail, Globe, GraduationCap, Calendar } from 'lucide-react';
+import { Save, User, Bell, Shield, Database, Mail, Globe, GraduationCap, Calendar, BookOpen } from 'lucide-react';
 import { AcademicManagement } from '@/components/staff/settings/AcademicManagement';
 import { EducatorManagement } from '@/components/staff/settings/EducatorManagement';
+import CourseManagement from '@/components/staff/settings/CourseManagement';
 
 export default function SettingsPage() {
     const [notifications, setNotifications] = useState({
@@ -43,7 +44,7 @@ export default function SettingsPage() {
                 </div>
 
                 <Tabs defaultValue="profile" className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-6">
+                    <TabsList className="grid w-full grid-cols-7">
                         <TabsTrigger value="profile" className="flex items-center gap-2">
                             <User className="h-4 w-4" />
                             ข้อมูลส่วนตัว
@@ -51,6 +52,10 @@ export default function SettingsPage() {
                         <TabsTrigger value="academic" className="flex items-center gap-2">
                             <Calendar className="h-4 w-4" />
                             ปีการศึกษา
+                        </TabsTrigger>
+                        <TabsTrigger value="courses" className="flex items-center gap-2">
+                            <BookOpen className="h-4 w-4" />
+                            วิชา
                         </TabsTrigger>
                         <TabsTrigger value="educators" className="flex items-center gap-2">
                             <GraduationCap className="h-4 w-4" />
@@ -136,6 +141,11 @@ export default function SettingsPage() {
                     {/* Academic Management */}
                     <TabsContent value="academic" className="space-y-6">
                         <AcademicManagement />
+                    </TabsContent>
+
+                    {/* Course Management */}
+                    <TabsContent value="courses" className="space-y-6">
+                        <CourseManagement />
                     </TabsContent>
 
                     {/* Educator Management */}

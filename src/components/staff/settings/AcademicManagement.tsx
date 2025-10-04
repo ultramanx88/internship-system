@@ -56,11 +56,27 @@ export function AcademicManagement() {
       if (yearsResponse.ok) {
         const yearsData = await yearsResponse.json();
         setAcademicYears(yearsData);
+        console.log('Loaded academic years:', yearsData.length);
+      } else {
+        console.error('Failed to load academic years:', yearsResponse.status);
+        toast({
+          variant: 'destructive',
+          title: 'เกิดข้อผิดพลาด',
+          description: 'ไม่สามารถโหลดข้อมูลปีการศึกษาได้'
+        });
       }
 
       if (semestersResponse.ok) {
         const semestersData = await semestersResponse.json();
         setSemesters(semestersData);
+        console.log('Loaded semesters:', semestersData.length);
+      } else {
+        console.error('Failed to load semesters:', semestersResponse.status);
+        toast({
+          variant: 'destructive',
+          title: 'เกิดข้อผิดพลาด',
+          description: 'ไม่สามารถโหลดข้อมูลภาคเรียนได้'
+        });
       }
     } catch (error) {
       console.error('Error loading academic data:', error);

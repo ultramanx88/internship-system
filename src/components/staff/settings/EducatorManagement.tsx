@@ -66,16 +66,25 @@ export function EducatorManagement() {
       if (rolesResponse.ok) {
         const rolesData = await rolesResponse.json();
         setEducatorRoles(rolesData);
+        console.log('Loaded educator roles:', rolesData.length);
+      } else {
+        console.error('Failed to load educator roles:', rolesResponse.status);
       }
 
       if (usersResponse.ok) {
         const usersData = await usersResponse.json();
         setUsers(usersData);
+        console.log('Loaded users:', usersData.length);
+      } else {
+        console.error('Failed to load users:', usersResponse.status);
       }
 
       if (instructorsResponse.ok) {
         const instructorsData = await instructorsResponse.json();
         setCourseInstructors(instructorsData);
+        console.log('Loaded course instructors:', instructorsData.length);
+      } else {
+        console.error('Failed to load course instructors:', instructorsResponse.status);
       }
     } catch (error) {
       console.error('Error loading educator data:', error);

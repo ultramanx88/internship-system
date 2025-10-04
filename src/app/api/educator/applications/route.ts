@@ -1,0 +1,159 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    const status = searchParams.get('status');
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // ดึงข้อมูลผู้ใช้และตรวจสอบว่าเป็น educator หรือไม่
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        educatorRole: true,
+        courseInstructors: {
+          include: {
+            supervisedStudents: {
+              include: {
+                application: {
+                  include: {
+                    student: true,
+                    internship: {
+                      include: {
+                        company: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // ตรวจสอบว่าเป็น educator หรือไม่
+    if (!user.educatorRole) {
+      return NextResponse.json(
+        { error: 'User is not an educator' },
+        { status: 403 }
+      );
+    }
+
+    // ดึงข้อมูล applications ตาม role
+    let applications = [];
+
+    if (user.educatorRole.name === 'อาจารย์นิเทศ') {
+      // อาจารย์นิเทศเห็น applications ของนักศึกษาที่อยู่ในความดูแล
+      const supervisedStudentIds = user.courseInstructors
+        .flatMap(ci => ci.supervisedStudents)
+        .map(ss => ss.studentId);
+
+      if (supervisedStudentIds.length > 0) {
+        applications = await prisma.application.findMany({
+          where: {
+            studentId: { in: supervisedStudentIds },
+            ...(status && { status: status as any })
+          },
+          include: {
+            student: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                studentId: true,
+                phone: true,
+                skills: true,
+                statement: true,
+                profileImage: true
+              }
+            },
+            internship: {
+              include: {
+                company: {
+                  select: {
+                    id: true,
+                    name: true,
+                    address: true
+                  }
+                }
+              }
+            }
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        });
+      }
+    } else {
+      // อาจารย์ประจำวิชาและกรรมการเห็น applications ทั้งหมด
+      applications = await prisma.application.findMany({
+        where: {
+          ...(status && { status: status as any })
+        },
+        include: {
+          student: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              studentId: true,
+              phone: true,
+              skills: true,
+              statement: true,
+              profileImage: true
+            }
+          },
+          internship: {
+            include: {
+              company: {
+                select: {
+                  id: true,
+                  name: true,
+                  address: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+    }
+
+    return NextResponse.json({
+      applications,
+      user: {
+        id: user.id,
+        name: user.name,
+        role: user.educatorRole.name
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching applications:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch applications' },
+      { status: 500 }
+    );
+  } finally {
+    await prisma.$disconnect();
+  }
+}

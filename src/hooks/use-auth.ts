@@ -68,14 +68,17 @@ export function AuthRedirect({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // If teacher/instructor tries to access admin or staff areas
+      // If educator/instructor tries to access admin or staff areas
       if (
         (userRoles.includes("courseInstructor") ||
           userRoles.includes("visitor") ||
-          userRoles.includes("committee")) &&
+          userRoles.includes("committee") ||
+          userRoles.includes("อาจารย์ประจำวิชา") ||
+          userRoles.includes("อาจารย์นิเทศ") ||
+          userRoles.includes("กรรมการ")) &&
         (pathname?.startsWith("/admin") || pathname?.startsWith("/staff"))
       ) {
-        router.replace("/teacher");
+        router.replace("/educator");
         return;
       }
     }

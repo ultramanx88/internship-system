@@ -61,6 +61,16 @@ export async function GET(
         curriculumId: true,
         majorId: true,
         studentYear: true,
+        educatorRoleId: true,
+        educatorRole: {
+          select: {
+            id: true,
+            name: true,
+            nameEn: true,
+            description: true,
+            isActive: true
+          }
+        }
       }
     });
 

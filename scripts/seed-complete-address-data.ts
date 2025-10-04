@@ -1,8 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient({
-  log: ['query', 'info', 'warn', 'error'],
-});
+const prisma = new PrismaClient();
 
 // ข้อมูลจังหวัดทั้งหมด 77 จังหวัด
 const provincesData = [
@@ -288,21 +286,19 @@ async function seedCompleteAddressData() {
       });
       
       if (province) {
-        await prisma.district.upsert({
-          where: { code: district.code },
-          update: {
-            nameTh: district.nameTh,
-            nameEn: district.nameEn,
-            code: district.code,
-            provinceId: province.id
-          },
-          create: {
-            nameTh: district.nameTh,
-            nameEn: district.nameEn,
-            code: district.code,
-            provinceId: province.id
-          }
-        });
+        try {
+          await prisma.district.create({
+            data: {
+              nameTh: district.nameTh,
+              nameEn: district.nameEn,
+              code: district.code,
+              provinceId: province.id
+            }
+          });
+        } catch (error) {
+          // Skip if already exists
+          console.log(`District ${district.code} already exists, skipping...`);
+        }
       }
     }
     console.log(`✅ Created ${allDistricts.length} districts`);
@@ -310,28 +306,25 @@ async function seedCompleteAddressData() {
     // สร้างตำบล
     console.log('🏠 Creating subdistricts...');
     for (const subdistrict of allSubdistricts) {
-      const district = await prisma.district.findUnique({
+      const district = await prisma.district.findFirst({
         where: { code: subdistrict.districtCode }
       });
       
       if (district) {
-        await prisma.subdistrict.upsert({
-          where: { code: subdistrict.code },
-          update: {
-            nameTh: subdistrict.nameTh,
-            nameEn: subdistrict.nameEn,
-            code: subdistrict.code,
-            postalCode: subdistrict.postalCode,
-            districtId: district.id
-          },
-          create: {
-            nameTh: subdistrict.nameTh,
-            nameEn: subdistrict.nameEn,
-            code: subdistrict.code,
-            postalCode: subdistrict.postalCode,
-            districtId: district.id
-          }
-        });
+        try {
+          await prisma.subdistrict.create({
+            data: {
+              nameTh: subdistrict.nameTh,
+              nameEn: subdistrict.nameEn,
+              code: subdistrict.code,
+              postalCode: subdistrict.postalCode,
+              districtId: district.id
+            }
+          });
+        } catch (error) {
+          // Skip if already exists
+          console.log(`Subdistrict ${subdistrict.code} already exists, skipping...`);
+        }
       }
     }
     console.log(`✅ Created ${allSubdistricts.length} subdistricts`);
