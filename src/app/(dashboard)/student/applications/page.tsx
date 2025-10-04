@@ -8,8 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Clock, Eye, XCircle } from 'lucide-react';
+import { CheckCircle, Clock, Eye, XCircle, Plus } from 'lucide-react';
 import { formatThaiDateLong } from '@/lib/date-utils';
+import { useToast } from '@/hooks/use-toast';
 
 const statusIcons: { [key: string]: React.ReactNode } = {
   approved: <CheckCircle className="h-4 w-4" />,
@@ -29,8 +30,10 @@ const statusTranslations: { [key: string]: string } = {
   rejected: "ปฏิเสธ",
 };
 
+
 export default function StudentApplicationsPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   
   const myApplications = useMemo(() => {
     if (!user) return [];
@@ -43,12 +46,25 @@ export default function StudentApplicationsPage() {
       .sort((a, b) => new Date(b.dateApplied).getTime() - new Date(a.dateApplied).getTime());
   }, [user]);
 
+
   return (
     <div className="grid gap-8 text-secondary-600">
-      <div>
-        <h1 className="text-3xl font-bold gradient-text">ใบสมัครของฉัน</h1>
-        <p>ติดตามสถานะใบสมัครฝึกงานและสหกิจศึกษาทั้งหมดของคุณ</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold gradient-text">ใบสมัครของฉัน</h1>
+          <p>ติดตามสถานะใบสมัครฝึกงานและสหกิจศึกษาทั้งหมดของคุณ</p>
+        </div>
+        <Button 
+          asChild
+          className="bg-orange-500 hover:bg-orange-600 text-white"
+        >
+          <Link href="/student/application-form/internship-form">
+            <Plus className="w-4 h-4 mr-2" />
+            สมัครใหม่
+          </Link>
+        </Button>
       </div>
+
       <Card>
         <CardHeader>
           <CardTitle>ประวัติการสมัคร</CardTitle>

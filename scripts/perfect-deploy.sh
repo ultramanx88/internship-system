@@ -44,6 +44,11 @@ show_menu() {
 compare_data() {
     log_info "Comparing Local ↔ VPS databases..."
     
+    # Ensure local schema is correct
+    log_info "Ensuring local SQLite schema..."
+    cp prisma/schema.local.prisma prisma/schema.prisma
+    npx prisma generate > /dev/null 2>&1
+    
     # Get local data info
     log_info "Analyzing local SQLite database..."
     LOCAL_INFO=$(npx tsx -e "
@@ -57,18 +62,13 @@ compare_data() {
             const internships = await prisma.internship.count();
             const applications = await prisma.application.count();
             
-            // Get latest update timestamp
+            // Get latest update timestamp (only from users table)
             const latestUser = await prisma.user.findFirst({
                 orderBy: { updatedAt: 'desc' },
                 select: { updatedAt: true }
             });
             
-            const latestApp = await prisma.application.findFirst({
-                orderBy: { updatedAt: 'desc' },
-                select: { updatedAt: true }
-            });
-            
-            const localTimestamp = latestUser?.updatedAt || latestApp?.updatedAt || new Date(0);
+            const localTimestamp = latestUser?.updatedAt || new Date(0);
             
             console.log(JSON.stringify({
                 users, companies, internships, applications,
@@ -97,7 +97,6 @@ SELECT json_build_object(
     'applications', (SELECT COUNT(*) FROM applications),
     'lastUpdate', COALESCE(
         (SELECT MAX(\"updatedAt\") FROM users),
-        (SELECT MAX(\"updatedAt\") FROM applications),
         '1970-01-01T00:00:00.000Z'
     ),
     'source', 'vps'
@@ -123,13 +122,21 @@ EOF
     echo "📈 SUMMARY:"
     echo "Users:        Local=$LOCAL_USERS, VPS=$VPS_USERS"
     echo "Applications: Local=$LOCAL_APPS, VPS=$VPS_APPS"
+    echo ""
     
-    if [ "$LOCAL_USERS" -gt "$VPS_USERS" ] || [ "$LOCAL_APPS" -gt "$VPS_APPS" ]; then
-        log_warning "Local has more data - consider deploying Local → VPS"
-    elif [ "$VPS_USERS" -gt "$LOCAL_USERS" ] || [ "$VPS_APPS" -gt "$LOCAL_APPS" ]; then
-        log_warning "VPS has more data - consider syncing VPS → Local"
+    # Calculate data difference
+    USER_DIFF=$((LOCAL_USERS - VPS_USERS))
+    APP_DIFF=$((LOCAL_APPS - VPS_APPS))
+    
+    if [ "$USER_DIFF" -gt 0 ] || [ "$APP_DIFF" -gt 0 ]; then
+        log_warning "📊 Local has MORE data (+$USER_DIFF users, +$APP_DIFF apps)"
+        log_warning "💡 Recommendation: Deploy Local → VPS (overwrite production)"
+    elif [ "$USER_DIFF" -lt 0 ] || [ "$APP_DIFF" -lt 0 ]; then
+        log_success "📊 VPS has MORE data ($((-USER_DIFF)) more users, $((-APP_DIFF)) more apps)"
+        log_success "💡 Recommendation: Sync VPS → Local (keep production data)"
     else
-        log_success "Data counts match between Local and VPS"
+        log_success "📊 Data counts match between Local and VPS"
+        log_info "💡 No sync needed or use manual choice"
     fi
 }
 
@@ -165,6 +172,10 @@ EOF
     sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" << 'EOF'
 cd /var/www/internship-system
 mv /tmp/deploy-data.json backups/deploy-data.json
+
+# Switch to production schema for PostgreSQL
+cp prisma/schema.production.prisma prisma/schema.prisma
+npx prisma generate
 
 # Clear and import
 PGPASSWORD=internship_pass psql -U internship_user -d internship_system -h localhost -c "
@@ -203,6 +214,11 @@ EOF
     
     sshpass -p "$VPS_PASSWORD" scp "$VPS_USER@$VPS_HOST:$VPS_EXPORT" backups/vps-production-data.json
     
+    # Switch to local schema for SQLite
+    log_info "Switching to local SQLite schema..."
+    cp prisma/schema.local.prisma prisma/schema.prisma
+    npx prisma generate
+    
     # Import to local
     log_info "Importing VPS data to local..."
     npx tsx scripts/import-data.ts backups/vps-production-data.json
@@ -230,11 +246,27 @@ smart_sync() {
     compare_data
     
     echo ""
-    read -p "Based on comparison above, sync direction (l=Local→VPS, v=VPS→Local, s=skip): " direction
+    echo "🤖 Smart Sync Options:"
+    echo "l = Local → VPS (overwrite production with local data)"
+    echo "v = VPS → Local (keep production data, sync to local)"
+    echo "s = Skip sync"
+    echo ""
+    read -p "Based on comparison above, sync direction (l/v/s): " direction
     
     case $direction in
-        l|L) deploy_local_to_vps ;;
-        v|V) sync_vps_to_local ;;
+        l|L) 
+            log_warning "⚠️  This will OVERWRITE VPS production data!"
+            read -p "Are you sure? (yes/no): " confirm
+            if [ "$confirm" = "yes" ]; then
+                deploy_local_to_vps
+            else
+                log_info "Sync cancelled"
+            fi
+            ;;
+        v|V) 
+            log_info "📥 Syncing VPS → Local (keeping production data)"
+            sync_vps_to_local
+            ;;
         s|S) log_info "Sync skipped" ;;
         *) log_warning "Invalid choice, skipping sync" ;;
     esac
@@ -261,8 +293,17 @@ full_deploy() {
     sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" << 'EOF'
 cd /var/www/internship-system
 git pull origin main
+
+# Switch to production schema
+cp prisma/schema.production.prisma prisma/schema.prisma
+npx prisma generate
+
 npm install
 npm run build
+
+# Run database migrations if needed
+npx prisma db push --accept-data-loss
+
 pm2 restart internship-system
 EOF
     
@@ -270,11 +311,52 @@ EOF
     echo ""
     read -p "🗄️  Deploy database changes? (y/n): " deploy_db
     if [ "$deploy_db" = "y" ] || [ "$deploy_db" = "Y" ]; then
-        smart_sync
+        # Compare data first
+        log_info "Comparing data before sync..."
+        compare_data
+        
+        echo ""
+        echo "🎯 Data Sync Strategy:"
+        echo "1. 📤 Local → VPS (overwrite VPS with local data)"
+        echo "2. 📥 VPS → Local (keep VPS data, sync to local)"
+        echo "3. 🔄 Smart Sync (auto-detect newer data)"
+        echo "4. ⏭️  Skip database sync"
+        echo ""
+        read -p "Choose sync strategy (1-4): " sync_choice
+        
+        case $sync_choice in
+            1) 
+                log_warning "⚠️  This will OVERWRITE VPS data with local data!"
+                read -p "Are you sure? (yes/no): " confirm
+                if [ "$confirm" = "yes" ]; then
+                    deploy_local_to_vps
+                else
+                    log_info "Database sync cancelled"
+                fi
+                ;;
+            2) 
+                log_info "📥 Syncing VPS → Local (keeping production data)"
+                sync_vps_to_local
+                ;;
+            3) smart_sync ;;
+            4) log_info "Database sync skipped" ;;
+            *) log_warning "Invalid choice, skipping database sync" ;;
+        esac
     fi
+    
+    # Verify deployment
+    log_info "Verifying deployment..."
+    sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" << 'EOF'
+cd /var/www/internship-system
+pm2 status
+echo ""
+echo "🌐 Application Status:"
+curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" http://localhost:8080 || echo "❌ Application not responding"
+EOF
     
     log_success "Full deployment completed!"
     log_info "🌐 VPS: http://$VPS_HOST:8080"
+    log_info "📊 Check PM2 status above for application health"
 }
 
 # Cleanup old scripts

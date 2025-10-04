@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,9 @@ import Link from 'next/link';
 export default function InternshipFormPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [provinces, setProvinces] = useState<any[]>([]);
+    const [districts, setDistricts] = useState<any[]>([]);
+    const [subdistricts, setSubdistricts] = useState<any[]>([]);
     
     const [formData, setFormData] = useState({
         // ข้อมูลบริษัท
@@ -22,7 +25,16 @@ export default function InternshipFormPage() {
         companyName: '',
         companyPhone: '',
         businessType: '',
-        companyAddress: '',
+        // ที่อยู่แบบแยกฟิลด์
+        addressNumber: '',
+        building: '',
+        floor: '',
+        soi: '',
+        road: '',
+        provinceId: '',
+        districtId: '',
+        subdistrictId: '',
+        postalCode: '',
         mapUrl: '',
         duration: '',
         
@@ -115,7 +127,87 @@ export default function InternshipFormPage() {
 
     const currentLabels = isEnglish ? labels.english : labels.thai;
 
+    // โหลดข้อมูลจังหวัด
+    useEffect(() => {
+        const loadProvinces = async () => {
+            try {
+                const response = await fetch('/api/address/provinces');
+                const data = await response.json();
+                if (data.success) {
+                    setProvinces(data.provinces);
+                }
+            } catch (error) {
+                console.error('Error loading provinces:', error);
+            }
+        };
+        loadProvinces();
+    }, []);
+
+    // โหลดข้อมูลอำเภอเมื่อเลือกจังหวัด
+    useEffect(() => {
+        if (formData.provinceId) {
+            const loadDistricts = async () => {
+                try {
+                    const response = await fetch(`/api/address/districts?provinceId=${formData.provinceId}`);
+                    const data = await response.json();
+                    if (data.success) {
+                        setDistricts(data.districts);
+                        setSubdistricts([]); // รีเซ็ตตำบล
+                        setFormData(prev => ({ ...prev, districtId: '', subdistrictId: '' }));
+                    }
+                } catch (error) {
+                    console.error('Error loading districts:', error);
+                }
+            };
+            loadDistricts();
+        } else {
+            setDistricts([]);
+            setSubdistricts([]);
+        }
+    }, [formData.provinceId]);
+
+    // โหลดข้อมูลตำบลเมื่อเลือกอำเภอ
+    useEffect(() => {
+        if (formData.districtId) {
+            const loadSubdistricts = async () => {
+                try {
+                    const response = await fetch(`/api/address/subdistricts?districtId=${formData.districtId}`);
+                    const data = await response.json();
+                    if (data.success) {
+                        setSubdistricts(data.subdistricts);
+                        setFormData(prev => ({ ...prev, subdistrictId: '' }));
+                    }
+                } catch (error) {
+                    console.error('Error loading subdistricts:', error);
+                }
+            };
+            loadSubdistricts();
+        } else {
+            setSubdistricts([]);
+        }
+    }, [formData.districtId]);
+
     const handleSave = async () => {
+        // บันทึกแบบร่าง - ไม่ต้องตรวจสอบ validation
+        setIsLoading(true);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setIsLoading(false);
+        router.push('/student/application-form');
+    };
+
+    const handleSaveAndSubmit = async () => {
+        // ตรวจสอบ validation สำหรับการส่ง
+        if (!formData.companyRegNumber.trim()) {
+            alert(isEnglish ? 'Please fill in company registration number' : 'กรุณากรอกเลขทะเบียนบริษัท');
+            return;
+        }
+        
+        // ตรวจสอบว่าเป็นตัวเลขเท่านั้น
+        if (!/^\d+$/.test(formData.companyRegNumber)) {
+            alert(isEnglish ? 'Company registration number must contain only numbers' : 'เลขทะเบียนบริษัทต้องเป็นตัวเลขเท่านั้น');
+            return;
+        }
+        
         setIsLoading(true);
         await new Promise(resolve => setTimeout(resolve, 1000));
         setIsLoading(false);
@@ -275,13 +367,15 @@ export default function InternshipFormPage() {
 
                             <div className="grid gap-4 md:grid-cols-3">
                                 <div>
-                                    <Label htmlFor="companyRegNumber">{currentLabels.companyRegNumber}</Label>
+                                    <Label htmlFor="companyRegNumber">{currentLabels.companyRegNumber} <span className="text-red-500">*</span></Label>
                                     <p className="text-xs text-muted-foreground mb-1">{isEnglish ? 'Company registration number' : 'Company registration number'}</p>
                                     <Input
                                         id="companyRegNumber"
+                                        type="number"
                                         placeholder={isEnglish ? 'Company registration number' : 'เลขทะเบียนบริษัท (Company no.)'}
                                         value={formData.companyRegNumber}
                                         onChange={(e) => handleInputChange('companyRegNumber', e.target.value)}
+                                        required
                                     />
                                 </div>
                                 <div>
@@ -317,16 +411,131 @@ export default function InternshipFormPage() {
                                 />
                             </div>
 
-                            <div>
-                                <Label htmlFor="companyAddress">{currentLabels.companyAddress}</Label>
-                                <p className="text-xs text-muted-foreground mb-1">{isEnglish ? 'Address' : 'Address'}</p>
-                                <Textarea
-                                    id="companyAddress"
-                                    placeholder={isEnglish ? 'Company address' : 'ที่อยู่บริษัท (Address)'}
-                                    value={formData.companyAddress}
-                                    onChange={(e) => handleInputChange('companyAddress', e.target.value)}
-                                    rows={3}
-                                />
+                            {/* ที่อยู่แบบแยกฟิลด์ */}
+                            <div className="space-y-4">
+                                <h4 className="font-medium text-gray-800">{isEnglish ? 'Address Details' : 'รายละเอียดที่อยู่'}</h4>
+                                
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <div>
+                                        <Label htmlFor="addressNumber">{isEnglish ? 'Address Number' : 'เลขที่'}</Label>
+                                        <Input
+                                            id="addressNumber"
+                                            placeholder={isEnglish ? 'Address number' : 'เลขที่'}
+                                            value={formData.addressNumber}
+                                            onChange={(e) => handleInputChange('addressNumber', e.target.value)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="building">{isEnglish ? 'Building' : 'อาคาร'}</Label>
+                                        <Input
+                                            id="building"
+                                            placeholder={isEnglish ? 'Building name' : 'อาคาร'}
+                                            value={formData.building}
+                                            onChange={(e) => handleInputChange('building', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <div>
+                                        <Label htmlFor="floor">{isEnglish ? 'Floor' : 'ชั้น'}</Label>
+                                        <Input
+                                            id="floor"
+                                            placeholder={isEnglish ? 'Floor' : 'ชั้น'}
+                                            value={formData.floor}
+                                            onChange={(e) => handleInputChange('floor', e.target.value)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="soi">{isEnglish ? 'Soi' : 'ซอย'}</Label>
+                                        <Input
+                                            id="soi"
+                                            placeholder={isEnglish ? 'Soi' : 'ซอย'}
+                                            value={formData.soi}
+                                            onChange={(e) => handleInputChange('soi', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="road">{isEnglish ? 'Road' : 'ถนน'}</Label>
+                                    <Input
+                                        id="road"
+                                        placeholder={isEnglish ? 'Road name' : 'ถนน'}
+                                        value={formData.road}
+                                        onChange={(e) => handleInputChange('road', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-3">
+                                    <div>
+                                        <Label htmlFor="provinceId">{isEnglish ? 'Province' : 'จังหวัด'}</Label>
+                                        <Select 
+                                            value={formData.provinceId} 
+                                            onValueChange={(value) => handleInputChange('provinceId', value)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={isEnglish ? 'Select Province' : 'เลือกจังหวัด'} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {provinces.map((province) => (
+                                                    <SelectItem key={province.id} value={province.id}>
+                                                        {province.nameTh}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="districtId">{isEnglish ? 'District' : 'อำเภอ/เขต'}</Label>
+                                        <Select 
+                                            value={formData.districtId} 
+                                            onValueChange={(value) => handleInputChange('districtId', value)}
+                                            disabled={!formData.provinceId}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={isEnglish ? 'Select District' : 'เลือกอำเภอ/เขต'} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {districts.map((district) => (
+                                                    <SelectItem key={district.id} value={district.id}>
+                                                        {district.nameTh}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="subdistrictId">{isEnglish ? 'Subdistrict' : 'ตำบล/แขวง'}</Label>
+                                        <Select 
+                                            value={formData.subdistrictId} 
+                                            onValueChange={(value) => handleInputChange('subdistrictId', value)}
+                                            disabled={!formData.districtId}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={isEnglish ? 'Select Subdistrict' : 'เลือกตำบล/แขวง'} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {subdistricts.map((subdistrict) => (
+                                                    <SelectItem key={subdistrict.id} value={subdistrict.id}>
+                                                        {subdistrict.nameTh}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="postalCode">{isEnglish ? 'Postal Code' : 'รหัสไปรษณีย์'}</Label>
+                                    <Input
+                                        id="postalCode"
+                                        type="number"
+                                        placeholder={isEnglish ? 'Postal code' : 'รหัสไปรษณีย์'}
+                                        value={formData.postalCode}
+                                        onChange={(e) => handleInputChange('postalCode', e.target.value)}
+                                    />
+                                </div>
                             </div>
 
                             <div>
@@ -501,7 +710,7 @@ export default function InternshipFormPage() {
                             </Button>
                             <Button 
                                 className="bg-amber-600 hover:bg-amber-700"
-                                onClick={handleSave}
+                                onClick={handleSaveAndSubmit}
                                 disabled={isLoading}
                             >
                                 {isLoading ? (isEnglish ? 'Saving...' : 'กำลังบันทึก...') : currentLabels.saveAndSubmit}

@@ -1,3 +1,4 @@
+// Local Development Schema (SQLite)
 generator client {
   provider = "prisma-client-js"
 }
@@ -117,6 +118,52 @@ model PrintRecord {
   @@map("print_records")
 }
 
+// Address Models for Thailand
+model Province {
+  id         String     @id @default(cuid())
+  nameTh     String
+  nameEn     String?
+  code       String     @unique
+  isActive   Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  districts  District[]
+  companies  Company[]
+
+  @@map("provinces")
+}
+
+model District {
+  id         String      @id @default(cuid())
+  nameTh     String
+  nameEn     String?
+  code       String      @unique
+  provinceId String
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  province   Province    @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  subdistricts Subdistrict[]
+  companies  Company[]
+
+  @@map("districts")
+}
+
+model Subdistrict {
+  id         String    @id @default(cuid())
+  nameTh     String
+  nameEn     String?
+  code       String    @unique
+  districtId String
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  district   District  @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  companies  Company[]
+
+  @@map("subdistricts")
+}
+
 model Faculty {
   id          String       @id @default(cuid())
   nameTh      String
@@ -183,21 +230,33 @@ model Company {
   id          String       @id @default(cuid())
   name        String
   nameEn      String?
-  address     String?
-  province    String?
-  district    String?
-  subdistrict String?
-  postalCode  String?
-  phone       String?
-  email       String?
-  website     String?
-  description String?
-  industry    String?
-  size        CompanySize?
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  internships Internship[]
+  registrationNumber String? @unique // เลขทะเบียนบริษัท
+  // ที่อยู่แบบแยกฟิลด์
+  addressNumber String?    // เลขที่
+  building      String?    // อาคาร
+  floor         String?    // ชั้น
+  soi           String?    // ซอย
+  road          String?    // ถนน
+  // ที่อยู่แบบ relation
+  provinceId    String?
+  districtId    String?
+  subdistrictId String?
+  postalCode    String?
+  mapUrl        String?    // Google Map URL
+  phone         String?
+  email         String?
+  website       String?
+  description   String?
+  industry      String?
+  size          CompanySize?
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  internships   Internship[]
+  // Relations
+  province      Province?    @relation(fields: [provinceId], references: [id])
+  district      District?    @relation(fields: [districtId], references: [id])
+  subdistrict   Subdistrict? @relation(fields: [subdistrictId], references: [id])
 
   @@map("companies")
 }

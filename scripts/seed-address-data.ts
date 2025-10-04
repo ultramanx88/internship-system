@@ -1,0 +1,276 @@
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+// ข้อมูลจังหวัดตัวอย่าง (บางจังหวัด)
+const provincesData = [
+  { code: '10', nameTh: 'กรุงเทพมหานคร', nameEn: 'Bangkok' },
+  { code: '11', nameTh: 'สมุทรปราการ', nameEn: 'Samut Prakan' },
+  { code: '12', nameTh: 'นนทบุรี', nameEn: 'Nonthaburi' },
+  { code: '13', nameTh: 'ปทุมธานี', nameEn: 'Pathum Thani' },
+  { code: '14', nameTh: 'พระนครศรีอยุธยา', nameEn: 'Phra Nakhon Si Ayutthaya' },
+  { code: '15', nameTh: 'อ่างทอง', nameEn: 'Ang Thong' },
+  { code: '16', nameTh: 'ลพบุรี', nameEn: 'Lopburi' },
+  { code: '17', nameTh: 'สิงห์บุรี', nameEn: 'Singburi' },
+  { code: '18', nameTh: 'ชัยนาท', nameEn: 'Chai Nat' },
+  { code: '19', nameTh: 'สระบุรี', nameEn: 'Saraburi' },
+  { code: '20', nameTh: 'ชลบุรี', nameEn: 'Chonburi' },
+  { code: '21', nameTh: 'ระยอง', nameEn: 'Rayong' },
+  { code: '22', nameTh: 'จันทบุรี', nameEn: 'Chanthaburi' },
+  { code: '23', nameTh: 'ตราด', nameEn: 'Trat' },
+  { code: '24', nameTh: 'ฉะเชิงเทรา', nameEn: 'Chachoengsao' },
+  { code: '25', nameTh: 'ปราจีนบุรี', nameEn: 'Prachinburi' },
+  { code: '26', nameTh: 'นครนายก', nameEn: 'Nakhon Nayok' },
+  { code: '27', nameTh: 'สระแก้ว', nameEn: 'Sa Kaeo' },
+  { code: '30', nameTh: 'นครราชสีมา', nameEn: 'Nakhon Ratchasima' },
+  { code: '31', nameTh: 'บุรีรัมย์', nameEn: 'Buriram' },
+  { code: '32', nameTh: 'สุรินทร์', nameEn: 'Surin' },
+  { code: '33', nameTh: 'ศรีสะเกษ', nameEn: 'Si Sa Ket' },
+  { code: '34', nameTh: 'อุบลราชธานี', nameEn: 'Ubon Ratchathani' },
+  { code: '35', nameTh: 'ยโสธร', nameEn: 'Yasothon' },
+  { code: '36', nameTh: 'ชัยภูมิ', nameEn: 'Chaiyaphum' },
+  { code: '37', nameTh: 'อำนาจเจริญ', nameEn: 'Amnat Charoen' },
+  { code: '38', nameTh: 'บึงกาฬ', nameEn: 'Bueng Kan' },
+  { code: '39', nameTh: 'หนองบัวลำภู', nameEn: 'Nong Bua Lamphu' },
+  { code: '40', nameTh: 'ขอนแก่น', nameEn: 'Khon Kaen' },
+  { code: '41', nameTh: 'อุดรธานี', nameEn: 'Udon Thani' },
+  { code: '42', nameTh: 'เลย', nameEn: 'Loei' },
+  { code: '43', nameTh: 'หนองคาย', nameEn: 'Nong Khai' },
+  { code: '44', nameTh: 'มหาสารคาม', nameEn: 'Maha Sarakham' },
+  { code: '45', nameTh: 'ร้อยเอ็ด', nameEn: 'Roi Et' },
+  { code: '46', nameTh: 'กาฬสินธุ์', nameEn: 'Kalasin' },
+  { code: '47', nameTh: 'สกลนคร', nameEn: 'Sakon Nakhon' },
+  { code: '48', nameTh: 'นครพนม', nameEn: 'Nakhon Phanom' },
+  { code: '49', nameTh: 'มุกดาหาร', nameEn: 'Mukdahan' },
+  { code: '50', nameTh: 'เชียงใหม่', nameEn: 'Chiang Mai' },
+  { code: '51', nameTh: 'ลำพูน', nameEn: 'Lamphun' },
+  { code: '52', nameTh: 'ลำปาง', nameEn: 'Lampang' },
+  { code: '53', nameTh: 'อุตรดิตถ์', nameEn: 'Uttaradit' },
+  { code: '54', nameTh: 'แพร่', nameEn: 'Phrae' },
+  { code: '55', nameTh: 'น่าน', nameEn: 'Nan' },
+  { code: '56', nameTh: 'พะเยา', nameEn: 'Phayao' },
+  { code: '57', nameTh: 'เชียงราย', nameEn: 'Chiang Rai' },
+  { code: '58', nameTh: 'แม่ฮ่องสอน', nameEn: 'Mae Hong Son' },
+  { code: '60', nameTh: 'นครสวรรค์', nameEn: 'Nakhon Sawan' },
+  { code: '61', nameTh: 'อุทัยธานี', nameEn: 'Uthai Thani' },
+  { code: '62', nameTh: 'กำแพงเพชร', nameEn: 'Kamphaeng Phet' },
+  { code: '63', nameTh: 'ตาก', nameEn: 'Tak' },
+  { code: '64', nameTh: 'สุโขทัย', nameEn: 'Sukhothai' },
+  { code: '65', nameTh: 'พิษณุโลก', nameEn: 'Phitsanulok' },
+  { code: '66', nameTh: 'พิจิตร', nameEn: 'Phichit' },
+  { code: '67', nameTh: 'เพชรบูรณ์', nameEn: 'Phetchabun' },
+  { code: '70', nameTh: 'ราชบุรี', nameEn: 'Ratchaburi' },
+  { code: '71', nameTh: 'กาญจนบุรี', nameEn: 'Kanchanaburi' },
+  { code: '72', nameTh: 'สุพรรณบุรี', nameEn: 'Suphan Buri' },
+  { code: '73', nameTh: 'นครปฐม', nameEn: 'Nakhon Pathom' },
+  { code: '74', nameTh: 'สมุทรสาคร', nameEn: 'Samut Sakhon' },
+  { code: '75', nameTh: 'สมุทรสงคราม', nameEn: 'Samut Songkhram' },
+  { code: '76', nameTh: 'เพชรบุรี', nameEn: 'Phetchaburi' },
+  { code: '77', nameTh: 'ประจวบคีรีขันธ์', nameEn: 'Prachuap Khiri Khan' },
+  { code: '80', nameTh: 'นครศรีธรรมราช', nameEn: 'Nakhon Si Thammarat' },
+  { code: '81', nameTh: 'กระบี่', nameEn: 'Krabi' },
+  { code: '82', nameTh: 'พังงา', nameEn: 'Phang Nga' },
+  { code: '83', nameTh: 'ภูเก็ต', nameEn: 'Phuket' },
+  { code: '84', nameTh: 'สุราษฎร์ธานี', nameEn: 'Surat Thani' },
+  { code: '85', nameTh: 'ระนอง', nameEn: 'Ranong' },
+  { code: '86', nameTh: 'ชุมพร', nameEn: 'Chumphon' },
+  { code: '90', nameTh: 'สงขลา', nameEn: 'Songkhla' },
+  { code: '91', nameTh: 'สตูล', nameEn: 'Satun' },
+  { code: '92', nameTh: 'ตรัง', nameEn: 'Trang' },
+  { code: '93', nameTh: 'พัทลุง', nameEn: 'Phatthalung' },
+  { code: '94', nameTh: 'ปัตตานี', nameEn: 'Pattani' },
+  { code: '95', nameTh: 'ยะลา', nameEn: 'Yala' },
+  { code: '96', nameTh: 'นราธิวาส', nameEn: 'Narathiwat' }
+];
+
+// ข้อมูลอำเภอตัวอย่าง (บางอำเภอ)
+const districtsData = [
+  // กรุงเทพมหานคร
+  { code: '1001', nameTh: 'เขตพระนคร', nameEn: 'Phra Nakhon', provinceCode: '10' },
+  { code: '1002', nameTh: 'เขตดุสิต', nameEn: 'Dusit', provinceCode: '10' },
+  { code: '1003', nameTh: 'เขตหนองจอก', nameEn: 'Nong Chok', provinceCode: '10' },
+  { code: '1004', nameTh: 'เขตบางรัก', nameEn: 'Bang Rak', provinceCode: '10' },
+  { code: '1005', nameTh: 'เขตบางเขน', nameEn: 'Bang Khen', provinceCode: '10' },
+  { code: '1006', nameTh: 'เขตบางกะปิ', nameEn: 'Bang Kapi', provinceCode: '10' },
+  { code: '1007', nameTh: 'เขตปทุมวัน', nameEn: 'Pathum Wan', provinceCode: '10' },
+  { code: '1008', nameTh: 'เขตป้อมปราบศัตรูพ่าย', nameEn: 'Pom Prap Sattru Phai', provinceCode: '10' },
+  { code: '1009', nameTh: 'เขตพระโขนง', nameEn: 'Phra Khanong', provinceCode: '10' },
+  { code: '1010', nameTh: 'เขตมีนบุรี', nameEn: 'Min Buri', provinceCode: '10' },
+  { code: '1011', nameTh: 'เขตลาดกระบัง', nameEn: 'Lat Krabang', provinceCode: '10' },
+  { code: '1012', nameTh: 'เขตยานนาวา', nameEn: 'Yan Nawa', provinceCode: '10' },
+  { code: '1013', nameTh: 'เขตสัมพันธวงศ์', nameEn: 'Samphanthawong', provinceCode: '10' },
+  { code: '1014', nameTh: 'เขตพญาไท', nameEn: 'Phaya Thai', provinceCode: '10' },
+  { code: '1015', nameTh: 'เขตธนบุรี', nameEn: 'Thon Buri', provinceCode: '10' },
+  { code: '1016', nameTh: 'เขตคลองสาน', nameEn: 'Khlong San', provinceCode: '10' },
+  { code: '1017', nameTh: 'เขตคลองสามวา', nameEn: 'Khlong Sam Wa', provinceCode: '10' },
+  { code: '1018', nameTh: 'เขตคลองเตย', nameEn: 'Khlong Toei', provinceCode: '10' },
+  { code: '1019', nameTh: 'เขตจตุจักร', nameEn: 'Chatuchak', provinceCode: '10' },
+  { code: '1020', nameTh: 'เขตบางขุนเทียน', nameEn: 'Bang Khun Thian', provinceCode: '10' },
+  { code: '1021', nameTh: 'เขตจอมทอง', nameEn: 'Chom Thong', provinceCode: '10' },
+  { code: '1022', nameTh: 'เขตดอนเมือง', nameEn: 'Don Mueang', provinceCode: '10' },
+  { code: '1023', nameTh: 'เขตราชเทวี', nameEn: 'Ratchathewi', provinceCode: '10' },
+  { code: '1024', nameTh: 'เขตลาดพร้าว', nameEn: 'Lat Phrao', provinceCode: '10' },
+  { code: '1025', nameTh: 'เขตวัฒนา', nameEn: 'Watthana', provinceCode: '10' },
+  { code: '1026', nameTh: 'เขตบางแค', nameEn: 'Bang Khae', provinceCode: '10' },
+  { code: '1027', nameTh: 'เขตหลักสี่', nameEn: 'Lak Si', provinceCode: '10' },
+  { code: '1028', nameTh: 'เขตสายไหม', nameEn: 'Sai Mai', provinceCode: '10' },
+  { code: '1029', nameTh: 'เขตคันนายาว', nameEn: 'Khan Na Yao', provinceCode: '10' },
+  { code: '1030', nameTh: 'เขตสะพานสูง', nameEn: 'Saphan Sung', provinceCode: '10' },
+  { code: '1031', nameTh: 'เขตวังทองหลาง', nameEn: 'Wang Thonglang', provinceCode: '10' },
+  { code: '1032', nameTh: 'เขตคลองสามวา', nameEn: 'Khlong Sam Wa', provinceCode: '10' },
+  { code: '1033', nameTh: 'เขตบางนา', nameEn: 'Bang Na', provinceCode: '10' },
+  { code: '1034', nameTh: 'เขตทวีวัฒนา', nameEn: 'Thawi Watthana', provinceCode: '10' },
+  { code: '1035', nameTh: 'เขตทุ่งครุ', nameEn: 'Thung Khru', provinceCode: '10' },
+  { code: '1036', nameTh: 'เขตบางบอน', nameEn: 'Bang Bon', provinceCode: '10' },
+  { code: '1037', nameTh: 'เขตบางพลัด', nameEn: 'Bang Phlat', provinceCode: '10' },
+  { code: '1038', nameTh: 'เขตบางซื่อ', nameEn: 'Bang Sue', provinceCode: '10' },
+  { code: '1039', nameTh: 'เขตจตุจักร', nameEn: 'Chatuchak', provinceCode: '10' },
+  { code: '1040', nameTh: 'เขตบางกะปิ', nameEn: 'Bang Kapi', provinceCode: '10' },
+  { code: '1041', nameTh: 'เขตลาดกระบัง', nameEn: 'Lat Krabang', provinceCode: '10' },
+  { code: '1042', nameTh: 'เขตยานนาวา', nameEn: 'Yan Nawa', provinceCode: '10' },
+  { code: '1043', nameTh: 'เขตสัมพันธวงศ์', nameEn: 'Samphanthawong', provinceCode: '10' },
+  { code: '1044', nameTh: 'เขตพญาไท', nameEn: 'Phaya Thai', provinceCode: '10' },
+  { code: '1045', nameTh: 'เขตธนบุรี', nameEn: 'Thon Buri', provinceCode: '10' },
+  { code: '1046', nameTh: 'เขตคลองสาน', nameEn: 'Khlong San', provinceCode: '10' },
+  { code: '1047', nameTh: 'เขตคลองสามวา', nameEn: 'Khlong Sam Wa', provinceCode: '10' },
+  { code: '1048', nameTh: 'เขตคลองเตย', nameEn: 'Khlong Toei', provinceCode: '10' },
+  { code: '1049', nameTh: 'เขตจตุจักร', nameEn: 'Chatuchak', provinceCode: '10' },
+  { code: '1050', nameTh: 'เขตบางขุนเทียน', nameEn: 'Bang Khun Thian', provinceCode: '10' },
+  // เชียงใหม่
+  { code: '5001', nameTh: 'อำเภอเมืองเชียงใหม่', nameEn: 'Mueang Chiang Mai', provinceCode: '50' },
+  { code: '5002', nameTh: 'อำเภอจอมทอง', nameEn: 'Chom Thong', provinceCode: '50' },
+  { code: '5003', nameTh: 'อำเภอแม่แจ่ม', nameEn: 'Mae Chaem', provinceCode: '50' },
+  { code: '5004', nameTh: 'อำเภอเชียงดาว', nameEn: 'Chiang Dao', provinceCode: '50' },
+  { code: '5005', nameTh: 'อำเภอดอยสะเก็ด', nameEn: 'Doi Saket', provinceCode: '50' },
+  { code: '5006', nameTh: 'อำเภอแม่แตง', nameEn: 'Mae Taeng', provinceCode: '50' },
+  { code: '5007', nameTh: 'อำเภอแม่ริม', nameEn: 'Mae Rim', provinceCode: '50' },
+  { code: '5008', nameTh: 'อำเภอสะเมิง', nameEn: 'Samoeng', provinceCode: '50' },
+  { code: '5009', nameTh: 'อำเภอฝาง', nameEn: 'Fang', provinceCode: '50' },
+  { code: '5010', nameTh: 'อำเภอแม่อาย', nameEn: 'Mae Ai', provinceCode: '50' },
+  { code: '5011', nameTh: 'อำเภอพร้าว', nameEn: 'Phrao', provinceCode: '50' },
+  { code: '5012', nameTh: 'อำเภอสันป่าตอง', nameEn: 'San Pa Tong', provinceCode: '50' },
+  { code: '5013', nameTh: 'อำเภอสันกำแพง', nameEn: 'San Kamphaeng', provinceCode: '50' },
+  { code: '5014', nameTh: 'อำเภอสันทราย', nameEn: 'San Sai', provinceCode: '50' },
+  { code: '5015', nameTh: 'อำเภอหางดง', nameEn: 'Hang Dong', provinceCode: '50' },
+  { code: '5016', nameTh: 'อำเภอฮอด', nameEn: 'Hot', provinceCode: '50' },
+  { code: '5017', nameTh: 'อำเภอดอยเต่า', nameEn: 'Doi Tao', provinceCode: '50' },
+  { code: '5018', nameTh: 'อำเภออมก๋อย', nameEn: 'Omkoi', provinceCode: '50' },
+  { code: '5019', nameTh: 'อำเภอสารภี', nameEn: 'Saraphi', provinceCode: '50' },
+  { code: '5020', nameTh: 'อำเภอเวียงแหง', nameEn: 'Wiang Haeng', provinceCode: '50' },
+  { code: '5021', nameTh: 'อำเภอไชยปราการ', nameEn: 'Chai Prakan', provinceCode: '50' },
+  { code: '5022', nameTh: 'อำเภอแม่วาง', nameEn: 'Mae Wang', provinceCode: '50' },
+  { code: '5023', nameTh: 'อำเภอแม่ออน', nameEn: 'Mae On', provinceCode: '50' },
+  { code: '5024', nameTh: 'อำเภอดอยหล่อ', nameEn: 'Doi Lo', provinceCode: '50' },
+  { code: '5025', nameTh: 'อำเภอกัลยาณิวัฒนา', nameEn: 'Galayani Vadhana', provinceCode: '50' }
+];
+
+// ข้อมูลตำบลตัวอย่าง (บางตำบล)
+const subdistrictsData = [
+  // เขตพระนคร กรุงเทพมหานคร
+  { code: '100101', nameTh: 'แขวงพระบรมมหาราชวัง', nameEn: 'Phra Borom Maha Ratchawang', districtCode: '1001' },
+  { code: '100102', nameTh: 'แขวงวังบูรพาภิรมย์', nameEn: 'Wang Burapha Phirom', districtCode: '1001' },
+  { code: '100103', nameTh: 'แขวงวัดราชบพิธ', nameEn: 'Wat Ratchabophit', districtCode: '1001' },
+  { code: '100104', nameTh: 'แขวงสำราญราษฎร์', nameEn: 'Samran Rat', districtCode: '1001' },
+  { code: '100105', nameTh: 'แขวงศาลเจ้าพ่อเสือ', nameEn: 'San Chao Pho Suea', districtCode: '1001' },
+  { code: '100106', nameTh: 'แขวงเสาชิงช้า', nameEn: 'Sao Chingcha', districtCode: '1001' },
+  { code: '100107', nameTh: 'แขวงบวรนิเวศ', nameEn: 'Bowon Niwet', districtCode: '1001' },
+  { code: '100108', nameTh: 'แขวงตลาดยอด', nameEn: 'Talat Yot', districtCode: '1001' },
+  { code: '100109', nameTh: 'แขวงชนะสงคราม', nameEn: 'Chana Songkhram', districtCode: '1001' },
+  { code: '100110', nameTh: 'แขวงบ้านพานถม', nameEn: 'Ban Phan Thom', districtCode: '1001' },
+  { code: '100111', nameTh: 'แขวงบางขุนพรหม', nameEn: 'Bang Khun Phrom', districtCode: '1001' },
+  { code: '100112', nameTh: 'แขวงวัดสามพระยา', nameEn: 'Wat Sam Phraya', districtCode: '1001' },
+  // เขตดุสิต กรุงเทพมหานคร
+  { code: '100201', nameTh: 'แขวงดุสิต', nameEn: 'Dusit', districtCode: '1002' },
+  { code: '100202', nameTh: 'แขวงวชิรพยาบาล', nameEn: 'Wachira Phayaban', districtCode: '1002' },
+  { code: '100203', nameTh: 'แขวงสวนจิตรลดา', nameEn: 'Suan Chit Lada', districtCode: '1002' },
+  { code: '100204', nameTh: 'แขวงสี่แยกมหานาค', nameEn: 'Si Yaek Maha Nak', districtCode: '1002' },
+  { code: '100206', nameTh: 'แขวงถนนนครไชยศรี', nameEn: 'Thanon Nakhon Chai Si', districtCode: '1002' },
+  // อำเภอเมืองเชียงใหม่
+  { code: '500101', nameTh: 'ตำบลศรีภูมิ', nameEn: 'Si Phum', districtCode: '5001' },
+  { code: '500102', nameTh: 'ตำบลพระสิงห์', nameEn: 'Phra Sing', districtCode: '5001' },
+  { code: '500103', nameTh: 'ตำบลหายยา', nameEn: 'Hai Ya', districtCode: '5001' },
+  { code: '500104', nameTh: 'ตำบลช้างม่อย', nameEn: 'Chang Moi', districtCode: '5001' },
+  { code: '500105', nameTh: 'ตำบลช้างคลาน', nameEn: 'Chang Khlan', districtCode: '5001' },
+  { code: '500106', nameTh: 'ตำบลวัดเกต', nameEn: 'Wat Ket', districtCode: '5001' },
+  { code: '500107', nameTh: 'ตำบลช้างเผือก', nameEn: 'Chang Phueak', districtCode: '5001' },
+  { code: '500108', nameTh: 'ตำบลสุเทพ', nameEn: 'Suthep', districtCode: '5001' },
+  { code: '500109', nameTh: 'ตำบลแม่เหียะ', nameEn: 'Mae Hia', districtCode: '5001' },
+  { code: '500110', nameTh: 'ตำบลป่าแดด', nameEn: 'Pa Daet', districtCode: '5001' },
+  { code: '500111', nameTh: 'ตำบลหนองหอย', nameEn: 'Nong Hoi', districtCode: '5001' },
+  { code: '500112', nameTh: 'ตำบลท่าศาลา', nameEn: 'Tha Sala', districtCode: '5001' },
+  { code: '500113', nameTh: 'ตำบลหนองป่าครั่ง', nameEn: 'Nong Pa Khrang', districtCode: '5001' },
+  { code: '500114', nameTh: 'ตำบลฟ้าฮ่าม', nameEn: 'Fa Ham', districtCode: '5001' },
+  { code: '500115', nameTh: 'ตำบลป่าตัน', nameEn: 'Pa Tan', districtCode: '5001' },
+  { code: '500116', nameTh: 'ตำบลสันผีเสื้อ', nameEn: 'San Phi Suea', districtCode: '5001' }
+];
+
+async function seedAddressData() {
+  try {
+    console.log('🌱 Starting to seed address data...');
+
+    // สร้างจังหวัด
+    console.log('📍 Creating provinces...');
+    for (const province of provincesData) {
+      await prisma.province.upsert({
+        where: { code: province.code },
+        update: province,
+        create: province
+      });
+    }
+    console.log(`✅ Created ${provincesData.length} provinces`);
+
+    // สร้างอำเภอ
+    console.log('🏘️ Creating districts...');
+    for (const district of districtsData) {
+      const province = await prisma.province.findUnique({
+        where: { code: district.provinceCode }
+      });
+      
+      if (province) {
+        await prisma.district.upsert({
+          where: { code: district.code },
+          update: {
+            ...district,
+            provinceId: province.id
+          },
+          create: {
+            ...district,
+            provinceId: province.id
+          }
+        });
+      }
+    }
+    console.log(`✅ Created ${districtsData.length} districts`);
+
+    // สร้างตำบล
+    console.log('🏠 Creating subdistricts...');
+    for (const subdistrict of subdistrictsData) {
+      const district = await prisma.district.findUnique({
+        where: { code: subdistrict.districtCode }
+      });
+      
+      if (district) {
+        await prisma.subdistrict.upsert({
+          where: { code: subdistrict.code },
+          update: {
+            ...subdistrict,
+            districtId: district.id
+          },
+          create: {
+            ...subdistrict,
+            districtId: district.id
+          }
+        });
+      }
+    }
+    console.log(`✅ Created ${subdistrictsData.length} subdistricts`);
+
+    console.log('🎉 Address data seeding completed successfully!');
+  } catch (error) {
+    console.error('❌ Error seeding address data:', error);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+seedAddressData();
