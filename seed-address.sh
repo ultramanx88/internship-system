@@ -29,3 +29,4 @@ echo "  - Districts (sample districts for Bangkok and Chiang Mai)"
 echo "  - Subdistricts (sample subdistricts)"
 echo ""
 echo "🚀 You can now use the address selection in the internship form!"
+

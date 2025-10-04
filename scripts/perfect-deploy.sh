@@ -179,10 +179,27 @@ npx prisma generate
 
 # Clear and import
 PGPASSWORD=internship_pass psql -U internship_user -d internship_system -h localhost -c "
-TRUNCATE TABLE print_records, documents, applications, internships, companies, users, majors, curriculums, departments, faculties RESTART IDENTITY CASCADE;
+TRUNCATE TABLE print_records, documents, applications, internships, companies, users, majors, curriculums, departments, faculties, supervised_students, course_instructors, educator_roles, semesters, academic_years, evaluation_answers, evaluations, evaluation_questions, evaluation_forms, subdistricts, districts, provinces RESTART IDENTITY CASCADE;
 "
 
 npx tsx scripts/import-data.ts backups/deploy-data.json
+
+# Check if educator tables exist and seed if needed
+log_info "Checking educator system tables..."
+TABLE_EXISTS=$(PGPASSWORD=internship_pass psql -U internship_user -d internship_system -h localhost -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'academic_years');" | tr -d ' ')
+
+if [ "$TABLE_EXISTS" = "t" ]; then
+    log_info "Educator tables exist, checking if data needs seeding..."
+    DATA_COUNT=$(PGPASSWORD=internship_pass psql -U internship_user -d internship_system -h localhost -t -c "SELECT COUNT(*) FROM academic_years;" | tr -d ' ')
+    if [ "$DATA_COUNT" = "0" ]; then
+        log_info "Seeding educator system data..."
+        npx tsx scripts/seed-vps-educator-data.ts
+    else
+        log_success "Educator data already exists ($DATA_COUNT academic years)"
+    fi
+else
+    log_warning "Educator tables not found, they should have been created by prisma db push"
+fi
 
 # Fix passwords
 NEW_HASH=$(node -e "const bcrypt = require('bcryptjs'); console.log(bcrypt.hashSync('123456', 12));")
@@ -303,6 +320,23 @@ npm run build
 
 # Run database migrations if needed
 npx prisma db push --accept-data-loss
+
+# Check if educator tables exist and seed if needed
+log_info "Checking educator system tables..."
+TABLE_EXISTS=$(PGPASSWORD=internship_pass psql -U internship_user -d internship_system -h localhost -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'academic_years');" | tr -d ' ')
+
+if [ "$TABLE_EXISTS" = "t" ]; then
+    log_info "Educator tables exist, checking if data needs seeding..."
+    DATA_COUNT=$(PGPASSWORD=internship_pass psql -U internship_user -d internship_system -h localhost -t -c "SELECT COUNT(*) FROM academic_years;" | tr -d ' ')
+    if [ "$DATA_COUNT" = "0" ]; then
+        log_info "Seeding educator system data..."
+        npx tsx scripts/seed-vps-educator-data.ts
+    else
+        log_success "Educator data already exists ($DATA_COUNT academic years)"
+    fi
+else
+    log_warning "Educator tables not found, they should have been created by prisma db push"
+fi
 
 pm2 restart internship-system
 EOF

@@ -18,6 +18,7 @@ export default function InternshipFormPage() {
     const [provinces, setProvinces] = useState<any[]>([]);
     const [districts, setDistricts] = useState<any[]>([]);
     const [subdistricts, setSubdistricts] = useState<any[]>([]);
+    const [hasDraftData, setHasDraftData] = useState(false);
     
     const [formData, setFormData] = useState({
         // ข้อมูลบริษัท
@@ -143,6 +144,29 @@ export default function InternshipFormPage() {
         loadProvinces();
     }, []);
 
+    // โหลดข้อมูลแบบร่างจาก localStorage
+    useEffect(() => {
+        const loadDraftData = () => {
+            try {
+                const draftData = localStorage.getItem('internship-form-draft');
+                if (draftData) {
+                    const parsedData = JSON.parse(draftData);
+                    setFormData(prev => ({
+                        ...prev,
+                        ...parsedData
+                    }));
+                    setHasDraftData(true);
+                } else {
+                    setHasDraftData(false);
+                }
+            } catch (error) {
+                console.error('Error loading draft data:', error);
+                setHasDraftData(false);
+            }
+        };
+        loadDraftData();
+    }, []);
+
     // โหลดข้อมูลอำเภอเมื่อเลือกจังหวัด
     useEffect(() => {
         if (formData.provinceId) {
@@ -190,7 +214,36 @@ export default function InternshipFormPage() {
     const handleSave = async () => {
         // บันทึกแบบร่าง - ไม่ต้องตรวจสอบ validation
         setIsLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        try {
+            // บันทึกข้อมูลแบบร่างลง localStorage
+            localStorage.setItem('internship-form-draft', JSON.stringify(formData));
+            
+            // บันทึกข้อมูลแบบร่างลงฐานข้อมูล (ถ้ามี API)
+            const response = await fetch('/api/applications/draft', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...formData,
+                    status: 'draft'
+                })
+            });
+            
+            if (response.ok) {
+                setHasDraftData(true);
+                alert(isEnglish ? 'Draft saved successfully!' : 'บันทึกแบบร่างเรียบร้อยแล้ว!');
+            } else {
+                console.warn('Failed to save draft to database, but saved to localStorage');
+                setHasDraftData(true);
+            }
+        } catch (error) {
+            console.error('Error saving draft:', error);
+            // ยังคงบันทึกใน localStorage แม้ว่าจะมีข้อผิดพลาด
+            alert(isEnglish ? 'Draft saved locally!' : 'บันทึกแบบร่างในเครื่องเรียบร้อยแล้ว!');
+        }
+        
         setIsLoading(false);
         router.push('/student/application-form');
     };
@@ -209,7 +262,33 @@ export default function InternshipFormPage() {
         }
         
         setIsLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        try {
+            // ส่งข้อมูลแบบสมบูรณ์
+            const response = await fetch('/api/applications', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...formData,
+                    status: 'submitted'
+                })
+            });
+            
+            if (response.ok) {
+                // ลบข้อมูลแบบร่างเมื่อส่งสำเร็จ
+                localStorage.removeItem('internship-form-draft');
+                setHasDraftData(false);
+                alert(isEnglish ? 'Application submitted successfully!' : 'ส่งใบสมัครเรียบร้อยแล้ว!');
+            } else {
+                throw new Error('Failed to submit application');
+            }
+        } catch (error) {
+            console.error('Error submitting application:', error);
+            alert(isEnglish ? 'Failed to submit application. Please try again.' : 'ส่งใบสมัครไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+        }
+        
         setIsLoading(false);
         router.push('/student/application-form');
     };
@@ -235,6 +314,50 @@ export default function InternshipFormPage() {
         }));
     };
 
+    const handleClearDraft = () => {
+        if (confirm(isEnglish ? 'Are you sure you want to clear all draft data?' : 'คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลแบบร่างทั้งหมด?')) {
+            localStorage.removeItem('internship-form-draft');
+            setFormData({
+                // ข้อมูลบริษัท
+                companyRegNumber: '',
+                companyName: '',
+                companyPhone: '',
+                businessType: '',
+                // ที่อยู่แบบแยกฟิลด์
+                addressNumber: '',
+                building: '',
+                floor: '',
+                soi: '',
+                road: '',
+                provinceId: '',
+                districtId: '',
+                subdistrictId: '',
+                postalCode: '',
+                mapUrl: '',
+                duration: '',
+                
+                // รายละเอียดงาน
+                coordinatorName: '',
+                coordinatorTel: '',
+                coordinatorEmail: '',
+                department: '',
+                position: '',
+                jobDescription: '',
+                supervisorName: '',
+                supervisorTel: '',
+                supervisorEmail: '',
+                
+                // ข้อมูลเพิ่มเติม
+                semester: '',
+                year: '',
+                selectedLanguage: 'thai',
+                selectedInternshipType: 'internship'
+            });
+            setHasDraftData(false);
+            alert(isEnglish ? 'Draft data cleared!' : 'ลบข้อมูลแบบร่างเรียบร้อยแล้ว!');
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="mb-8">
@@ -258,6 +381,21 @@ export default function InternshipFormPage() {
                         <CardTitle className="text-lg font-semibold text-amber-700">{currentLabels.formTitle}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-8">
+                        {/* แสดงสถานะข้อมูลแบบร่าง */}
+                        {hasDraftData && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                    <p className="text-blue-700 font-medium">
+                                        {isEnglish ? 'Draft data loaded' : 'โหลดข้อมูลแบบร่างแล้ว'}
+                                    </p>
+                                </div>
+                                <p className="text-blue-600 text-sm mt-1">
+                                    {isEnglish ? 'Your previously saved draft data has been loaded.' : 'ข้อมูลแบบร่างที่บันทึกไว้ก่อนหน้านี้ได้ถูกโหลดแล้ว'}
+                                </p>
+                            </div>
+                        )}
+
                         {/* กรอกข้อมูลสหกิจศึกษาหรือฝึกงาน */}
                         <div className="space-y-4">
                             <h3 className="text-lg font-medium text-gray-800">{isEnglish ? 'Internship/Co-op Application Form' : 'กรอกข้อมูลสหกิจศึกษาหรือฝึกงาน'}</h3>
@@ -699,22 +837,32 @@ export default function InternshipFormPage() {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex gap-4 justify-end pt-6 border-t">
+                        <div className="flex gap-4 justify-between pt-6 border-t">
                             <Button 
                                 variant="outline" 
-                                className="bg-amber-600 text-white hover:bg-amber-700 border-amber-600"
-                                onClick={handleSave}
+                                className="bg-red-500 text-white hover:bg-red-600 border-red-500"
+                                onClick={handleClearDraft}
                                 disabled={isLoading}
                             >
-                                {currentLabels.saveDraft}
+                                {isEnglish ? 'Clear Draft' : 'ลบข้อมูลแบบร่าง'}
                             </Button>
-                            <Button 
-                                className="bg-amber-600 hover:bg-amber-700"
-                                onClick={handleSaveAndSubmit}
-                                disabled={isLoading}
-                            >
-                                {isLoading ? (isEnglish ? 'Saving...' : 'กำลังบันทึก...') : currentLabels.saveAndSubmit}
-                            </Button>
+                            <div className="flex gap-4">
+                                <Button 
+                                    variant="outline" 
+                                    className="bg-amber-600 text-white hover:bg-amber-700 border-amber-600"
+                                    onClick={handleSave}
+                                    disabled={isLoading}
+                                >
+                                    {currentLabels.saveDraft}
+                                </Button>
+                                <Button 
+                                    className="bg-amber-600 hover:bg-amber-700"
+                                    onClick={handleSaveAndSubmit}
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? (isEnglish ? 'Saving...' : 'กำลังบันทึก...') : currentLabels.saveAndSubmit}
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

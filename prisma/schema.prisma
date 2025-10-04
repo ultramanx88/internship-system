@@ -53,10 +53,17 @@ model User {
   applications  Application[]
   documents     Document[]
   printRecords  PrintRecord[]
+  evaluations   Evaluation[]
   curriculum    Curriculum?   @relation(fields: [curriculumId], references: [id])
   department    Department?   @relation(fields: [departmentId], references: [id])
   faculty       Faculty?      @relation(fields: [facultyId], references: [id])
   major         Major?        @relation(fields: [majorId], references: [id])
+  // ระบบบุคลากรทางการศึกษา
+  educatorRole  EducatorRole? @relation(fields: [educatorRoleId], references: [id])
+  educatorRoleId String?
+  courseInstructors CourseInstructor[]
+  supervisedStudents SupervisedStudent[]
+  createdCourseInstructors CourseInstructor[] @relation("CourseInstructorCreatedBy")
 
   @@map("users")
 }
@@ -69,6 +76,7 @@ model Internship {
   description  String
   type         InternshipType
   applications Application[]
+  evaluations  Evaluation[]
   company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@map("internships")
@@ -86,6 +94,7 @@ model Application {
   internship    Internship        @relation(fields: [internshipId], references: [id], onDelete: Cascade)
   printRecord   PrintRecord?      @relation(fields: [printRecordId], references: [id])
   student       User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  supervisedStudents SupervisedStudent[]
 
   @@map("applications")
 }
@@ -154,6 +163,7 @@ model Subdistrict {
   nameTh     String
   nameEn     String?
   code       String    @unique
+  postalCode String?   // รหัสไปรษณีย์
   districtId String
   isActive   Boolean   @default(true)
   createdAt  DateTime  @default(now())
@@ -253,6 +263,7 @@ model Company {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   internships   Internship[]
+  evaluations   Evaluation[]
   // Relations
   province      Province?    @relation(fields: [provinceId], references: [id])
   district      District?    @relation(fields: [districtId], references: [id])
@@ -304,4 +315,172 @@ enum DocumentStatus {
   pending
   approved
   rejected
+}
+
+// Evaluation Models
+model EvaluationForm {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  questions   EvaluationQuestion[]
+  evaluations Evaluation[]
+
+  @@map("evaluation_forms")
+}
+
+model EvaluationQuestion {
+  id             String        @id @default(cuid())
+  evaluationFormId String
+  question       String
+  questionType   QuestionType  @default(rating)
+  options        String?       // JSON string for multiple choice options
+  isRequired     Boolean       @default(true)
+  order          Int
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  evaluationForm EvaluationForm @relation(fields: [evaluationFormId], references: [id], onDelete: Cascade)
+  answers        EvaluationAnswer[]
+
+  @@map("evaluation_questions")
+}
+
+model Evaluation {
+  id             String   @id @default(cuid())
+  studentId      String
+  companyId      String
+  internshipId   String?
+  evaluationFormId String
+  status         EvaluationStatus @default(pending)
+  submittedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  student        User     @relation(fields: [studentId], references: [id])
+  company        Company  @relation(fields: [companyId], references: [id])
+  internship     Internship? @relation(fields: [internshipId], references: [id])
+  evaluationForm EvaluationForm @relation(fields: [evaluationFormId], references: [id])
+  answers        EvaluationAnswer[]
+
+  @@unique([studentId, companyId, internshipId])
+  @@map("evaluations")
+}
+
+model EvaluationAnswer {
+  id             String           @id @default(cuid())
+  evaluationId   String
+  questionId     String
+  answerValue    String           // Can be rating score, text, or selected option
+  answerText     String?          // For text-based answers
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  
+  evaluation     Evaluation       @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  question       EvaluationQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([evaluationId, questionId])
+  @@map("evaluation_answers")
+}
+
+enum QuestionType {
+  rating
+  text
+  multiple_choice
+  yes_no
+}
+
+enum EvaluationStatus {
+  pending
+  submitted
+  completed
+}
+
+// ระบบปีการศึกษาและเทอม
+model AcademicYear {
+  id          String      @id @default(cuid())
+  year        String      @unique // เช่น "2567"
+  isActive    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  semesters   Semester[]
+  courseInstructors CourseInstructor[]
+
+  @@map("academic_years")
+}
+
+model Semester {
+  id            String      @id @default(cuid())
+  academicYearId String
+  semester      String      // "1", "2", "3"
+  name          String      // "ภาคเรียนที่ 1/2567"
+  startDate     DateTime
+  endDate       DateTime
+  isActive      Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  academicYear  AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  courseInstructors CourseInstructor[]
+
+  @@unique([academicYearId, semester])
+  @@map("semesters")
+}
+
+// ระบบบุคลากรทางการศึกษา
+model EducatorRole {
+  id          String      @id @default(cuid())
+  name        String      @unique // "อาจารย์ประจำวิชา", "อาจารย์นิเทศ", "กรรมการ"
+  nameEn      String?     // "Course Instructor", "Academic Advisor", "Committee Member"
+  description String?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  users       User[]
+  courseInstructors CourseInstructor[]
+
+  @@map("educator_roles")
+}
+
+// ระบบกำหนดอาจารย์ประจำวิชา
+model CourseInstructor {
+  id              String      @id @default(cuid())
+  academicYearId  String
+  semesterId      String
+  courseId        String?     // รหัสวิชา (ถ้ามี)
+  instructorId    String      // User ID ของอาจารย์
+  roleId          String      // EducatorRole ID
+  isActive        Boolean     @default(true)
+  createdBy       String      // User ID ของคนที่สร้าง (admin/staff)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  academicYear    AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  semester        Semester     @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  instructor      User         @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  role            EducatorRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdByUser   User         @relation("CourseInstructorCreatedBy", fields: [createdBy], references: [id])
+  supervisedStudents SupervisedStudent[]
+
+  @@unique([academicYearId, semesterId, courseId, instructorId, roleId])
+  @@map("course_instructors")
+}
+
+// ระบบการดูแลนักศึกษา
+model SupervisedStudent {
+  id                String           @id @default(cuid())
+  courseInstructorId String
+  studentId         String
+  applicationId     String?          // เกี่ยวข้องกับใบสมัคร
+  status            String           @default("active") // "active", "completed", "withdrawn"
+  notes             String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  
+  courseInstructor  CourseInstructor @relation(fields: [courseInstructorId], references: [id], onDelete: Cascade)
+  student           User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  application       Application?     @relation(fields: [applicationId], references: [id])
+
+  @@unique([courseInstructorId, studentId])
+  @@map("supervised_students")
 }

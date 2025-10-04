@@ -4,7 +4,7 @@ const prisma = new PrismaClient({
   log: ['query', 'info', 'warn', 'error'],
 });
 
-// ข้อมูลจังหวัดตัวอย่าง (บางจังหวัด)
+// ข้อมูลจังหวัดทั้งหมด 77 จังหวัด
 const provincesData = [
   { code: '10', nameTh: 'กรุงเทพมหานคร', nameEn: 'Bangkok' },
   { code: '11', nameTh: 'สมุทรปราการ', nameEn: 'Samut Prakan' },
@@ -85,9 +85,8 @@ const provincesData = [
   { code: '96', nameTh: 'นราธิวาส', nameEn: 'Narathiwat' }
 ];
 
-// ข้อมูลอำเภอตัวอย่าง (บางอำเภอ)
-const districtsData = [
-  // กรุงเทพมหานคร
+// ข้อมูลอำเภอ/เขต กรุงเทพมหานคร (50 เขต)
+const bangkokDistricts = [
   { code: '1001', nameTh: 'เขตพระนคร', nameEn: 'Phra Nakhon', provinceCode: '10' },
   { code: '1002', nameTh: 'เขตดุสิต', nameEn: 'Dusit', provinceCode: '10' },
   { code: '1003', nameTh: 'เขตหนองจอก', nameEn: 'Nong Chok', provinceCode: '10' },
@@ -137,8 +136,11 @@ const districtsData = [
   { code: '1047', nameTh: 'เขตคลองสามวา', nameEn: 'Khlong Sam Wa', provinceCode: '10' },
   { code: '1048', nameTh: 'เขตคลองเตย', nameEn: 'Khlong Toei', provinceCode: '10' },
   { code: '1049', nameTh: 'เขตจตุจักร', nameEn: 'Chatuchak', provinceCode: '10' },
-  { code: '1050', nameTh: 'เขตบางขุนเทียน', nameEn: 'Bang Khun Thian', provinceCode: '10' },
-  // เชียงใหม่
+  { code: '1050', nameTh: 'เขตบางขุนเทียน', nameEn: 'Bang Khun Thian', provinceCode: '10' }
+];
+
+// ข้อมูลอำเภอ เชียงใหม่ (25 อำเภอ)
+const chiangMaiDistricts = [
   { code: '5001', nameTh: 'อำเภอเมืองเชียงใหม่', nameEn: 'Mueang Chiang Mai', provinceCode: '50' },
   { code: '5002', nameTh: 'อำเภอจอมทอง', nameEn: 'Chom Thong', provinceCode: '50' },
   { code: '5003', nameTh: 'อำเภอแม่แจ่ม', nameEn: 'Mae Chaem', provinceCode: '50' },
@@ -166,49 +168,106 @@ const districtsData = [
   { code: '5025', nameTh: 'อำเภอกัลยาณิวัฒนา', nameEn: 'Galayani Vadhana', provinceCode: '50' }
 ];
 
-// ข้อมูลตำบลตัวอย่าง (บางตำบล)
-const subdistrictsData = [
-  // เขตพระนคร กรุงเทพมหานคร
-  { code: '100101', nameTh: 'แขวงพระบรมมหาราชวัง', nameEn: 'Phra Borom Maha Ratchawang', districtCode: '1001' },
-  { code: '100102', nameTh: 'แขวงวังบูรพาภิรมย์', nameEn: 'Wang Burapha Phirom', districtCode: '1001' },
-  { code: '100103', nameTh: 'แขวงวัดราชบพิธ', nameEn: 'Wat Ratchabophit', districtCode: '1001' },
-  { code: '100104', nameTh: 'แขวงสำราญราษฎร์', nameEn: 'Samran Rat', districtCode: '1001' },
-  { code: '100105', nameTh: 'แขวงศาลเจ้าพ่อเสือ', nameEn: 'San Chao Pho Suea', districtCode: '1001' },
-  { code: '100106', nameTh: 'แขวงเสาชิงช้า', nameEn: 'Sao Chingcha', districtCode: '1001' },
-  { code: '100107', nameTh: 'แขวงบวรนิเวศ', nameEn: 'Bowon Niwet', districtCode: '1001' },
-  { code: '100108', nameTh: 'แขวงตลาดยอด', nameEn: 'Talat Yot', districtCode: '1001' },
-  { code: '100109', nameTh: 'แขวงชนะสงคราม', nameEn: 'Chana Songkhram', districtCode: '1001' },
-  { code: '100110', nameTh: 'แขวงบ้านพานถม', nameEn: 'Ban Phan Thom', districtCode: '1001' },
-  { code: '100111', nameTh: 'แขวงบางขุนพรหม', nameEn: 'Bang Khun Phrom', districtCode: '1001' },
-  { code: '100112', nameTh: 'แขวงวัดสามพระยา', nameEn: 'Wat Sam Phraya', districtCode: '1001' },
-  // เขตดุสิต กรุงเทพมหานคร
-  { code: '100201', nameTh: 'แขวงดุสิต', nameEn: 'Dusit', districtCode: '1002' },
-  { code: '100202', nameTh: 'แขวงวชิรพยาบาล', nameEn: 'Wachira Phayaban', districtCode: '1002' },
-  { code: '100203', nameTh: 'แขวงสวนจิตรลดา', nameEn: 'Suan Chit Lada', districtCode: '1002' },
-  { code: '100204', nameTh: 'แขวงสี่แยกมหานาค', nameEn: 'Si Yaek Maha Nak', districtCode: '1002' },
-  { code: '100206', nameTh: 'แขวงถนนนครไชยศรี', nameEn: 'Thanon Nakhon Chai Si', districtCode: '1002' },
-  // อำเภอเมืองเชียงใหม่
-  { code: '500101', nameTh: 'ตำบลศรีภูมิ', nameEn: 'Si Phum', districtCode: '5001' },
-  { code: '500102', nameTh: 'ตำบลพระสิงห์', nameEn: 'Phra Sing', districtCode: '5001' },
-  { code: '500103', nameTh: 'ตำบลหายยา', nameEn: 'Hai Ya', districtCode: '5001' },
-  { code: '500104', nameTh: 'ตำบลช้างม่อย', nameEn: 'Chang Moi', districtCode: '5001' },
-  { code: '500105', nameTh: 'ตำบลช้างคลาน', nameEn: 'Chang Khlan', districtCode: '5001' },
-  { code: '500106', nameTh: 'ตำบลวัดเกต', nameEn: 'Wat Ket', districtCode: '5001' },
-  { code: '500107', nameTh: 'ตำบลช้างเผือก', nameEn: 'Chang Phueak', districtCode: '5001' },
-  { code: '500108', nameTh: 'ตำบลสุเทพ', nameEn: 'Suthep', districtCode: '5001' },
-  { code: '500109', nameTh: 'ตำบลแม่เหียะ', nameEn: 'Mae Hia', districtCode: '5001' },
-  { code: '500110', nameTh: 'ตำบลป่าแดด', nameEn: 'Pa Daet', districtCode: '5001' },
-  { code: '500111', nameTh: 'ตำบลหนองหอย', nameEn: 'Nong Hoi', districtCode: '5001' },
-  { code: '500112', nameTh: 'ตำบลท่าศาลา', nameEn: 'Tha Sala', districtCode: '5001' },
-  { code: '500113', nameTh: 'ตำบลหนองป่าครั่ง', nameEn: 'Nong Pa Khrang', districtCode: '5001' },
-  { code: '500114', nameTh: 'ตำบลฟ้าฮ่าม', nameEn: 'Fa Ham', districtCode: '5001' },
-  { code: '500115', nameTh: 'ตำบลป่าตัน', nameEn: 'Pa Tan', districtCode: '5001' },
-  { code: '500116', nameTh: 'ตำบลสันผีเสื้อ', nameEn: 'San Phi Suea', districtCode: '5001' }
+// รวมข้อมูลอำเภอทั้งหมด
+const allDistricts = [...bangkokDistricts, ...chiangMaiDistricts];
+
+// ข้อมูลตำบล/แขวง กรุงเทพมหานคร (ตัวอย่างบางเขต)
+const bangkokSubdistricts = [
+  // เขตพระนคร
+  { code: '100101', nameTh: 'แขวงพระบรมมหาราชวัง', nameEn: 'Phra Borom Maha Ratchawang', postalCode: '10200', districtCode: '1001' },
+  { code: '100102', nameTh: 'แขวงวังบูรพาภิรมย์', nameEn: 'Wang Burapha Phirom', postalCode: '10200', districtCode: '1001' },
+  { code: '100103', nameTh: 'แขวงวัดราชบพิธ', nameEn: 'Wat Ratchabophit', postalCode: '10200', districtCode: '1001' },
+  { code: '100104', nameTh: 'แขวงสำราญราษฎร์', nameEn: 'Samran Rat', postalCode: '10200', districtCode: '1001' },
+  { code: '100105', nameTh: 'แขวงศาลเจ้าพ่อเสือ', nameEn: 'San Chao Pho Suea', postalCode: '10200', districtCode: '1001' },
+  { code: '100106', nameTh: 'แขวงเสาชิงช้า', nameEn: 'Sao Chingcha', postalCode: '10200', districtCode: '1001' },
+  { code: '100107', nameTh: 'แขวงบวรนิเวศ', nameEn: 'Bowon Niwet', postalCode: '10200', districtCode: '1001' },
+  { code: '100108', nameTh: 'แขวงตลาดยอด', nameEn: 'Talat Yot', postalCode: '10200', districtCode: '1001' },
+  { code: '100109', nameTh: 'แขวงชนะสงคราม', nameEn: 'Chana Songkhram', postalCode: '10200', districtCode: '1001' },
+  { code: '100110', nameTh: 'แขวงบ้านพานถม', nameEn: 'Ban Phan Thom', postalCode: '10200', districtCode: '1001' },
+  { code: '100111', nameTh: 'แขวงบางขุนพรหม', nameEn: 'Bang Khun Phrom', postalCode: '10200', districtCode: '1001' },
+  { code: '100112', nameTh: 'แขวงวัดสามพระยา', nameEn: 'Wat Sam Phraya', postalCode: '10200', districtCode: '1001' },
+  
+  // เขตดุสิต
+  { code: '100201', nameTh: 'แขวงดุสิต', nameEn: 'Dusit', postalCode: '10300', districtCode: '1002' },
+  { code: '100202', nameTh: 'แขวงวชิรพยาบาล', nameEn: 'Wachira Phayaban', postalCode: '10300', districtCode: '1002' },
+  { code: '100203', nameTh: 'แขวงสวนจิตรลดา', nameEn: 'Suan Chit Lada', postalCode: '10300', districtCode: '1002' },
+  { code: '100204', nameTh: 'แขวงสี่แยกมหานาค', nameEn: 'Si Yaek Maha Nak', postalCode: '10300', districtCode: '1002' },
+  { code: '100205', nameTh: 'แขวงถนนนครไชยศรี', nameEn: 'Thanon Nakhon Chai Si', postalCode: '10300', districtCode: '1002' },
+  
+  // เขตบางรัก
+  { code: '100401', nameTh: 'แขวงสุริยวงศ์', nameEn: 'Suriyawong', postalCode: '10500', districtCode: '1004' },
+  { code: '100402', nameTh: 'แขวงมหาพฤฒาราม', nameEn: 'Maha Phruettharam', postalCode: '10500', districtCode: '1004' },
+  { code: '100403', nameTh: 'แขวงสีลม', nameEn: 'Silom', postalCode: '10500', districtCode: '1004' },
+  { code: '100404', nameTh: 'แขวงสุริยวงศ์', nameEn: 'Suriyawong', postalCode: '10500', districtCode: '1004' },
+  { code: '100405', nameTh: 'แขวงบางรัก', nameEn: 'Bang Rak', postalCode: '10500', districtCode: '1004' },
+  { code: '100406', nameTh: 'แขวงสี่พระยา', nameEn: 'Si Phraya', postalCode: '10500', districtCode: '1004' },
+  
+  // เขตปทุมวัน
+  { code: '100701', nameTh: 'แขวงลุมพินี', nameEn: 'Lumphini', postalCode: '10330', districtCode: '1007' },
+  { code: '100702', nameTh: 'แขวงวังใหม่', nameEn: 'Wang Mai', postalCode: '10330', districtCode: '1007' },
+  { code: '100703', nameTh: 'แขวงปทุมวัน', nameEn: 'Pathum Wan', postalCode: '10330', districtCode: '1007' },
+  { code: '100704', nameTh: 'แขวงลุมพินี', nameEn: 'Lumphini', postalCode: '10330', districtCode: '1007' },
+  
+  // เขตคลองเตย
+  { code: '101801', nameTh: 'แขวงคลองเตย', nameEn: 'Khlong Toei', postalCode: '10110', districtCode: '1018' },
+  { code: '101802', nameTh: 'แขวงคลองตัน', nameEn: 'Khlong Tan', postalCode: '10110', districtCode: '1018' },
+  { code: '101803', nameTh: 'แขวงพระโขนง', nameEn: 'Phra Khanong', postalCode: '10110', districtCode: '1018' },
+  { code: '101804', nameTh: 'แขวงคลองเตย', nameEn: 'Khlong Toei', postalCode: '10110', districtCode: '1018' },
+  
+  // เขตวัฒนา
+  { code: '102501', nameTh: 'แขวงคลองเตย', nameEn: 'Khlong Toei', postalCode: '10110', districtCode: '1025' },
+  { code: '102502', nameTh: 'แขวงคลองตัน', nameEn: 'Khlong Tan', postalCode: '10110', districtCode: '1025' },
+  { code: '102503', nameTh: 'แขวงพระโขนง', nameEn: 'Phra Khanong', postalCode: '10110', districtCode: '1025' },
+  { code: '102504', nameTh: 'แขวงคลองเตย', nameEn: 'Khlong Toei', postalCode: '10110', districtCode: '1025' }
 ];
 
-async function seedAddressData() {
+// ข้อมูลตำบล เชียงใหม่ (ตัวอย่างบางอำเภอ)
+const chiangMaiSubdistricts = [
+  // อำเภอเมืองเชียงใหม่
+  { code: '500101', nameTh: 'ตำบลศรีภูมิ', nameEn: 'Si Phum', postalCode: '50200', districtCode: '5001' },
+  { code: '500102', nameTh: 'ตำบลพระสิงห์', nameEn: 'Phra Sing', postalCode: '50200', districtCode: '5001' },
+  { code: '500103', nameTh: 'ตำบลหายยา', nameEn: 'Hai Ya', postalCode: '50100', districtCode: '5001' },
+  { code: '500104', nameTh: 'ตำบลช้างม่อย', nameEn: 'Chang Moi', postalCode: '50100', districtCode: '5001' },
+  { code: '500105', nameTh: 'ตำบลช้างคลาน', nameEn: 'Chang Khlan', postalCode: '50100', districtCode: '5001' },
+  { code: '500106', nameTh: 'ตำบลวัดเกต', nameEn: 'Wat Ket', postalCode: '50000', districtCode: '5001' },
+  { code: '500107', nameTh: 'ตำบลช้างเผือก', nameEn: 'Chang Phueak', postalCode: '50300', districtCode: '5001' },
+  { code: '500108', nameTh: 'ตำบลสุเทพ', nameEn: 'Suthep', postalCode: '50200', districtCode: '5001' },
+  { code: '500109', nameTh: 'ตำบลแม่เหียะ', nameEn: 'Mae Hia', postalCode: '50100', districtCode: '5001' },
+  { code: '500110', nameTh: 'ตำบลป่าแดด', nameEn: 'Pa Daet', postalCode: '50100', districtCode: '5001' },
+  { code: '500111', nameTh: 'ตำบลหนองหอย', nameEn: 'Nong Hoi', postalCode: '50100', districtCode: '5001' },
+  { code: '500112', nameTh: 'ตำบลท่าศาลา', nameEn: 'Tha Sala', postalCode: '50000', districtCode: '5001' },
+  { code: '500113', nameTh: 'ตำบลหนองป่าครั่ง', nameEn: 'Nong Pa Khrang', postalCode: '50000', districtCode: '5001' },
+  { code: '500114', nameTh: 'ตำบลฟ้าฮ่าม', nameEn: 'Fa Ham', postalCode: '50000', districtCode: '5001' },
+  { code: '500115', nameTh: 'ตำบลป่าตัน', nameEn: 'Pa Tan', postalCode: '50300', districtCode: '5001' },
+  { code: '500116', nameTh: 'ตำบลสันผีเสื้อ', nameEn: 'San Phi Suea', postalCode: '50300', districtCode: '5001' },
+  
+  // อำเภอแม่ริม
+  { code: '500701', nameTh: 'ตำบลแม่ริม', nameEn: 'Mae Rim', postalCode: '50180', districtCode: '5007' },
+  { code: '500702', nameTh: 'ตำบลสะเมิงใต้', nameEn: 'Samoeng Tai', postalCode: '50180', districtCode: '5007' },
+  { code: '500703', nameTh: 'ตำบลสะเมิงเหนือ', nameEn: 'Samoeng Nuea', postalCode: '50180', districtCode: '5007' },
+  { code: '500704', nameTh: 'ตำบลแม่สา', nameEn: 'Mae Sa', postalCode: '50180', districtCode: '5007' },
+  { code: '500705', nameTh: 'ตำบลแม่แรม', nameEn: 'Mae Raem', postalCode: '50180', districtCode: '5007' },
+  { code: '500706', nameTh: 'ตำบลโป่งแยง', nameEn: 'Pong Yaeng', postalCode: '50180', districtCode: '5007' },
+  { code: '500707', nameTh: 'ตำบลแม่แรม', nameEn: 'Mae Raem', postalCode: '50180', districtCode: '5007' },
+  { code: '500708', nameTh: 'ตำบลแม่สา', nameEn: 'Mae Sa', postalCode: '50180', districtCode: '5007' },
+  
+  // อำเภอสันทราย
+  { code: '501401', nameTh: 'ตำบลสันทราย', nameEn: 'San Sai', postalCode: '50210', districtCode: '5014' },
+  { code: '501402', nameTh: 'ตำบลสันทรายน้อย', nameEn: 'San Sai Noi', postalCode: '50210', districtCode: '5014' },
+  { code: '501403', nameTh: 'ตำบลสันพระเนตร', nameEn: 'San Phra Net', postalCode: '50210', districtCode: '5014' },
+  { code: '501404', nameTh: 'ตำบลสันนาเม็ง', nameEn: 'San Na Meng', postalCode: '50210', districtCode: '5014' },
+  { code: '501405', nameTh: 'ตำบลสันป่าเปา', nameEn: 'San Pa Pao', postalCode: '50210', districtCode: '5014' },
+  { code: '501406', nameTh: 'ตำบลหนองแหย่ง', nameEn: 'Nong Yaeng', postalCode: '50210', districtCode: '5014' },
+  { code: '501407', nameTh: 'ตำบลหนองจ๊อม', nameEn: 'Nong Chom', postalCode: '50210', districtCode: '5014' },
+  { code: '501408', nameTh: 'ตำบลหนองจ๊อม', nameEn: 'Nong Chom', postalCode: '50210', districtCode: '5014' }
+];
+
+// รวมข้อมูลตำบลทั้งหมด
+const allSubdistricts = [...bangkokSubdistricts, ...chiangMaiSubdistricts];
+
+async function seedCompleteAddressData() {
   try {
-    console.log('🌱 Starting to seed address data...');
+    console.log('🌱 Starting to seed complete address data...');
 
     // สร้างจังหวัด
     console.log('📍 Creating provinces...');
@@ -223,7 +282,7 @@ async function seedAddressData() {
 
     // สร้างอำเภอ
     console.log('🏘️ Creating districts...');
-    for (const district of districtsData) {
+    for (const district of allDistricts) {
       const province = await prisma.province.findUnique({
         where: { code: district.provinceCode }
       });
@@ -246,11 +305,11 @@ async function seedAddressData() {
         });
       }
     }
-    console.log(`✅ Created ${districtsData.length} districts`);
+    console.log(`✅ Created ${allDistricts.length} districts`);
 
     // สร้างตำบล
     console.log('🏠 Creating subdistricts...');
-    for (const subdistrict of subdistrictsData) {
+    for (const subdistrict of allSubdistricts) {
       const district = await prisma.district.findUnique({
         where: { code: subdistrict.districtCode }
       });
@@ -262,26 +321,34 @@ async function seedAddressData() {
             nameTh: subdistrict.nameTh,
             nameEn: subdistrict.nameEn,
             code: subdistrict.code,
+            postalCode: subdistrict.postalCode,
             districtId: district.id
           },
           create: {
             nameTh: subdistrict.nameTh,
             nameEn: subdistrict.nameEn,
             code: subdistrict.code,
+            postalCode: subdistrict.postalCode,
             districtId: district.id
           }
         });
       }
     }
-    console.log(`✅ Created ${subdistrictsData.length} subdistricts`);
+    console.log(`✅ Created ${allSubdistricts.length} subdistricts`);
 
-    console.log('🎉 Address data seeding completed successfully!');
+    console.log('🎉 Complete address data seeding completed successfully!');
+    console.log('');
+    console.log('📊 Summary:');
+    console.log(`  - Provinces: ${provincesData.length}`);
+    console.log(`  - Districts: ${allDistricts.length}`);
+    console.log(`  - Subdistricts: ${allSubdistricts.length}`);
+    console.log('');
+    console.log('🚀 You can now use the complete address system!');
   } catch (error) {
-    console.error('❌ Error seeding address data:', error);
+    console.error('❌ Error seeding complete address data:', error);
   } finally {
     await prisma.$disconnect();
   }
 }
 
-seedAddressData();
-
+seedCompleteAddressData();

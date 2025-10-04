@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import Link from 'next/link';
 export default function ProjectDetailsPage() {
     const [projectChoice, setProjectChoice] = useState('do-project');
     const [isFormSaved, setIsFormSaved] = useState(false);
+    const [instructorName, setInstructorName] = useState('อาจารย์ A'); // Default fallback
 
     // Form data states
     const [formData, setFormData] = useState({
@@ -26,6 +27,39 @@ export default function ProjectDetailsPage() {
         software: '',
         reasons: ''
     });
+
+    // Load instructor data
+    useEffect(() => {
+        loadInstructorData();
+    }, []);
+
+    const loadInstructorData = async () => {
+        try {
+            // Get current active semester
+            const semestersResponse = await fetch('/api/semesters');
+            if (semestersResponse.ok) {
+                const semesters = await semestersResponse.json();
+                const activeSemester = semesters.find((s: any) => s.isActive);
+                
+                if (activeSemester) {
+                    // Get course instructors for active semester
+                    const instructorsResponse = await fetch(`/api/course-instructors?semesterId=${activeSemester.id}`);
+                    if (instructorsResponse.ok) {
+                        const instructors = await instructorsResponse.json();
+                        const academicAdvisor = instructors.find((i: any) => 
+                            i.role.name === 'อาจารย์นิเทศ' && i.isActive
+                        );
+                        
+                        if (academicAdvisor) {
+                            setInstructorName(academicAdvisor.instructor.name);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading instructor data:', error);
+        }
+    };
 
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({
@@ -110,7 +144,7 @@ export default function ProjectDetailsPage() {
                             </div>
                             <div>
                                 <span className="text-amber-700 font-medium">อาจารย์นิเทศ (Academic advisor) : </span>
-                                <span className="text-gray-900">อาจารย์ A</span>
+                                <span className="text-gray-900">{instructorName}</span>
                             </div>
                             <div className="md:col-span-2">
                                 <span className="text-amber-700 font-medium">ที่อยู่บริษัท (Address) : </span>

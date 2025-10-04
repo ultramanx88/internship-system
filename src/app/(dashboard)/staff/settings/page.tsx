@@ -9,7 +9,9 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Save, User, Bell, Shield, Database, Mail, Globe } from 'lucide-react';
+import { Save, User, Bell, Shield, Database, Mail, Globe, GraduationCap, Calendar } from 'lucide-react';
+import { AcademicManagement } from '@/components/staff/settings/AcademicManagement';
+import { EducatorManagement } from '@/components/staff/settings/EducatorManagement';
 
 export default function SettingsPage() {
     const [notifications, setNotifications] = useState({
@@ -41,10 +43,18 @@ export default function SettingsPage() {
                 </div>
 
                 <Tabs defaultValue="profile" className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-4">
+                    <TabsList className="grid w-full grid-cols-6">
                         <TabsTrigger value="profile" className="flex items-center gap-2">
                             <User className="h-4 w-4" />
                             ข้อมูลส่วนตัว
+                        </TabsTrigger>
+                        <TabsTrigger value="academic" className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4" />
+                            ปีการศึกษา
+                        </TabsTrigger>
+                        <TabsTrigger value="educators" className="flex items-center gap-2">
+                            <GraduationCap className="h-4 w-4" />
+                            บุคลากร
                         </TabsTrigger>
                         <TabsTrigger value="notifications" className="flex items-center gap-2">
                             <Bell className="h-4 w-4" />
@@ -121,6 +131,16 @@ export default function SettingsPage() {
                                 </div>
                             </CardContent>
                         </Card>
+                    </TabsContent>
+
+                    {/* Academic Management */}
+                    <TabsContent value="academic" className="space-y-6">
+                        <AcademicManagement />
+                    </TabsContent>
+
+                    {/* Educator Management */}
+                    <TabsContent value="educators" className="space-y-6">
+                        <EducatorManagement />
                     </TabsContent>
 
                     {/* Notification Settings */}
