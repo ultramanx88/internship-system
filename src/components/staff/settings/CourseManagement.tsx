@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { useToast } from '@/hooks/use-toast';
 
 interface CourseCategory {
   id: string;
@@ -58,6 +58,7 @@ interface Course {
 }
 
 export default function CourseManagement() {
+  const { toast } = useToast();
   const [courses, setCourses] = useState<Course[]>([]);
   const [categories, setCategories] = useState<CourseCategory[]>([]);
   const [faculties, setFaculties] = useState<Faculty[]>([]);
@@ -148,7 +149,11 @@ export default function CourseManagement() {
 
     } catch (error) {
       console.error('Error loading data:', error);
-      toast.error('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+      toast({
+        variant: 'destructive',
+        title: 'เกิดข้อผิดพลาด',
+        description: 'เกิดข้อผิดพลาดในการโหลดข้อมูล'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -167,14 +172,25 @@ export default function CourseManagement() {
         setCourses([...courses, newCourse]);
         setIsCreating(false);
         resetForm();
-        toast.success('สร้างวิชาเรียบร้อยแล้ว');
+        toast({
+          title: 'สำเร็จ',
+          description: 'สร้างวิชาเรียบร้อยแล้ว'
+        });
       } else {
         const error = await response.json();
-        toast.error(error.error || 'เกิดข้อผิดพลาดในการสร้างวิชา');
+        toast({
+          variant: 'destructive',
+          title: 'เกิดข้อผิดพลาด',
+          description: error.error || 'เกิดข้อผิดพลาดในการสร้างวิชา'
+        });
       }
     } catch (error) {
       console.error('Error creating course:', error);
-      toast.error('เกิดข้อผิดพลาดในการสร้างวิชา');
+      toast({
+        variant: 'destructive',
+        title: 'เกิดข้อผิดพลาด',
+        description: 'เกิดข้อผิดพลาดในการสร้างวิชา'
+      });
     }
   };
 
@@ -195,14 +211,25 @@ export default function CourseManagement() {
         ));
         setEditingCourse(null);
         resetForm();
-        toast.success('อัปเดตวิชาเรียบร้อยแล้ว');
+        toast({
+          title: 'สำเร็จ',
+          description: 'อัปเดตวิชาเรียบร้อยแล้ว'
+        });
       } else {
         const error = await response.json();
-        toast.error(error.error || 'เกิดข้อผิดพลาดในการอัปเดตวิชา');
+        toast({
+          variant: 'destructive',
+          title: 'เกิดข้อผิดพลาด',
+          description: error.error || 'เกิดข้อผิดพลาดในการอัปเดตวิชา'
+        });
       }
     } catch (error) {
       console.error('Error updating course:', error);
-      toast.error('เกิดข้อผิดพลาดในการอัปเดตวิชา');
+      toast({
+        variant: 'destructive',
+        title: 'เกิดข้อผิดพลาด',
+        description: 'เกิดข้อผิดพลาดในการอัปเดตวิชา'
+      });
     }
   };
 
@@ -216,14 +243,25 @@ export default function CourseManagement() {
 
       if (response.ok) {
         setCourses(courses.filter(course => course.id !== courseId));
-        toast.success('ลบวิชาเรียบร้อยแล้ว');
+        toast({
+          title: 'สำเร็จ',
+          description: 'ลบวิชาเรียบร้อยแล้ว'
+        });
       } else {
         const error = await response.json();
-        toast.error(error.error || 'เกิดข้อผิดพลาดในการลบวิชา');
+        toast({
+          variant: 'destructive',
+          title: 'เกิดข้อผิดพลาด',
+          description: error.error || 'เกิดข้อผิดพลาดในการลบวิชา'
+        });
       }
     } catch (error) {
       console.error('Error deleting course:', error);
-      toast.error('เกิดข้อผิดพลาดในการลบวิชา');
+      toast({
+        variant: 'destructive',
+        title: 'เกิดข้อผิดพลาด',
+        description: 'เกิดข้อผิดพลาดในการลบวิชา'
+      });
     }
   };
 
