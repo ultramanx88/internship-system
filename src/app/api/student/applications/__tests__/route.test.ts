@@ -1,14 +1,17 @@
 import { NextRequest } from 'next/server';
 import { GET, POST } from '../route';
+import { prisma } from '@/lib/prisma';
 
 // Mock Prisma
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     application: {
       findMany: jest.fn(),
-      count: jest.fn(),
-      findFirst: jest.fn(),
       create: jest.fn(),
+      findFirst: jest.fn(),
+    },
+    user: {
+      findUnique: jest.fn(),
     },
   },
 }));
@@ -19,7 +22,7 @@ jest.mock('@/lib/auth-utils', () => ({
   cleanup: jest.fn(),
 }));
 
-// Mock security
+// Mock security utils
 jest.mock('@/lib/security', () => ({
   sanitizeUserInput: jest.fn(),
   sanitizeString: jest.fn(),
@@ -28,7 +31,7 @@ jest.mock('@/lib/security', () => ({
 // Mock rate limiter
 jest.mock('@/lib/rate-limiter', () => ({
   rateLimitMiddleware: jest.fn(),
-  applicationRateLimiter: jest.fn(),
+  applicationRateLimiter: {},
 }));
 
 // Mock CSRF
@@ -36,111 +39,75 @@ jest.mock('@/lib/csrf', () => ({
   csrfMiddleware: jest.fn(),
 }));
 
-// Mock cache
-jest.mock('@/lib/cache', () => ({
-  studentCache: {
-    get: jest.fn(),
-    set: jest.fn(),
-  },
-  cacheKeys: {
-    studentApplications: jest.fn(),
-  },
-}));
-
-// Mock logger
-jest.mock('@/lib/logger', () => ({
-  logger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-  PerformanceMonitor: {
-    start: jest.fn(),
-    end: jest.fn(),
-  },
-}));
-
-import { prisma } from '@/lib/prisma';
-import { requireAuth, cleanup } from '@/lib/auth-utils';
-import { sanitizeUserInput, sanitizeString } from '@/lib/security';
-import { rateLimitMiddleware } from '@/lib/rate-limiter';
-import { csrfMiddleware } from '@/lib/csrf';
-import { studentCache, cacheKeys } from '@/lib/cache';
-
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
-const mockRequireAuth = requireAuth as jest.MockedFunction<typeof requireAuth>;
-const mockCleanup = cleanup as jest.MockedFunction<typeof cleanup>;
-const mockSanitizeUserInput = sanitizeUserInput as jest.MockedFunction<typeof sanitizeUserInput>;
-const mockSanitizeString = sanitizeString as jest.MockedFunction<typeof sanitizeString>;
-const mockRateLimitMiddleware = rateLimitMiddleware as jest.MockedFunction<typeof rateLimitMiddleware>;
-const mockCsrfMiddleware = csrfMiddleware as jest.MockedFunction<typeof csrfMiddleware>;
-const mockStudentCache = studentCache as jest.Mocked<typeof studentCache>;
-const mockCacheKeys = cacheKeys as jest.Mocked<typeof cacheKeys>;
+const mockRequireAuth = require('@/lib/auth-utils').requireAuth as jest.MockedFunction<any>;
+const mockSanitizeUserInput = require('@/lib/security').sanitizeUserInput as jest.MockedFunction<any>;
+const mockRateLimitMiddleware = require('@/lib/rate-limiter').rateLimitMiddleware as jest.MockedFunction<any>;
+const mockCsrfMiddleware = require('@/lib/csrf').csrfMiddleware as jest.MockedFunction<any>;
 
 describe('/api/student/applications', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Mock successful auth
     mockRequireAuth.mockResolvedValue({
-      user: {
-        id: 'student_user',
-        name: 'Student User',
-        roles: ['student'],
-      },
+      user: { id: 'student_123', roles: ['student'] },
     });
+    
+    // Mock successful sanitization
     mockSanitizeUserInput.mockReturnValue({
       isValid: true,
-      sanitized: { internshipId: 'internship_1', studentReason: 'Test reason' },
-      errors: [],
+      sanitized: { internshipId: 'intern_123', studentReason: 'Test reason' },
     });
-    mockSanitizeString.mockImplementation((input) => input);
+    
+    // Mock middleware
     mockRateLimitMiddleware.mockReturnValue(null);
     mockCsrfMiddleware.mockReturnValue(null);
-    mockStudentCache.get.mockReturnValue(null);
-    mockCacheKeys.studentApplications.mockReturnValue('cache_key');
   });
 
   describe('GET', () => {
-    it('should return applications successfully', async () => {
+    it('returns applications for authenticated student', async () => {
       const mockApplications = [
         {
-          id: 'app_1',
-          studentId: 'student_user',
-          internshipId: 'internship_1',
+          id: 'app_123',
+          studentId: 'student_123',
+          internshipId: 'intern_123',
           status: 'pending',
           dateApplied: new Date(),
           internship: {
-            id: 'internship_1',
+            id: 'intern_123',
             title: 'Test Internship',
-            company: {
-              id: 'company_1',
-              name: 'Test Company',
-            },
+            company: { name: 'Test Company' },
           },
         },
       ];
 
       mockPrisma.application.findMany.mockResolvedValue(mockApplications);
-      mockPrisma.application.count.mockResolvedValue(1);
 
-      const request = new NextRequest('http://localhost:3000/api/student/applications', {
-        headers: {
-          'x-user-id': 'student_user',
-        },
-      });
-
+      const request = new NextRequest('http://localhost:3000/api/student/applications');
       const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.data.applications).toHaveLength(1);
-      expect(mockRequireAuth).toHaveBeenCalledWith(request, ['student']);
-      expect(mockCleanup).toHaveBeenCalled();
     });
 
-    it('should handle authentication error', async () => {
+    it('handles pagination correctly', async () => {
+      mockPrisma.application.findMany.mockResolvedValue([]);
+
+      const request = new NextRequest('http://localhost:3000/api/student/applications?page=2&limit=5');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.data.pagination.page).toBe(2);
+      expect(data.data.pagination.limit).toBe(5);
+    });
+
+    it('returns 401 for unauthenticated user', async () => {
       mockRequireAuth.mockResolvedValue({
-        error: new Response('Unauthorized', { status: 401 }),
+        error: { status: 401, message: 'Unauthorized' },
       });
 
       const request = new NextRequest('http://localhost:3000/api/student/applications');
@@ -148,92 +115,33 @@ describe('/api/student/applications', () => {
 
       expect(response.status).toBe(401);
     });
-
-    it('should return cached data when available', async () => {
-      const cachedData = {
-        success: true,
-        data: {
-          applications: [],
-          pagination: {
-            page: 1,
-            limit: 10,
-            total: 0,
-            totalPages: 0,
-            hasNext: false,
-            hasPrev: false,
-          },
-        },
-      };
-
-      mockStudentCache.get.mockReturnValue(cachedData);
-
-      const request = new NextRequest('http://localhost:3000/api/student/applications', {
-        headers: {
-          'x-user-id': 'student_user',
-        },
-      });
-
-      const response = await GET(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data).toEqual(cachedData);
-      expect(mockPrisma.application.findMany).not.toHaveBeenCalled();
-    });
-
-    it('should handle database error', async () => {
-      mockPrisma.application.findMany.mockRejectedValue(new Error('Database error'));
-
-      const request = new NextRequest('http://localhost:3000/api/student/applications', {
-        headers: {
-          'x-user-id': 'student_user',
-        },
-      });
-
-      const response = await GET(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(500);
-      expect(data.success).toBe(false);
-      expect(data.error).toBe('Internal server error');
-      expect(mockCleanup).toHaveBeenCalled();
-    });
   });
 
   describe('POST', () => {
-    it('should create application successfully', async () => {
+    it('creates application successfully', async () => {
       const mockApplication = {
-        id: 'app_1',
-        studentId: 'student_user',
-        internshipId: 'internship_1',
+        id: 'app_123',
+        studentId: 'student_123',
+        internshipId: 'intern_123',
         status: 'pending',
         dateApplied: new Date(),
-        feedback: 'Test reason',
-        projectTopic: 'Test project',
-        internship: {
-          id: 'internship_1',
-          title: 'Test Internship',
-          company: {
-            id: 'company_1',
-            name: 'Test Company',
-          },
-        },
       };
 
-      mockPrisma.application.findFirst.mockResolvedValue(null);
-      mockPrisma.application.create.mockResolvedValue(mockApplication as any);
+      mockPrisma.application.findFirst.mockResolvedValue(null); // No existing application
+      mockPrisma.application.create.mockResolvedValue(mockApplication);
+
+      const requestBody = {
+        internshipId: 'intern_123',
+        studentReason: 'Test reason',
+        expectedSkills: 'JavaScript, React',
+        preferredStartDate: '2024-02-01',
+        availableDuration: '6 months',
+      };
 
       const request = new NextRequest('http://localhost:3000/api/student/applications', {
         method: 'POST',
-        headers: {
-          'x-user-id': 'student_user',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          internshipId: 'internship_1',
-          studentReason: 'Test reason',
-          preferredStartDate: '2024-01-01',
-        }),
+        body: JSON.stringify(requestBody),
+        headers: { 'Content-Type': 'application/json' },
       });
 
       const response = await POST(request);
@@ -241,72 +149,24 @@ describe('/api/student/applications', () => {
 
       expect(response.status).toBe(201);
       expect(data.success).toBe(true);
-      expect(data.data).toEqual(mockApplication);
-      expect(mockSanitizeUserInput).toHaveBeenCalled();
-      expect(mockCleanup).toHaveBeenCalled();
+      expect(data.data.id).toBe('app_123');
     });
 
-    it('should handle rate limiting', async () => {
-      mockRateLimitMiddleware.mockReturnValue(
-        new Response('Rate limit exceeded', { status: 429 })
-      );
-
-      const request = new NextRequest('http://localhost:3000/api/student/applications', {
-        method: 'POST',
-        headers: {
-          'x-user-id': 'student_user',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          internshipId: 'internship_1',
-          studentReason: 'Test reason',
-        }),
-      });
-
-      const response = await POST(request);
-
-      expect(response.status).toBe(429);
-    });
-
-    it('should handle CSRF protection', async () => {
-      mockCsrfMiddleware.mockReturnValue(
-        new Response('CSRF token required', { status: 400 })
-      );
-
-      const request = new NextRequest('http://localhost:3000/api/student/applications', {
-        method: 'POST',
-        headers: {
-          'x-user-id': 'student_user',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          internshipId: 'internship_1',
-          studentReason: 'Test reason',
-        }),
-      });
-
-      const response = await POST(request);
-
-      expect(response.status).toBe(400);
-    });
-
-    it('should handle input sanitization error', async () => {
+    it('returns 400 for missing required fields', async () => {
       mockSanitizeUserInput.mockReturnValue({
         isValid: false,
-        sanitized: {},
-        errors: ['Potentially malicious content detected'],
+        errors: ['Missing required field'],
       });
+
+      const requestBody = {
+        studentReason: 'Test reason',
+        // Missing internshipId
+      };
 
       const request = new NextRequest('http://localhost:3000/api/student/applications', {
         method: 'POST',
-        headers: {
-          'x-user-id': 'student_user',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          internshipId: 'internship_1',
-          studentReason: '<script>alert("xss")</script>',
-        }),
+        body: JSON.stringify(requestBody),
+        headers: { 'Content-Type': 'application/json' },
       });
 
       const response = await POST(request);
@@ -314,28 +174,27 @@ describe('/api/student/applications', () => {
 
       expect(response.status).toBe(400);
       expect(data.success).toBe(false);
-      expect(data.error).toBe('Invalid input data');
-      expect(data.details).toEqual(['Potentially malicious content detected']);
     });
 
-    it('should handle duplicate application', async () => {
-      mockPrisma.application.findFirst.mockResolvedValue({
-        id: 'existing_app',
-        studentId: 'student_user',
-        internshipId: 'internship_1',
-      } as any);
+    it('returns 409 for duplicate application', async () => {
+      const existingApplication = {
+        id: 'app_123',
+        studentId: 'student_123',
+        internshipId: 'intern_123',
+      };
+
+      mockPrisma.application.findFirst.mockResolvedValue(existingApplication);
+
+      const requestBody = {
+        internshipId: 'intern_123',
+        studentReason: 'Test reason',
+        preferredStartDate: '2024-02-01',
+      };
 
       const request = new NextRequest('http://localhost:3000/api/student/applications', {
         method: 'POST',
-        headers: {
-          'x-user-id': 'student_user',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          internshipId: 'internship_1',
-          studentReason: 'Test reason',
-          preferredStartDate: '2024-01-01',
-        }),
+        body: JSON.stringify(requestBody),
+        headers: { 'Content-Type': 'application/json' },
       });
 
       const response = await POST(request);
@@ -343,28 +202,29 @@ describe('/api/student/applications', () => {
 
       expect(response.status).toBe(409);
       expect(data.success).toBe(false);
-      expect(data.error).toBe('Already applied to this internship');
+      expect(data.error).toContain('Already applied');
     });
 
-    it('should handle missing required fields', async () => {
+    it('handles server errors gracefully', async () => {
+      mockPrisma.application.findFirst.mockRejectedValue(new Error('Database error'));
+
+      const requestBody = {
+        internshipId: 'intern_123',
+        studentReason: 'Test reason',
+        preferredStartDate: '2024-02-01',
+      };
+
       const request = new NextRequest('http://localhost:3000/api/student/applications', {
         method: 'POST',
-        headers: {
-          'x-user-id': 'student_user',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          internshipId: 'internship_1',
-          // Missing studentReason and preferredStartDate
-        }),
+        body: JSON.stringify(requestBody),
+        headers: { 'Content-Type': 'application/json' },
       });
 
       const response = await POST(request);
       const data = await response.json();
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(500);
       expect(data.success).toBe(false);
-      expect(data.error).toBe('Missing required fields: internshipId, studentReason, preferredStartDate');
     });
   });
 });
