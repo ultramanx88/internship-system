@@ -8,6 +8,7 @@ import { Edit, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { logger, PerformanceMonitor } from '@/lib/logger';
 import { studentCache } from '@/lib/cache';
+import { StudentGuard } from '@/components/auth/PermissionGuard';
 
 interface TimelineStep {
     step: number;
@@ -246,7 +247,8 @@ export default function ApplicationFormPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <StudentGuard>
+            <div className="min-h-screen bg-gray-50 p-6">
             {/* Header */}
             <div className="mb-8">
                 <div className="flex items-center gap-4 mb-4">
@@ -397,5 +399,6 @@ export default function ApplicationFormPage() {
                 </Card>
             </div>
         </div>
+        </StudentGuard>
     );
 }

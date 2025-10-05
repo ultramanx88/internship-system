@@ -16,6 +16,8 @@ import { useAuth } from '@/hooks/use-auth';
 // Remove mock data import - we'll use real API
 import { parseThaiDate, isThaiDateInPast } from '@/lib/date-utils';
 import { DocumentPreview } from '@/components/student/DocumentPreview';
+import { sanitizeString, sanitizeHtml } from '@/lib/security';
+import { generateCsrfToken } from '@/lib/csrf';
 import Link from 'next/link';
 
 interface ApplicationFormData {
@@ -56,6 +58,9 @@ export default function ApplicationFormTypePage() {
 
   // Debounced form data for auto-save
   const [debouncedFormData, setDebouncedFormData] = useState<ApplicationFormData>(formData);
+  
+  // CSRF token for form submission
+  const [csrfToken, setCsrfToken] = useState<string>('');
 
   // Pre-select internship if provided in URL
   useEffect(() => {
@@ -76,6 +81,12 @@ export default function ApplicationFormTypePage() {
 
     return () => clearTimeout(timer);
   }, [formData]);
+
+  // Generate CSRF token on component mount
+  useEffect(() => {
+    const token = generateCsrfToken();
+    setCsrfToken(token);
+  }, []);
 
   // Load internships from API
   useEffect(() => {
@@ -122,9 +133,20 @@ export default function ApplicationFormTypePage() {
   const handleInputChange = (field: keyof ApplicationFormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
+    // Sanitize input based on field type
+    let sanitizedValue = e.target.value;
+    
+    if (field === 'studentReason' || field === 'expectedSkills' || field === 'projectProposal') {
+      // Sanitize text fields that might contain HTML
+      sanitizedValue = sanitizeHtml(e.target.value);
+    } else {
+      // Sanitize other string fields
+      sanitizedValue = sanitizeString(e.target.value);
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [field]: e.target.value
+      [field]: sanitizedValue
     }));
   };
 
@@ -220,6 +242,7 @@ export default function ApplicationFormTypePage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken,
         },
         body: JSON.stringify({
           studentId: user.id,
