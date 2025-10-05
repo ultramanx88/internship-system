@@ -82,6 +82,10 @@ export default function ApplicationsPage() {
         router.push('/admin/applications/print');
     };
 
+    const handleGoToPreviewPage = () => {
+        router.push('/admin/documents/pdf-templates');
+    };
+
     const mockApplications = [
         {
             id: 'APP001',
@@ -333,8 +337,8 @@ export default function ApplicationsPage() {
                                                     <Button 
                                                         variant="outline" 
                                                         size="sm" 
-                                                        title="ไปยังหน้าพิมพ์เอกสาร"
-                                                        onClick={handleGoToPrintPage}
+                                                        title="ไปยังหน้าพรีวิวเอกสาร"
+                                                        onClick={handleGoToPreviewPage}
                                                     >
                                                         <FileText className="h-4 w-4" />
                                                     </Button>
