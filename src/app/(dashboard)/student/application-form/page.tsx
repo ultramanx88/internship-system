@@ -34,14 +34,13 @@ export default function ApplicationFormPage() {
             try {
                 if (!user) {
                     logger.info('ApplicationFormPage: No user found, skipping status check');
-                    setIsLoading(false);
                     return;
                 }
 
-            logger.info('ApplicationFormPage: Checking student status', { 
-                userId: user.id, 
-                userName: user.name 
-            });
+                logger.info('ApplicationFormPage: Checking student status', { 
+                    userId: user.id, 
+                    userName: user.name 
+                });
 
                 // ตรวจสอบการลงทะเบียนข้อมูลนักศึกษา
                 const studentRegistered = user.name && user.email && user.phone && 
@@ -248,7 +247,7 @@ export default function ApplicationFormPage() {
 
     return (
         <StudentGuard>
-            <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-gray-50 p-6">
             {/* Header */}
             <div className="mb-8">
                 <div className="flex items-center gap-4 mb-4">
