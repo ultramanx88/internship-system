@@ -4,6 +4,7 @@ import { requireAuth, cleanup } from '@/lib/auth-utils';
 import { sanitizeUserInput, sanitizeString } from '@/lib/security';
 import { rateLimitMiddleware, applicationRateLimiter } from '@/lib/rate-limiter';
 import { csrfMiddleware } from '@/lib/csrf';
+import { studentCache, cacheKeys } from '@/lib/cache';
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,9 +18,17 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'all';
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50); // Max 50 per page
 
     console.log('Student Applications API - Fetching applications for user:', user.id);
+
+    // Check cache first
+    const cacheKey = cacheKeys.studentApplications(user.id, page, limit);
+    const cached = studentCache.get(cacheKey);
+    if (cached) {
+      console.log('Student Applications API - Cache hit for user:', user.id);
+      return NextResponse.json(cached);
+    }
 
     const whereClause: any = {
       studentId: user.id,
@@ -55,7 +64,7 @@ export async function GET(request: NextRequest) {
 
     const totalPages = Math.ceil(total / limit);
 
-    return NextResponse.json({
+    const response = {
       success: true,
       data: {
         applications,
@@ -68,7 +77,12 @@ export async function GET(request: NextRequest) {
           hasPrev: page > 1,
         },
       },
-    });
+    };
+
+    // Cache the response for 5 minutes
+    studentCache.set(cacheKey, response, 5 * 60 * 1000);
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Student Applications API Error:', error);
     return NextResponse.json(
