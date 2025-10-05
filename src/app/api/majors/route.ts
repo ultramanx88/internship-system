@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth, cleanup } from '@/lib/auth-utils';
+import { sanitizeUserInput, sanitizeString } from '@/lib/security';
 
 export async function GET(request: NextRequest) {
   try {
@@ -69,9 +70,22 @@ export async function POST(request: NextRequest) {
     const { user } = authResult;
 
     const body = await request.json();
-    const { nameTh, nameEn, curriculumId, area } = body;
+    
+    // Sanitize input
+    const sanitizedBody = sanitizeUserInput(body);
+    if (!sanitizedBody.isValid) {
+      return NextResponse.json(
+        { error: 'ข้อมูลไม่ถูกต้อง', details: sanitizedBody.errors },
+        { status: 400 }
+      );
+    }
+    
+    const { nameTh, nameEn, curriculumId, area } = sanitizedBody.sanitized;
+    const sanitizedNameTh = sanitizeString(nameTh);
+    const sanitizedNameEn = nameEn ? sanitizeString(nameEn) : null;
+    const sanitizedArea = area ? sanitizeString(area) : null;
 
-    if (!nameTh || !curriculumId) {
+    if (!sanitizedNameTh || !curriculumId) {
       return NextResponse.json(
         { error: 'ชื่อสาขาวิชาและหลักสูตรเป็นข้อมูลที่จำเป็น' },
         { status: 400 }
@@ -107,10 +121,10 @@ export async function POST(request: NextRequest) {
 
     const major = await prisma.major.create({
       data: {
-        nameTh,
-        nameEn,
+        nameTh: sanitizedNameTh,
+        nameEn: sanitizedNameEn,
         curriculumId,
-        area,
+        area: sanitizedArea,
       },
       include: {
         curriculum: {

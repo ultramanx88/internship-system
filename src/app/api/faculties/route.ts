@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth, cleanup } from '@/lib/auth-utils';
+import { sanitizeUserInput, sanitizeString } from '@/lib/security';
 
 export async function GET(request: NextRequest) {
   try {
@@ -75,9 +76,22 @@ export async function POST(request: NextRequest) {
     const { user } = authResult;
 
     const body = await request.json();
-    const { nameTh, nameEn, code } = body;
+    
+    // Sanitize input
+    const sanitizedBody = sanitizeUserInput(body);
+    if (!sanitizedBody.isValid) {
+      return NextResponse.json(
+        { error: 'ข้อมูลไม่ถูกต้อง', details: sanitizedBody.errors },
+        { status: 400 }
+      );
+    }
+    
+    const { nameTh, nameEn, code } = sanitizedBody.sanitized;
+    const sanitizedNameTh = sanitizeString(nameTh);
+    const sanitizedNameEn = nameEn ? sanitizeString(nameEn) : null;
+    const sanitizedCode = code ? sanitizeString(code) : null;
 
-    if (!nameTh) {
+    if (!sanitizedNameTh) {
       return NextResponse.json(
         { error: 'ชื่อคณะ (ภาษาไทย) เป็นข้อมูลที่จำเป็น' },
         { status: 400 }
@@ -86,7 +100,7 @@ export async function POST(request: NextRequest) {
 
     // Check if faculty with same name already exists
     const existingFaculty = await prisma.faculty.findFirst({
-      where: { nameTh },
+      where: { nameTh: sanitizedNameTh },
     });
 
     if (existingFaculty) {
@@ -98,9 +112,9 @@ export async function POST(request: NextRequest) {
 
     const faculty = await prisma.faculty.create({
       data: {
-        nameTh,
-        nameEn,
-        code,
+        nameTh: sanitizedNameTh,
+        nameEn: sanitizedNameEn,
+        code: sanitizedCode,
       },
       include: {
         _count: {
