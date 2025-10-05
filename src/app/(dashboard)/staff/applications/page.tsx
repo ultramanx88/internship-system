@@ -98,6 +98,10 @@ export default function ApplicationsPage() {
         setIsPreviewOpen(true);
     };
 
+    const handleViewDetails = (application: Application) => {
+        router.push(`/staff/applications/${encodeURIComponent(application.id)}`);
+    };
+
     const mockApplications = [
         {
             id: 'APP001',
@@ -343,7 +347,7 @@ export default function ApplicationsPage() {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <Button variant="outline" size="sm" title="ดูรายละเอียด">
+                                                    <Button variant="outline" size="sm" title="ดูรายละเอียด" onClick={() => handleViewDetails(app)}>
                                                         <Eye className="h-4 w-4" />
                                                     </Button>
                                                     <Button 

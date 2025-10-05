@@ -422,6 +422,20 @@ pm2 status
 echo ""
 echo "🌐 Application Status:"
 curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" http://localhost:8080 || echo "❌ Application not responding"
+
+echo "-- Additional health checks --"
+for url in "http://127.0.0.1:3000" "http://127.0.0.1:3000/api/health"; do
+  code=$(curl -s -o /dev/null -w "%{http_code}" "$url" || echo "000")
+  echo "URL: $url -> $code"
+done
+
+if ! curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000 | grep -qE '2..|3..'; then
+  echo "\n❌ Health check failed. Showing recent logs:"
+  echo "---- PM2 logs (last 200) ----"
+  pm2 logs internship-system --lines 200 --nostream || true
+  echo "---- NGINX error (last 100) ----"
+  tail -n 100 /var/log/nginx/error.log 2>/dev/null || true
+fi
 EOF
     
     log_success "Full deployment completed!"
