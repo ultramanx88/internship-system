@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/use-auth';
 import { applications as mockApplications, users as mockUsers, internships as mockInternships } from '@/lib/data';
 import {
   Table,
@@ -33,6 +34,7 @@ type ApplicationData = {
 };
 
 export default function AdminApplicationsPage() {
+    const { user } = useAuth();
     const [applications, setApplications] = useState<ApplicationData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -53,13 +55,31 @@ export default function AdminApplicationsPage() {
         try {
             const url = `/api/applications?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}&sort=${encodeURIComponent(sort)}&page=${page}&limit=${limit}`;
             
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                headers: {
+                    'x-user-id': user?.id || '',
+                },
+            });
             if (!response.ok) {
                 throw new Error('Failed to fetch applications');
             }
 
             const data = await response.json();
-            setApplications(data.applications || []);
+            
+            // Map API data to frontend format
+            const mappedApplications = (data.applications || []).map((app: any) => ({
+                id: app.id,
+                studentName: app.student.name,
+                studentId: app.student.id,
+                major: "วิศวกรรมคอมพิวเตอร์", // Mock data - should come from student profile
+                companyName: app.internship.company.name,
+                status: app.status,
+                dateApplied: app.dateApplied,
+                projectTopic: app.projectTopic,
+                feedback: app.feedback
+            }));
+            
+            setApplications(mappedApplications);
             setTotalApplications(data.total || 0);
             setTotalPages(Math.ceil((data.total || 0) / limit));
             setCurrentPage(page);

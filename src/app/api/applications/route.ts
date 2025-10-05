@@ -1,50 +1,90 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireAuth, cleanup } from '@/lib/auth-utils';
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication and authorization
+    const authResult = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+    const { user } = authResult;
+
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
     const internshipId = searchParams.get('internshipId');
+    const search = searchParams.get('search') || '';
+    const status = searchParams.get('status') || 'all';
+    const sort = searchParams.get('sort') || 'desc';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
     
-    console.log('Applications API - Fetching applications, studentId:', studentId, 'internshipId:', internshipId);
+    console.log('Applications API - Fetching applications by:', user.name, 'studentId:', studentId, 'internshipId:', internshipId);
     
     const whereClause: any = {};
     if (studentId) whereClause.studentId = studentId;
     if (internshipId) whereClause.internshipId = internshipId;
+    if (status !== 'all') whereClause.status = status;
     
-    const applications = await prisma.application.findMany({
-      where: whereClause,
-      include: {
-        student: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            t_name: true,
-            t_surname: true,
-            e_name: true,
-            e_surname: true
+    // Add search functionality
+    if (search) {
+      whereClause.OR = [
+        {
+          student: {
+            name: { contains: search, mode: 'insensitive' }
           }
         },
-        internship: {
-          include: {
-            company: true
+        {
+          internship: {
+            company: {
+              name: { contains: search, mode: 'insensitive' }
+            }
           }
         }
-      },
-      orderBy: {
-        dateApplied: 'desc'
-      }
-    });
+      ];
+    }
+
+    const skip = (page - 1) * limit;
     
-    console.log('Applications API - Found applications:', applications.length);
+    const [applications, total] = await Promise.all([
+      prisma.application.findMany({
+        where: whereClause,
+        include: {
+          student: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              t_name: true,
+              t_surname: true,
+              e_name: true,
+              e_surname: true
+            }
+          },
+          internship: {
+            include: {
+              company: true
+            }
+          }
+        },
+        orderBy: {
+          dateApplied: sort === 'desc' ? 'desc' : 'asc'
+        },
+        skip,
+        take: limit
+      }),
+      prisma.application.count({ where: whereClause })
+    ]);
+    
+    console.log('Applications API - Found applications:', applications.length, 'total:', total);
     
     return NextResponse.json({
       success: true,
-      applications
+      applications,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
     });
   } catch (error) {
     console.error('Applications API - Error fetching applications:', error);
@@ -57,7 +97,7 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    await cleanup();
   }
 }
 
@@ -163,6 +203,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    await cleanup();
   }
 }
