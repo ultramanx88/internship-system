@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Edit, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
+import { logger, PerformanceMonitor } from '@/lib/logger';
 
 interface TimelineStep {
     step: number;
@@ -26,10 +27,18 @@ export default function ApplicationFormPage() {
     // ตรวจสอบสถานะการฝึกงานของนักศึกษา
     useEffect(() => {
         const checkStudentStatus = async () => {
+            const perfMonitor = new PerformanceMonitor('ApplicationFormPage:checkStudentStatus');
+            
             if (!user) {
+                logger.info('ApplicationFormPage: No user found, skipping status check');
                 setIsLoading(false);
                 return;
             }
+
+            logger.info('ApplicationFormPage: Checking student status', { 
+                userId: user.id, 
+                userName: user.name 
+            });
 
             try {
                 // ตรวจสอบการลงทะเบียนข้อมูลนักศึกษา
@@ -37,15 +46,36 @@ export default function ApplicationFormPage() {
                                         user.t_name && user.t_surname && 
                                         user.facultyId && user.majorId;
                 
+                logger.info('ApplicationFormPage: Student registration status', { 
+                    userId: user.id,
+                    isRegistered: studentRegistered,
+                    missingFields: {
+                        name: !user.name,
+                        email: !user.email,
+                        phone: !user.phone,
+                        t_name: !user.t_name,
+                        t_surname: !user.t_surname,
+                        facultyId: !user.facultyId,
+                        majorId: !user.majorId
+                    }
+                });
+                
                 setIsStudentRegistered(studentRegistered);
                 
                 // ตรวจสอบการสมัครฝึกงาน
+                logger.info('ApplicationFormPage: Fetching applications', { userId: user.id });
                 const applicationsResponse = await fetch('/api/applications');
                 const applicationsData = await applicationsResponse.json();
                 
                 const myApplications = applicationsData.applications?.filter(
                     (app: any) => app.studentId === user.id
                 ) || [];
+
+                logger.info('ApplicationFormPage: Applications found', { 
+                    userId: user.id,
+                    totalApplications: myApplications.length,
+                    applicationStatuses: myApplications.map((app: any) => app.status)
+                });
 
                 // ตรวจสอบสถานะการฝึกงาน
                 const hasApplied = myApplications.length > 0;
@@ -102,11 +132,23 @@ export default function ApplicationFormPage() {
                 ];
 
                 setTimelineSteps(steps);
+                
+                logger.info('ApplicationFormPage: Timeline steps created', { 
+                    userId: user.id,
+                    stepsCount: steps.length,
+                    currentStep: steps.find(step => step.status === 'current')?.step,
+                    completedSteps: steps.filter(step => step.status === 'completed').length
+                });
             } catch (error) {
-                console.error('Error checking student status:', error);
+                logger.error('ApplicationFormPage: Error checking student status', { 
+                    userId: user?.id,
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                    stack: error instanceof Error ? error.stack : undefined
+                });
                 // ใช้ไทม์ไลน์เริ่มต้นหากเกิดข้อผิดพลาด
                 setTimelineSteps(getDefaultTimeline());
             } finally {
+                perfMonitor.end();
                 setIsLoading(false);
             }
         };
@@ -162,6 +204,14 @@ export default function ApplicationFormPage() {
             description: 'สรุปผลงานและหัวข้อโปรเจกต์'
         }
     ];
+
+    // Track page load
+    useEffect(() => {
+        logger.info('ApplicationFormPage: Page loaded', {
+            userId: user?.id,
+            timestamp: new Date().toISOString()
+        });
+    }, []);
 
     if (isLoading) {
         return (
