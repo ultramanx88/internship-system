@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,6 +41,7 @@ const industryOptions = [
 ];
 
 export function EditCompanyForm({ companyId }: EditCompanyFormProps) {
+    const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -70,7 +72,11 @@ export function EditCompanyForm({ companyId }: EditCompanyFormProps) {
 
     const fetchCompany = async () => {
         try {
-            const response = await fetch(`/api/companies/${companyId}`);
+            const response = await fetch(`/api/companies/${companyId}`, {
+                headers: {
+                    'x-user-id': user?.id || '',
+                },
+            });
             if (!response.ok) {
                 throw new Error('ไม่พบข้อมูลบริษัท');
             }
@@ -130,6 +136,7 @@ export function EditCompanyForm({ companyId }: EditCompanyFormProps) {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'x-user-id': user?.id || '',
                 },
                 body: JSON.stringify({
                     ...formData,

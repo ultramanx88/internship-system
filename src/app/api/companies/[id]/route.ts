@@ -1,53 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
+import { requireAuth, cleanup } from '@/lib/auth-utils';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Check authentication and authorization
+    const authResult = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+    const { user } = authResult;
+
     const { id } = await params;
     
-    console.log('Company API - Fetching company:', id);
+    console.log('Company API - Fetching company:', id, 'by:', user.name);
     
     const company = await prisma.company.findUnique({
       where: { id },
       include: {
-        province: {
+        internships: {
           select: {
             id: true,
-            nameTh: true,
-            nameEn: true,
-            code: true
-          }
-        },
-        district: {
-          select: {
-            id: true,
-            nameTh: true,
-            nameEn: true,
-            code: true
-          }
-        },
-        subdistrict: {
-          select: {
-            id: true,
-            nameTh: true,
-            nameEn: true,
-            code: true,
-            postalCode: true
+            title: true,
+            description: true,
+            location: true,
+            type: true
           }
         }
       }
     });
-    
+
     if (!company) {
       return NextResponse.json(
         { success: false, error: 'Company not found' },
         { status: 404 }
       );
     }
-    
+
     console.log('Company API - Found company:', company.name);
     
     return NextResponse.json({
@@ -65,7 +57,7 @@ export async function GET(
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    await cleanup();
   }
 }
 
@@ -74,28 +66,33 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Check authentication and authorization
+    const authResult = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+    const { user } = authResult;
+
     const { id } = await params;
     const body = await request.json();
-    const { 
-      name, 
-      nameEn, 
+    const {
+      name,
+      nameEn,
       phone, 
       email, 
       website, 
-      addressNumber, 
-      building, 
-      floor, 
-      soi, 
-      road, 
-      provinceId, 
-      districtId, 
-      subdistrictId, 
-      postalCode, 
-      mapUrl 
+      address,
+      province,
+      district,
+      subdistrict,
+      postalCode,
+      description,
+      industry,
+      size 
     } = body;
-    
-    console.log('Company API - Updating company:', id);
-    
+
+    console.log('Company API - Updating company:', id, 'by:', user.name);
+
     const company = await prisma.company.update({
       where: { id },
       data: {
@@ -104,41 +101,23 @@ export async function PUT(
         phone: phone || undefined,
         email: email || undefined,
         website: website || undefined,
-        addressNumber: addressNumber || undefined,
-        building: building || undefined,
-        floor: floor || undefined,
-        soi: soi || undefined,
-        road: road || undefined,
-        provinceId: provinceId || undefined,
-        districtId: districtId || undefined,
-        subdistrictId: subdistrictId || undefined,
+        address: address || undefined,
+        province: province || undefined,
+        district: district || undefined,
+        subdistrict: subdistrict || undefined,
         postalCode: postalCode || undefined,
-        mapUrl: mapUrl || undefined,
+        description: description || undefined,
+        industry: industry || undefined,
+        size: size || undefined,
       },
       include: {
-        province: {
+        internships: {
           select: {
             id: true,
-            nameTh: true,
-            nameEn: true,
-            code: true
-          }
-        },
-        district: {
-          select: {
-            id: true,
-            nameTh: true,
-            nameEn: true,
-            code: true
-          }
-        },
-        subdistrict: {
-          select: {
-            id: true,
-            nameTh: true,
-            nameEn: true,
-            code: true,
-            postalCode: true
+            title: true,
+            description: true,
+            location: true,
+            type: true
           }
         }
       }
@@ -161,6 +140,6 @@ export async function PUT(
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    await cleanup();
   }
 }
