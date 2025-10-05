@@ -5,12 +5,18 @@ import { sanitizeUserInput, sanitizeString } from '@/lib/security';
 import { rateLimitMiddleware, applicationRateLimiter } from '@/lib/rate-limiter';
 import { csrfMiddleware } from '@/lib/csrf';
 import { studentCache, cacheKeys } from '@/lib/cache';
+import { logger, PerformanceMonitor } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+  
   try {
+    logger.info('Student Applications API - GET request started');
+    
     // Check authentication and authorization
     const authResult = await requireAuth(request, ['student']);
     if ('error' in authResult) {
+      logger.warn('Student Applications API - Authentication failed');
       return authResult.error;
     }
     const { user } = authResult;
@@ -20,13 +26,18 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50); // Max 50 per page
 
-    console.log('Student Applications API - Fetching applications for user:', user.id);
+    logger.info('Student Applications API - Fetching applications', {
+      userId: user.id,
+      status,
+      page,
+      limit,
+    });
 
     // Check cache first
     const cacheKey = cacheKeys.studentApplications(user.id, page, limit);
     const cached = studentCache.get(cacheKey);
     if (cached) {
-      console.log('Student Applications API - Cache hit for user:', user.id);
+      logger.info('Student Applications API - Cache hit', { userId: user.id });
       return NextResponse.json(cached);
     }
 
@@ -82,9 +93,22 @@ export async function GET(request: NextRequest) {
     // Cache the response for 5 minutes
     studentCache.set(cacheKey, response, 5 * 60 * 1000);
 
+    const duration = Date.now() - startTime;
+    logger.info('Student Applications API - GET request completed', {
+      userId: user.id,
+      duration,
+      totalApplications: total,
+    });
+
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Student Applications API Error:', error);
+    const duration = Date.now() - startTime;
+    logger.error('Student Applications API Error', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      duration,
+    });
+    
     return NextResponse.json(
       { 
         success: false, 
