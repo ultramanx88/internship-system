@@ -119,6 +119,44 @@ export default function StudentPage() {
 
     const { applications, approvedApplication, upcomingDeadlines, recentActivities, stats } = dashboardData;
 
+    // Get approved internship and company data
+    const approvedInternship = approvedApplication?.internship;
+    const approvedCompany = approvedInternship?.company;
+
+    // Coop timeline data
+    const coopTimeline = [
+        {
+            step: 1,
+            title: 'กรอกข้อมูลสหกิจศึกษา',
+            date: '7 มี.ค. 68 - 19 มี.ค. 68',
+            status: 'completed'
+        },
+        {
+            step: 2,
+            title: 'ยื่นเอกสาร ณ ห้องธุรการชั้น 4',
+            date: '7 มี.ค. 68 - 19 มี.ค. 68',
+            status: 'current'
+        },
+        {
+            step: 3,
+            title: 'ยื่นเอกสารให้กับทางบริษัท',
+            date: '7 มี.ค. 68 - 19 มี.ค. 68',
+            status: 'upcoming'
+        },
+        {
+            step: 4,
+            title: 'สหกิจศึกษา',
+            date: '7 มี.ค. 68 - 19 มี.ค. 68',
+            status: 'upcoming'
+        },
+        {
+            step: 5,
+            title: 'กรอกข้อมูลโปรเจกต์',
+            date: '7 มี.ค. 68 - 19 มี.ค. 68',
+            status: 'upcoming'
+        }
+    ];
+
     return (
         <div className="space-y-6">
             <div>
@@ -191,15 +229,40 @@ export default function StudentPage() {
                             <CardTitle className="text-lg font-semibold text-amber-700">สถานะการยื่นขอฝึกงานของฉัน</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {myApplications.length > 0 ? (
-                                <div className="p-4 bg-orange-50 rounded-lg">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-8">
-                                            <span className="text-sm font-medium text-gray-700">เอกสาร 6400224415</span>
-                                            <span className="text-sm text-gray-900">อนุมัติแล้วจากการพิจารณา</span>
+                            {applications.length > 0 ? (
+                                <div className="space-y-3">
+                                    {applications.map((app) => (
+                                        <div key={app.id} className="p-4 bg-orange-50 rounded-lg">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-8">
+                                                    <span className="text-sm font-medium text-gray-700">
+                                                        เอกสาร {app.id}
+                                                    </span>
+                                                    <span className="text-sm text-gray-900">
+                                                        {app.status === 'approved' ? 'อนุมัติแล้วจากการพิจารณา' :
+                                                         app.status === 'pending' ? 'รอการพิจารณา' :
+                                                         app.status === 'rejected' ? 'ไม่ผ่านการพิจารณา' :
+                                                         'สถานะไม่ทราบ'}
+                                                    </span>
+                                                </div>
+                                                <Badge variant={app.status === 'approved' ? 'default' : 
+                                                              app.status === 'pending' ? 'secondary' : 
+                                                              'destructive'}>
+                                                    {app.status === 'approved' ? 'อนุมัติ' :
+                                                     app.status === 'pending' ? 'รอพิจารณา' :
+                                                     app.status === 'rejected' ? 'ไม่ผ่าน' : app.status}
+                                                </Badge>
+                                            </div>
+                                            {app.internship && (
+                                                <div className="mt-2 text-sm text-gray-600">
+                                                    <div className="flex items-center gap-2">
+                                                        <Building className="h-4 w-4" />
+                                                        <span>{app.internship.title} - {app.internship.company?.name}</span>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                        <span className="text-xs text-gray-500 bg-white px-3 py-1 rounded">อาจารย์ประจำวิชา</span>
-                                    </div>
+                                    ))}
                                 </div>
                             ) : (
                                 <div className="text-center py-8">
@@ -223,26 +286,26 @@ export default function StudentPage() {
                                 <div className="space-y-4">
                                     <div className="p-4 bg-orange-50 rounded-lg">
                                         <h3 className="font-semibold text-orange-800 mb-2">
-                                            พัฒนาเว็บไซต์การสืบค้นข้อมูลสำหรับร้านค้าขายปลีก
+                                            {approvedInternship.title}
                                         </h3>
                                         <div className="space-y-2 text-sm">
                                             <div className="flex items-center gap-2 text-orange-700">
                                                 <Building className="h-4 w-4" />
-                                                <span>{approvedCompany?.name}</span>
+                                                <span>{approvedCompany?.name || 'ไม่ระบุบริษัท'}</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-orange-700">
                                                 <User className="h-4 w-4" />
-                                                <span>ผู้ดูแล: คุณสมชาย ใจดี</span>
+                                                <span>ผู้ดูแล: {approvedApplication.supervisor?.name || 'ไม่ระบุผู้ดูแล'}</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-orange-700">
                                                 <MapPin className="h-4 w-4" />
-                                                <span>กรุงเทพมหานคร</span>
+                                                <span>{approvedCompany?.address || 'ไม่ระบุที่อยู่'}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="text-sm text-gray-600">
                                         <p><strong>คำอธิบายโดยสังเขป:</strong></p>
-                                        <p>นักศึกษาได้รับมอบหมายให้พัฒนาเว็บไซต์การสืบค้นข้อมูลสำหรับร้านค้าขายปลีก ตรวจสอบข้อมูลและแก้ไขข้อมูลในฐานข้อมูล และเขียนโปรแกรมในภาษา HTML, CSS, JavaScript และ MySQL</p>
+                                        <p>{approvedApplication.projectTopic || approvedInternship.description || 'ไม่ระบุรายละเอียดโปรเจกต์'}</p>
                                     </div>
                                     <Button variant="outline" asChild className="w-full">
                                         <Link href="/student/project-details">ดูรายละเอียดเพิ่มเติม</Link>
