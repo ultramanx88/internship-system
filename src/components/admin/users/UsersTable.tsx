@@ -43,14 +43,19 @@ type DisplayUser = User & {
     username?: string | null;
 }
 
-export function UsersTable() {
+interface UsersTableProps {
+    defaultRole?: string; // e.g., 'student'
+    lockRole?: boolean;   // if true, hide role selector and fix filter
+}
+
+export function UsersTable({ defaultRole, lockRole = false }: UsersTableProps) {
     const { user } = useAuth();
     const [users, setUsers] = useState<DisplayUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState(false);
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [searchTerm, setSearchTerm] = useState('');
-    const [roleFilter, setRoleFilter] = useState('all');
+    const [roleFilter, setRoleFilter] = useState(defaultRole || 'all');
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); // Default: newest first
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
     const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -244,17 +249,21 @@ export function UsersTable() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="max-w-sm"
                         />
-                        <Select value={roleFilter} onValueChange={setRoleFilter}>
-                            <SelectTrigger className="w-[200px]">
-                                <SelectValue placeholder="ตำแหน่งทั้งหมด" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">ตำแหน่งทั้งหมด</SelectItem>
-                                {roleData.map(role => (
-                                    <SelectItem key={role.id} value={role.id}>{role.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        {!lockRole && (
+                            <div className="w-48">
+                                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                                    <SelectTrigger className="w-[200px]">
+                                        <SelectValue placeholder="ตำแหน่งทั้งหมด" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">ตำแหน่งทั้งหมด</SelectItem>
+                                        {roleData.map(role => (
+                                            <SelectItem key={role.id} value={role.id}>{role.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
                         <Button
                             variant="outline"
                             onClick={toggleSortOrder}
@@ -366,7 +375,7 @@ export function UsersTable() {
                                             <TableCell>{Array.isArray(user.roles) ? user.roles.map((r: any) => roleTranslations[r as any] || r).join(', ') : user.roles}</TableCell>
                                             <TableCell className="text-center">
                                                 <Button asChild variant="outline" size="icon" className="h-8 w-8">
-                                                    <Link href={`/admin/users/${user.id}`}>
+                                                    <Link href={`/admin/users/${encodeURIComponent(user.id)}`}>
                                                         <Edit className="h-4 w-4" />
                                                     </Link>
                                                 </Button>
