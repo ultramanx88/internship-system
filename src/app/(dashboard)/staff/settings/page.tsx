@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 import { useProfileImage } from '@/hooks/use-profile-image';
 import { FileStorageService } from '@/lib/file-storage';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +23,8 @@ export default function SettingsPage() {
     const { user } = useAuth();
     const { profileImage, updateProfileImage } = useProfileImage();
     const [isUploading, setIsUploading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const { toast } = useToast();
     const [notifications, setNotifications] = useState({
         email: true,
         sms: false,
@@ -177,9 +180,43 @@ export default function SettingsPage() {
                                     </div>
                                 </div>
                                 <div className="flex justify-end">
-                                    <Button className="bg-amber-600 hover:bg-amber-700">
+                                    <Button
+                                        className="bg-amber-600 hover:bg-amber-700"
+                                        disabled={isSaving}
+                                        onClick={async () => {
+                                            if (!user?.id) return;
+                                            setIsSaving(true);
+                                            try {
+                                                const res = await fetch('/api/user/settings', {
+                                                    method: 'PUT',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        'x-user-id': user.id,
+                                                    },
+                                                    body: JSON.stringify({
+                                                        email: profile.email,
+                                                        phone: profile.phone,
+                                                        notifications: {
+                                                            email: notifications.email,
+                                                            push: notifications.push,
+                                                            sms: notifications.sms,
+                                                            applicationUpdates: notifications.statusUpdates,
+                                                            deadlineReminders: notifications.reminders,
+                                                        },
+                                                    }),
+                                                });
+                                                const data = await res.json();
+                                                if (!res.ok) throw new Error(data?.error || 'บันทึกไม่สำเร็จ');
+                                                toast({ title: 'บันทึกสำเร็จ', description: 'อัปเดตการตั้งค่าเรียบร้อยแล้ว' });
+                                            } catch (e: any) {
+                                                toast({ variant: 'destructive', title: 'เกิดข้อผิดพลาด', description: e?.message || 'ไม่สามารถบันทึกการตั้งค่าได้' });
+                                            } finally {
+                                                setIsSaving(false);
+                                            }
+                                        }}
+                                    >
                                         <Save className="h-4 w-4 mr-2" />
-                                        บันทึกการเปลี่ยนแปลง
+                                        {isSaving ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}
                                     </Button>
                                 </div>
                             </CardContent>
