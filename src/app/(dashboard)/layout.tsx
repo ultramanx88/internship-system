@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/hooks/use-auth';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
@@ -20,6 +20,7 @@ export default function DashboardLayout({
   const { user, loading } = useAuth();
   const { educatorRole } = useEducatorRole();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -48,11 +49,22 @@ export default function DashboardLayout({
   const userRoles = Array.isArray(user.roles) ? user.roles : JSON.parse(user.roles || '[]');
 
   const renderSidebar = () => {
+    // Route-first resolution to ensure correct menu per section
+    if (pathname?.startsWith('/admin')) return <AdminMenu />;
+    if (pathname?.startsWith('/staff')) return <StaffMenu />;
+    if (pathname?.startsWith('/student')) return <StudentMenu />;
+    if (pathname?.startsWith('/educator')) return (
+      <EducatorMenu 
+        userRole={userRoles[0] || 'courseInstructor'} 
+        educatorRole={educatorRole?.name}
+      />
+    );
+
     if (userRoles.includes('admin')) {
       return <AdminMenu />;
-    } else if (userRoles.includes('staff')) {
+    } else if (userRoles.includes('staff') || userRoles.includes('ธุรการ')) {
       return <StaffMenu />;
-    } else if (userRoles.includes('student')) {
+    } else if (userRoles.includes('student') || userRoles.includes('นักศึกษา')) {
       return <StudentMenu />;
     } else if (
       userRoles.includes('courseInstructor') || 
