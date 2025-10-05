@@ -1,28 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
+import { requireAuth, cleanup } from '@/lib/auth-utils';
+import { z } from 'zod';
+import { sanitizeString } from '@/lib/security';
 
 export async function GET(request: NextRequest) {
   try {
-    // ดึง user ID จาก header
-    const userId = request.headers.get('x-user-id');
+    const auth = await requireAuth(request, ['student']);
+    if ('error' in auth) return auth.error;
+    const { user } = auth;
     
-    console.log('Settings API - User ID:', userId);
+    console.log('Settings API - User ID:', user.id);
     
-    if (!userId) {
-      console.log('Settings API - No user ID provided');
-      return NextResponse.json(
-        { success: false, error: 'User ID is required', details: 'x-user-id header is missing' },
-        { status: 400 }
-      );
-    }
-    
-    console.log('Settings API - Querying database for user:', userId);
+    console.log('Settings API - Querying database for user:', user.id);
     
     // ค้นหาผู้ใช้พร้อม relations
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
       include: {
         faculty: true,
         department: true,
@@ -31,12 +25,12 @@ export async function GET(request: NextRequest) {
       }
     });
     
-    console.log('Settings API - Database query result:', user ? 'User found' : 'User not found');
+    console.log('Settings API - Database query result:', dbUser ? 'User found' : 'User not found');
     
-    if (!user) {
-      console.log('Settings API - User not found in database:', userId);
+    if (!dbUser) {
+      console.log('Settings API - User not found in database:', user.id);
       return NextResponse.json(
-        { success: false, error: 'User not found', details: `No user found with ID: ${userId}` },
+        { success: false, error: 'User not found', details: `No user found with ID: ${user.id}` },
         { status: 404 }
       );
     }
@@ -44,51 +38,51 @@ export async function GET(request: NextRequest) {
     // แปลงข้อมูลให้ตรงกับ format ที่ frontend ต้องการ
     const settings = {
       // ข้อมูลภาษาไทย
-      thaiTitle: user.t_title || '',
-      thaiName: user.t_name || '',
-      thaiMiddleName: user.t_middle_name || '',
-      thaiSurname: user.t_surname || '',
+      thaiTitle: dbUser.t_title || '',
+      thaiName: dbUser.t_name || '',
+      thaiMiddleName: dbUser.t_middle_name || '',
+      thaiSurname: dbUser.t_surname || '',
       // ข้อมูลภาษาอังกฤษ
-      englishTitle: user.e_title || '',
-      englishName: user.e_name || '',
-      englishMiddleName: user.e_middle_name || '',
-      englishSurname: user.e_surname || '',
+      englishTitle: dbUser.e_title || '',
+      englishName: dbUser.e_name || '',
+      englishMiddleName: dbUser.e_middle_name || '',
+      englishSurname: dbUser.e_surname || '',
       // ข้อมูลอื่นๆ
-      email: user.email,
-      phone: user.phone || '',
-      studentId: user.id,
-      faculty: user.faculty?.nameTh || '',
-      department: user.department?.nameTh || '',
-      program: user.curriculum?.nameTh || '',
-      major: user.major?.nameTh || '',
-      campus: user.campus || '',
-      gpa: user.gpa || '',
-      nationality: user.nationality || 'ไทย',
-      passportId: user.passportId || '',
-      visaType: user.visaType || 'none',
-      skills: user.skills || '',
-      statement: user.statement || '',
+      email: dbUser.email,
+      phone: dbUser.phone || '',
+      studentId: dbUser.id,
+      faculty: dbUser.faculty?.nameTh || '',
+      department: dbUser.department?.nameTh || '',
+      program: dbUser.curriculum?.nameTh || '',
+      major: dbUser.major?.nameTh || '',
+      campus: dbUser.campus || '',
+      gpa: dbUser.gpa || '',
+      nationality: dbUser.nationality || 'ไทย',
+      passportId: dbUser.passportId || '',
+      visaType: dbUser.visaType || 'none',
+      skills: dbUser.skills || '',
+      statement: dbUser.statement || '',
       // การตั้งค่าการแจ้งเตือน
       notifications: {
-        email: user.notifyEmail ?? true,
-        push: user.notifyPush ?? false,
-        sms: user.notifySms ?? false,
-        applicationUpdates: user.notifyAppUpdates ?? true,
-        deadlineReminders: user.notifyDeadlines ?? true,
-        systemNews: user.notifyNews ?? false
+        email: dbUser.notifyEmail ?? true,
+        push: dbUser.notifyPush ?? false,
+        sms: dbUser.notifySms ?? false,
+        applicationUpdates: dbUser.notifyAppUpdates ?? true,
+        deadlineReminders: dbUser.notifyDeadlines ?? true,
+        systemNews: dbUser.notifyNews ?? false
       },
       // การตั้งค่าทั่วไป
       preferences: {
-        language: user.language || 'th',
-        theme: user.theme || 'light',
-        dateFormat: user.dateFormat || 'thai'
+        language: dbUser.language || 'th',
+        theme: dbUser.theme || 'light',
+        dateFormat: dbUser.dateFormat || 'thai'
       }
     };
     
     // ตรวจสอบและแสดงข้อมูลในคอนโซล
-    console.log('API Settings - Full user data:', user);
+    console.log('API Settings - Full user data:', dbUser);
     console.log('API Settings - Full settings data:', settings);
-    console.log('Settings API - Returning settings for user:', user.id);
+    console.log('Settings API - Returning settings for user:', dbUser.id);
     console.log('Settings API - Thai Name:', settings.thaiName, settings.thaiSurname);
     console.log('Settings API - English Name:', settings.englishName, settings.englishSurname);
     console.log('Settings API - Full user data:', JSON.stringify(user, null, 2));
@@ -110,44 +104,77 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    await cleanup();
   }
 }
 
+const SettingsSchema = z.object({
+  thaiTitle: z.string().optional(),
+  thaiName: z.string().optional(),
+  thaiMiddleName: z.string().optional(),
+  thaiSurname: z.string().optional(),
+  englishTitle: z.string().optional(),
+  englishName: z.string().optional(),
+  englishMiddleName: z.string().optional(),
+  englishSurname: z.string().optional(),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  campus: z.string().optional(),
+  gpa: z.string().optional(),
+  nationality: z.string().optional(),
+  passportId: z.string().optional(),
+  visaType: z.string().optional(),
+  skills: z.string().optional(),
+  statement: z.string().optional(),
+  notifications: z.object({
+    email: z.boolean().optional(),
+    push: z.boolean().optional(),
+    sms: z.boolean().optional(),
+    applicationUpdates: z.boolean().optional(),
+    deadlineReminders: z.boolean().optional(),
+    systemNews: z.boolean().optional(),
+  }).optional(),
+  preferences: z.object({
+    language: z.string().optional(),
+    theme: z.string().optional(),
+    dateFormat: z.string().optional(),
+  }).optional(),
+});
+
 export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json();
-    const userId = request.headers.get('x-user-id');
-    
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'User ID is required' },
-        { status: 400 }
-      );
+    const auth = await requireAuth(request, ['student']);
+    if ('error' in auth) return auth.error;
+    const { user } = auth;
+    const raw = await request.json();
+    const parsed = SettingsSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
     }
+    const body = parsed.data;
     
     // อัปเดตข้อมูลผู้ใช้
     const updatedUser = await prisma.user.update({
-      where: { id: userId },
+      where: { id: user.id },
       data: {
         // ข้อมูลส่วนตัว
-        t_title: body.thaiTitle,
-        t_name: body.thaiName,
-        t_middle_name: body.thaiMiddleName,
-        t_surname: body.thaiSurname,
-        e_title: body.englishTitle,
-        e_name: body.englishName,
-        e_middle_name: body.englishMiddleName,
-        e_surname: body.englishSurname,
-        email: body.email,
-        phone: body.phone,
-        campus: body.campus,
-        gpa: body.gpa,
-        nationality: body.nationality,
-        passportId: body.passportId,
-        visaType: body.visaType,
-        skills: body.skills,
-        statement: body.statement,
+        t_title: body.thaiTitle ? sanitizeString(body.thaiTitle) : undefined,
+        t_name: body.thaiName ? sanitizeString(body.thaiName) : undefined,
+        t_middle_name: body.thaiMiddleName ? sanitizeString(body.thaiMiddleName) : undefined,
+        t_surname: body.thaiSurname ? sanitizeString(body.thaiSurname) : undefined,
+        e_title: body.englishTitle ? sanitizeString(body.englishTitle) : undefined,
+        e_name: body.englishName ? sanitizeString(body.englishName) : undefined,
+        e_middle_name: body.englishMiddleName ? sanitizeString(body.englishMiddleName) : undefined,
+        e_surname: body.englishSurname ? sanitizeString(body.englishSurname) : undefined,
+        email: body.email ? body.email.toLowerCase() : undefined,
+        phone: body.phone ? sanitizeString(body.phone) : undefined,
+        campus: body.campus ? sanitizeString(body.campus) : undefined,
+        gpa: body.gpa ? sanitizeString(body.gpa) : undefined,
+        nationality: body.nationality ? sanitizeString(body.nationality) : undefined,
+        passportId: body.passportId ? sanitizeString(body.passportId) : undefined,
+        visaType: body.visaType ? sanitizeString(body.visaType) : undefined,
+        skills: body.skills ? sanitizeString(body.skills) : undefined,
+        statement: body.statement ? sanitizeString(body.statement) : undefined,
         // การตั้งค่าการแจ้งเตือน
         notifyEmail: body.notifications?.email ?? true,
         notifyPush: body.notifications?.push ?? false,
@@ -189,25 +216,20 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    await cleanup();
   }
 }
 
 // เพิ่ม DELETE method สำหรับลบการตั้งค่า (reset to default)
 export async function DELETE(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id') || 'test001';
-    
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'User ID is required' },
-        { status: 400 }
-      );
-    }
+    const auth = await requireAuth(request, ['student']);
+    if ('error' in auth) return auth.error;
+    const { user } = auth;
 
     // Reset settings to default values
     const updatedUser = await prisma.user.update({
-      where: { id: userId },
+      where: { id: user.id },
       data: {
         phone: null,
         campus: null,
@@ -242,6 +264,6 @@ export async function DELETE(request: NextRequest) {
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    await cleanup();
   }
 }
