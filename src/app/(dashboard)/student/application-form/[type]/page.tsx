@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,6 +54,9 @@ export default function ApplicationFormTypePage() {
     projectProposal: ''
   });
 
+  // Debounced form data for auto-save
+  const [debouncedFormData, setDebouncedFormData] = useState<ApplicationFormData>(formData);
+
   // Pre-select internship if provided in URL
   useEffect(() => {
     const preSelectedInternshipId = searchParams?.get('internshipId');
@@ -64,6 +67,15 @@ export default function ApplicationFormTypePage() {
       }));
     }
   }, [searchParams]);
+
+  // Debounce form data changes for auto-save
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedFormData(formData);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [formData]);
 
   // Load internships from API
   useEffect(() => {

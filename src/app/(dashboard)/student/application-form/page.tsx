@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Edit, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { logger, PerformanceMonitor } from '@/lib/logger';
+import { studentCache } from '@/lib/cache';
 
 interface TimelineStep {
     step: number;
@@ -64,8 +65,27 @@ export default function ApplicationFormPage() {
                 
                 // ตรวจสอบการสมัครฝึกงาน
                 logger.info('ApplicationFormPage: Fetching applications', { userId: user.id });
-                const applicationsResponse = await fetch('/api/applications');
-                const applicationsData = await applicationsResponse.json();
+                
+                // Check cache first
+                const cacheKey = `applications_${user.id}`;
+                let applicationsData = studentCache.get(cacheKey);
+                
+                if (!applicationsData) {
+                    const applicationsResponse = await fetch('/api/applications');
+                    applicationsData = await applicationsResponse.json();
+                    
+                    // Cache for 5 minutes
+                    studentCache.set(cacheKey, applicationsData, 300);
+                    logger.info('ApplicationFormPage: Applications cached', { 
+                        userId: user.id,
+                        cacheKey 
+                    });
+                } else {
+                    logger.info('ApplicationFormPage: Applications loaded from cache', { 
+                        userId: user.id,
+                        cacheKey 
+                    });
+                }
                 
                 const myApplications = applicationsData.applications?.filter(
                     (app: any) => app.studentId === user.id
@@ -157,7 +177,8 @@ export default function ApplicationFormPage() {
     }, [user]);
 
     // ไทม์ไลน์เริ่มต้นสำหรับนักศึกษาที่ยังไม่ได้สมัคร
-    const getDefaultTimeline = (): TimelineStep[] => [
+    // Memoize default timeline to prevent recreation on every render
+    const getDefaultTimeline = useCallback((): TimelineStep[] => [
         {
             step: 1,
             title: 'ลงทะเบียนข้อมูลนักศึกษา',
@@ -203,7 +224,7 @@ export default function ApplicationFormPage() {
             buttonText: 'รอการฝึกงาน',
             description: 'สรุปผลงานและหัวข้อโปรเจกต์'
         }
-    ];
+    ], []);
 
     // Track page load
     useEffect(() => {
