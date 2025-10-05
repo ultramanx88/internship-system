@@ -71,13 +71,14 @@ export async function POST(request: NextRequest) {
       expectedSkills, 
       preferredStartDate, 
       availableDuration,
-      projectProposal 
+      projectProposal,
+      status = 'pending' // เพิ่ม status parameter
     } = body;
     
-    console.log('Applications API - Creating application:', { studentId, internshipId });
+    console.log('Applications API - Creating application:', { studentId, internshipId, status });
     
     // Validation
-    if (!studentId || !internshipId || !studentReason || !expectedSkills) {
+    if (!studentId || !internshipId) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
@@ -98,12 +99,22 @@ export async function POST(request: NextRequest) {
         { status: 409 }
       );
     }
-    
+
+    // หาอาจารย์ประจำวิชาที่เหมาะสม (ในระบบจริงจะใช้ logic ที่ซับซ้อนกว่า)
+    const courseInstructor = await prisma.user.findFirst({
+      where: {
+        roles: {
+          contains: 'courseInstructor'
+        }
+      }
+    });
+
     const application = await prisma.application.create({
       data: {
         studentId,
         internshipId,
-        status: 'pending',
+        courseInstructorId: courseInstructor?.id, // กำหนดอาจารย์ประจำวิชา
+        status: status as any,
         dateApplied: new Date(),
         feedback: null,
         projectTopic: projectProposal || null
@@ -113,18 +124,29 @@ export async function POST(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            email: true
+            email: true,
+            t_name: true,
+            t_surname: true,
+            e_name: true,
+            e_surname: true
           }
         },
         internship: {
           include: {
             company: true
           }
+        },
+        courseInstructor: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
         }
       }
     });
     
-    console.log('Applications API - Created application:', application.id);
+    console.log('Applications API - Created application:', application.id, 'assigned to instructor:', courseInstructor?.name);
     
     return NextResponse.json({
       success: true,

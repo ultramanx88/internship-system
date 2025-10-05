@@ -264,25 +264,36 @@ export default function InternshipFormPage() {
         setIsLoading(true);
         
         try {
+            // สร้างข้อมูลสำหรับส่งไปยัง API
+            const applicationData = {
+                studentId: formData.studentId,
+                internshipId: formData.internshipId || 'default_internship', // ใช้ default ถ้าไม่มี
+                studentReason: formData.studentReason,
+                expectedSkills: formData.expectedSkills,
+                preferredStartDate: formData.preferredStartDate,
+                availableDuration: formData.availableDuration,
+                projectProposal: formData.projectProposal,
+                status: 'submitted' // ส่งไปยังอาจารย์ประจำวิชา
+            };
+            
             // ส่งข้อมูลแบบสมบูรณ์
             const response = await fetch('/api/applications', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    ...formData,
-                    status: 'submitted'
-                })
+                body: JSON.stringify(applicationData)
             });
             
             if (response.ok) {
+                const result = await response.json();
                 // ลบข้อมูลแบบร่างเมื่อส่งสำเร็จ
                 localStorage.removeItem('internship-form-draft');
                 setHasDraftData(false);
-                alert(isEnglish ? 'Application submitted successfully!' : 'ส่งใบสมัครเรียบร้อยแล้ว!');
+                alert(isEnglish ? 'Application submitted successfully! Your application has been sent to the course instructor.' : 'ส่งใบสมัครเรียบร้อยแล้ว! ใบสมัครของคุณถูกส่งไปยังอาจารย์ประจำวิชาแล้ว');
             } else {
-                throw new Error('Failed to submit application');
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to submit application');
             }
         } catch (error) {
             console.error('Error submitting application:', error);

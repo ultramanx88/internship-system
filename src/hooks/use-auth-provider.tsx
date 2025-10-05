@@ -134,8 +134,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Navigate to appropriate dashboard
       if (role === 'admin' || role === 'staff') {
         router.push('/admin');
-      } else if (role === 'courseInstructor' || role === 'committee' || role === 'visitor') {
-        router.push('/teacher');
+      } else if (
+        role === 'courseInstructor' || 
+        role === 'อาจารย์ประจำวิชา' ||
+        role === 'committee' || 
+        role === 'กรรมการ' ||
+        role === 'visitor' ||
+        role === 'อาจารย์นิเทศ'
+      ) {
+        router.push('/educator');
       } else if (role === 'student') {
         router.push('/student');
       }

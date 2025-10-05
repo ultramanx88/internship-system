@@ -57,14 +57,26 @@ const navConfig = {
     { href: '/staff/settings', icon: Settings, label: 'ตั้งค่า' },
   ],
   courseInstructor: [
-    { href: '/teacher', icon: LayoutDashboard, label: 'แดชบอร์ด (อ.ประจำวิชา)' },
-    { href: '/teacher/review', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร' },
+    { href: '/educator', icon: LayoutDashboard, label: 'แดชบอร์ด (อ.ประจำวิชา)' },
+    { href: '/educator/applications', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร' },
+    { href: '/instructor/assign_visitor', icon: UserCheck, label: 'มอบหมายอาจารย์นิเทศ' },
+  ],
+  'อาจารย์ประจำวิชา': [
+    { href: '/educator', icon: LayoutDashboard, label: 'แดชบอร์ด (อ.ประจำวิชา)' },
+    { href: '/educator/applications', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร' },
     { href: '/instructor/assign_visitor', icon: UserCheck, label: 'มอบหมายอาจารย์นิเทศ' },
   ],
   committee: [
-    { href: '/teacher/review', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร (กก.)' },
+    { href: '/educator/applications', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร (กก.)' },
+  ],
+  'กรรมการ': [
+    { href: '/educator/applications', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร (กก.)' },
   ],
   visitor: [
+     { href: '/visitor/schedule', icon: CalendarClock, label: 'ตารางนิเทศ' },
+     { href: '/visitor/visits', icon: ClipboardList, label: 'รายงานผลนิเทศ' },
+  ],
+  'อาจารย์นิเทศ': [
      { href: '/visitor/schedule', icon: CalendarClock, label: 'ตารางนิเทศ' },
      { href: '/visitor/visits', icon: ClipboardList, label: 'รายงานผลนิเทศ' },
   ],

@@ -48,24 +48,17 @@ model User {
   language      String        @default("th")
   theme         String        @default("light")
   dateFormat    String        @default("thai")
-  // Educator role
-  educatorRoleId String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   applications  Application[]
   documents     Document[]
   printRecords  PrintRecord[]
+  courseInstructorApplications Application[] @relation("CourseInstructorApplications")
+  supervisorApplications Application[] @relation("SupervisorApplications")
   curriculum    Curriculum?   @relation(fields: [curriculumId], references: [id])
   department    Department?   @relation(fields: [departmentId], references: [id])
   faculty       Faculty?      @relation(fields: [facultyId], references: [id])
   major         Major?        @relation(fields: [majorId], references: [id])
-  // Educator relations
-  educatorRole EducatorRole? @relation(fields: [educatorRoleId], references: [id])
-  courseInstructors CourseInstructor[]
-  supervisedStudents SupervisedStudent[]
-  createdCourseInstructors CourseInstructor[] @relation("CourseInstructorCreatedBy")
-  // Evaluation relations
-  evaluations Evaluation[]
 
   @@map("users")
 }
@@ -79,7 +72,6 @@ model Internship {
   type         InternshipType
   applications Application[]
   company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  evaluations  Evaluation[]
 
   @@map("internships")
 }
@@ -88,6 +80,8 @@ model Application {
   id            String            @id @default(cuid())
   studentId     String
   internshipId  String
+  courseInstructorId String?      // เพิ่มการเชื่อมโยงกับอาจารย์ประจำวิชา
+  supervisorId  String?           // เพิ่มการเชื่อมโยงกับอาจารย์นิเทศ
   status        ApplicationStatus
   dateApplied   DateTime
   feedback      String?
@@ -96,8 +90,8 @@ model Application {
   internship    Internship        @relation(fields: [internshipId], references: [id], onDelete: Cascade)
   printRecord   PrintRecord?      @relation(fields: [printRecordId], references: [id])
   student       User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  // Educator relations
-  supervisedStudents SupervisedStudent[]
+  courseInstructor User?          @relation("CourseInstructorApplications", fields: [courseInstructorId], references: [id])
+  supervisor    User?             @relation("SupervisorApplications", fields: [supervisorId], references: [id])
 
   @@map("applications")
 }
@@ -211,16 +205,6 @@ model Company {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   internships Internship[]
-  
-  // Address relations
-  provinceId    String?
-  districtId    String?
-  subdistrictId String?
-  provinceRef   Province?     @relation(fields: [provinceId], references: [id])
-  districtRef   District?     @relation(fields: [districtId], references: [id])
-  subdistrictRef Subdistrict? @relation(fields: [subdistrictId], references: [id])
-  // Evaluation relations
-  evaluations Evaluation[]
 
   @@map("companies")
 }
@@ -268,232 +252,4 @@ enum DocumentStatus {
   pending
   approved
   rejected
-}
-
-// Educator System Models
-model EducatorRole {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  nameEn      String?
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  users User[]
-  courseInstructors CourseInstructor[]
-  
-  @@map("educator_roles")
-}
-
-model AcademicYear {
-  id        String    @id @default(cuid())
-  year      String    @unique
-  isActive  Boolean   @default(false)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  
-  // Relations
-  semesters Semester[]
-  courseInstructors CourseInstructor[]
-  
-  @@map("academic_years")
-}
-
-model Semester {
-  id            String      @id @default(cuid())
-  name          String
-  academicYearId String
-  semester      String
-  startDate     DateTime
-  endDate       DateTime
-  isActive      Boolean     @default(false)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  
-  // Relations
-  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
-  courseInstructors CourseInstructor[]
-  
-  @@unique([academicYearId, semester])
-  @@map("semesters")
-}
-
-model CourseInstructor {
-  id            String        @id @default(cuid())
-  academicYearId String
-  semesterId    String
-  courseId      String?
-  instructorId  String
-  roleId        String
-  isActive      Boolean       @default(true)
-  createdBy     String
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  
-  // Relations
-  academicYear  AcademicYear  @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
-  semester      Semester      @relation(fields: [semesterId], references: [id], onDelete: Cascade)
-  instructor    User          @relation(fields: [instructorId], references: [id], onDelete: Cascade)
-  role          EducatorRole  @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  createdByUser User          @relation("CourseInstructorCreatedBy", fields: [createdBy], references: [id])
-  supervisedStudents SupervisedStudent[]
-  
-  @@unique([academicYearId, semesterId, courseId, instructorId, roleId])
-  @@map("course_instructors")
-}
-
-model SupervisedStudent {
-  id                String          @id @default(cuid())
-  courseInstructorId String
-  studentId         String
-  applicationId     String?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  
-  // Relations
-  courseInstructor  CourseInstructor @relation(fields: [courseInstructorId], references: [id], onDelete: Cascade)
-  student          User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  application      Application?     @relation(fields: [applicationId], references: [id])
-  
-  @@map("supervised_students")
-}
-
-// Address System Models
-model Province {
-  id        String   @id @default(cuid())
-  nameTh    String
-  nameEn    String?
-  code      String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  districts District[]
-  companies Company[]
-  
-  @@map("provinces")
-}
-
-model District {
-  id         String   @id @default(cuid())
-  nameTh     String
-  nameEn     String?
-  code       String
-  provinceId String
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  
-  // Relations
-  province     Province     @relation(fields: [provinceId], references: [id], onDelete: Cascade)
-  subdistricts Subdistrict[]
-  companies    Company[]
-  
-  @@unique([provinceId, code])
-  @@map("districts")
-}
-
-model Subdistrict {
-  id         String   @id @default(cuid())
-  nameTh     String
-  nameEn     String?
-  code       String
-  districtId String
-  postalCode String?
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  
-  // Relations
-  district  District  @relation(fields: [districtId], references: [id], onDelete: Cascade)
-  companies Company[]
-  
-  @@unique([districtId, code])
-  @@map("subdistricts")
-}
-
-// Evaluation System Models
-model EvaluationForm {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  questions   EvaluationQuestion[]
-  evaluations Evaluation[]
-  
-  @@map("evaluation_forms")
-}
-
-model EvaluationQuestion {
-  id              String      @id @default(cuid())
-  evaluationFormId String
-  question        String
-  questionType    QuestionType
-  order           Int
-  isRequired      Boolean     @default(true)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  
-  // Relations
-  evaluationForm EvaluationForm @relation(fields: [evaluationFormId], references: [id], onDelete: Cascade)
-  answers        EvaluationAnswer[]
-  
-  @@map("evaluation_questions")
-}
-
-model Evaluation {
-  id              String            @id @default(cuid())
-  studentId       String
-  companyId       String
-  internshipId    String?
-  evaluationFormId String
-  status          EvaluationStatus  @default(pending)
-  submittedAt     DateTime?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  
-  // Relations
-  student       User               @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  company       Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  internship    Internship?        @relation(fields: [internshipId], references: [id])
-  evaluationForm EvaluationForm    @relation(fields: [evaluationFormId], references: [id])
-  answers       EvaluationAnswer[]
-  
-  @@map("evaluations")
-}
-
-model EvaluationAnswer {
-  id              String            @id @default(cuid())
-  evaluationId    String
-  questionId      String
-  answerText      String?
-  answerRating    Int?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  
-  // Relations
-  evaluation Evaluation      @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
-  question   EvaluationQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  
-  @@map("evaluation_answers")
-}
-
-enum QuestionType {
-  rating
-  text
-  multiple_choice
-  yes_no
-}
-
-enum EvaluationStatus {
-  pending
-  submitted
-  completed
 }

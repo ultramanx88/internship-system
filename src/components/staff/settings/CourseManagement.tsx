@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 
 interface CourseCategory {
   id: string;
@@ -287,141 +287,212 @@ export default function CourseManagement() {
         </Button>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>ตัวกรอง</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div>
-              <Label htmlFor="search">ค้นหา</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="search"
-                  placeholder="ค้นหาด้วยรหัสหรือชื่อวิชา"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="faculty">คณะ</Label>
-              <Select value={selectedFaculty} onValueChange={setSelectedFaculty}>
-                <SelectTrigger>
-                  <SelectValue placeholder="เลือกคณะ" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">ทั้งหมด</SelectItem>
-                  {faculties.map(faculty => (
-                    <SelectItem key={faculty.id} value={faculty.id}>
-                      {faculty.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="department">ภาควิชา</Label>
-              <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger>
-                  <SelectValue placeholder="เลือกภาควิชา" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">ทั้งหมด</SelectItem>
-                  {departments.map(dept => (
-                    <SelectItem key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="curriculum">หลักสูตร</Label>
-              <Select value={selectedCurriculum} onValueChange={setSelectedCurriculum}>
-                <SelectTrigger>
-                  <SelectValue placeholder="เลือกหลักสูตร" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">ทั้งหมด</SelectItem>
-                  {curriculums.map(curriculum => (
-                    <SelectItem key={curriculum.id} value={curriculum.id}>
-                      {curriculum.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="major">สาขา</Label>
-              <Select value={selectedMajor} onValueChange={setSelectedMajor}>
-                <SelectTrigger>
-                  <SelectValue placeholder="เลือกสาขา" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">ทั้งหมด</SelectItem>
-                  {majors.map(major => (
-                    <SelectItem key={major.id} value={major.id}>
-                      {major.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Course List */}
-      <div className="grid gap-4">
-        {filteredCourses.map(course => (
-          <Card key={course.id}>
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-semibold">{course.name}</h3>
-                    <Badge variant="outline">{course.code}</Badge>
-                    <Badge variant={course.isActive ? "default" : "secondary"}>
-                      {course.isActive ? "เปิดใช้งาน" : "ปิดใช้งาน"}
-                    </Badge>
+      {/* Main Content - 2 Columns 2 Rows */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Column - 2 Rows */}
+        <div className="space-y-6">
+          {/* Row 1: Filters */}
+          <Card>
+            <CardHeader>
+              <CardTitle>ตัวกรอง</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="search">ค้นหา</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="search"
+                      placeholder="ค้นหาด้วยรหัสหรือชื่อวิชา"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
-                  {course.nameEn && (
-                    <p className="text-sm text-gray-600">{course.nameEn}</p>
-                  )}
-                  <div className="flex gap-4 text-sm text-gray-600">
-                    <span>หน่วยกิต: {course.credits}</span>
-                    {course.category && <span>หมวดหมู่: {course.category.name}</span>}
-                    {course.faculty && <span>คณะ: {course.faculty.name}</span>}
-                    {course.department && <span>ภาควิชา: {course.department.name}</span>}
-                  </div>
-                  {course.description && (
-                    <p className="text-sm text-gray-600">{course.description}</p>
-                  )}
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => startEdit(course)}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteCourse(course.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                <div>
+                  <Label htmlFor="faculty">คณะ</Label>
+                  <Select value={selectedFaculty} onValueChange={setSelectedFaculty}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="เลือกคณะ" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">ทั้งหมด</SelectItem>
+                      {faculties.map(faculty => (
+                        <SelectItem key={faculty.id} value={faculty.id}>
+                          {faculty.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="department">ภาควิชา</Label>
+                  <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="เลือกภาควิชา" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">ทั้งหมด</SelectItem>
+                      {departments.map(dept => (
+                        <SelectItem key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="curriculum">หลักสูตร</Label>
+                  <Select value={selectedCurriculum} onValueChange={setSelectedCurriculum}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="เลือกหลักสูตร" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">ทั้งหมด</SelectItem>
+                      {curriculums.map(curriculum => (
+                        <SelectItem key={curriculum.id} value={curriculum.id}>
+                          {curriculum.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardContent>
           </Card>
-        ))}
+
+          {/* Row 2: Course List */}
+          <Card>
+            <CardHeader>
+              <CardTitle>รายการวิชา</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {filteredCourses.map(course => (
+                  <div key={course.id} className="p-4 border rounded-lg">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-semibold">{course.name}</h3>
+                          <Badge variant="outline">{course.code}</Badge>
+                          <Badge variant={course.isActive ? "default" : "secondary"}>
+                            {course.isActive ? "เปิดใช้งาน" : "ปิดใช้งาน"}
+                          </Badge>
+                        </div>
+                        {course.nameEn && (
+                          <p className="text-sm text-gray-600">{course.nameEn}</p>
+                        )}
+                        <div className="flex gap-4 text-sm text-gray-600">
+                          <span>หน่วยกิต: {course.credits}</span>
+                          {course.category && <span>หมวดหมู่: {course.category.name}</span>}
+                          {course.faculty && <span>คณะ: {course.faculty.name}</span>}
+                        </div>
+                        {course.description && (
+                          <p className="text-sm text-gray-600">{course.description}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => startEdit(course)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteCourse(course.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - 2 Rows */}
+        <div className="space-y-6">
+          {/* Row 1: Statistics */}
+          <Card>
+            <CardHeader>
+              <CardTitle>สถิติ</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <p className="text-2xl font-bold text-blue-600">{courses.length}</p>
+                  <p className="text-sm text-gray-600">วิชาทั้งหมด</p>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <p className="text-2xl font-bold text-green-600">
+                    {courses.filter(c => c.isActive).length}
+                  </p>
+                  <p className="text-sm text-gray-600">วิชาที่เปิดใช้งาน</p>
+                </div>
+                <div className="text-center p-4 bg-orange-50 rounded-lg">
+                  <p className="text-2xl font-bold text-orange-600">
+                    {courses.filter(c => !c.isActive).length}
+                  </p>
+                  <p className="text-sm text-gray-600">วิชาที่ปิดใช้งาน</p>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <p className="text-2xl font-bold text-purple-600">
+                    {categories.length}
+                  </p>
+                  <p className="text-sm text-gray-600">หมวดหมู่</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Row 2: Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>การดำเนินการด่วน</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Button 
+                  className="w-full justify-start" 
+                  variant="outline"
+                  onClick={() => setIsCreating(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  เพิ่มวิชาใหม่
+                </Button>
+                <Button 
+                  className="w-full justify-start" 
+                  variant="outline"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedFaculty('');
+                    setSelectedDepartment('');
+                    setSelectedCurriculum('');
+                    setSelectedMajor('');
+                  }}
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  รีเซ็ตตัวกรอง
+                </Button>
+                <Button 
+                  className="w-full justify-start" 
+                  variant="outline"
+                  onClick={loadData}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  รีเฟรชข้อมูล
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Create/Edit Modal */}
@@ -563,7 +634,7 @@ export default function CourseManagement() {
                         {major.name}
                       </SelectItem>
                     ))}
-                  </Select>
+                  </SelectContent>
                 </Select>
               </div>
               

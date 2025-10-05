@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const status = searchParams.get('status');
+    const type = searchParams.get('type'); // internship type filter (internship | co_op)
 
     if (!userId) {
       return NextResponse.json(
@@ -70,7 +71,8 @@ export async function GET(request: NextRequest) {
         applications = await prisma.application.findMany({
           where: {
             studentId: { in: supervisedStudentIds },
-            ...(status && { status: status as any })
+            ...(status && { status: status as any }),
+            ...(type && { internship: { type: type as any } })
           },
           include: {
             student: {
@@ -82,7 +84,10 @@ export async function GET(request: NextRequest) {
                 phone: true,
                 skills: true,
                 statement: true,
-                profileImage: true
+                profileImage: true,
+                major: { select: { id: true, nameTh: true, nameEn: true } },
+                department: { select: { id: true, nameTh: true, nameEn: true } },
+                faculty: { select: { id: true, nameTh: true, nameEn: true } }
               }
             },
             internship: {
@@ -95,6 +100,13 @@ export async function GET(request: NextRequest) {
                   }
                 }
               }
+            },
+            courseInstructor: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
             }
           },
           orderBy: {
@@ -102,11 +114,13 @@ export async function GET(request: NextRequest) {
           }
         });
       }
-    } else {
-      // อาจารย์ประจำวิชาและกรรมการเห็น applications ทั้งหมด
+    } else if (user.educatorRole.name === 'อาจารย์ประจำวิชา') {
+      // อาจารย์ประจำวิชาเห็นเฉพาะ applications ที่ถูกกำหนดให้ตน
       applications = await prisma.application.findMany({
         where: {
-          ...(status && { status: status as any })
+          courseInstructorId: userId, // ดูเฉพาะที่ถูกกำหนดให้ตน
+          ...(status && { status: status as any }),
+          ...(type && { internship: { type: type as any } })
         },
         include: {
           student: {
@@ -118,7 +132,10 @@ export async function GET(request: NextRequest) {
               phone: true,
               skills: true,
               statement: true,
-              profileImage: true
+              profileImage: true,
+              major: { select: { id: true, nameTh: true, nameEn: true } },
+              department: { select: { id: true, nameTh: true, nameEn: true } },
+              faculty: { select: { id: true, nameTh: true, nameEn: true } }
             }
           },
           internship: {
@@ -130,6 +147,59 @@ export async function GET(request: NextRequest) {
                   address: true
                 }
               }
+            }
+          },
+          courseInstructor: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+    } else {
+      // กรรมการเห็น applications ทั้งหมด
+      applications = await prisma.application.findMany({
+        where: {
+          ...(status && { status: status as any }),
+          ...(type && { internship: { type: type as any } })
+        },
+        include: {
+          student: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              studentId: true,
+              phone: true,
+              skills: true,
+              statement: true,
+              profileImage: true,
+              major: { select: { id: true, nameTh: true, nameEn: true } },
+              department: { select: { id: true, nameTh: true, nameEn: true } },
+              faculty: { select: { id: true, nameTh: true, nameEn: true } }
+            }
+          },
+          internship: {
+            include: {
+              company: {
+                select: {
+                  id: true,
+                  name: true,
+                  address: true
+                }
+              }
+            }
+          },
+          courseInstructor: {
+            select: {
+              id: true,
+              name: true,
+              email: true
             }
           }
         },

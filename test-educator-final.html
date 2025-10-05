@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Educator Dashboard - Final</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .success { background-color: #d4edda; border-left: 4px solid #28a745; }
+        .error { background-color: #f8d7da; border-left: 4px solid #dc3545; }
+        .info { background-color: #d1ecf1; border-left: 4px solid #17a2b8; }
+        .warning { background-color: #fff3cd; border-left: 4px solid #ffc107; }
+        button { padding: 12px 24px; margin: 8px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .result { margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 4px; border: 1px solid #dee2e6; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .status { display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.warning { background: #fff3cd; color: #856404; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .feature-list { list-style: none; padding: 0; }
+        .feature-list li { padding: 8px 0; border-bottom: 1px solid #eee; }
+        .feature-list li:before { content: "✓ "; color: #28a745; font-weight: bold; }
+        .feature-list li.missing:before { content: "✗ "; color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 ทดสอบหน้า Educator Dashboard - รูปแบบใหม่</h1>
+        
+        <div class="test-section info">
+            <h3>📋 ฟีเจอร์ที่คาดหวัง</h3>
+            <ul class="feature-list">
+                <li>กำหนดการใกล้ถึง (2/3 คอลัมน์)</li>
+                <li>ขั้นตอนการยื่นสหกิจศึกษา (1/3 คอลัมน์)</li>
+                <li>จำนวนนักศึกษาที่ส่งเอกสารฝึกงาน (Pie Chart)</li>
+                <li>การแจ้งเตือน</li>
+                <li>งานของฉัน (4 การ์ด)</li>
+                <li>รายชื่อ (ตาราง)</li>
+            </ul>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>🔐 1. ทดสอบการเข้าสู่ระบบ</h3>
+                <button onclick="testLogin()" id="loginBtn">เข้าสู่ระบบ (อาจารย์ประจำวิชา)</button>
+                <div id="loginResult" class="result" style="display: none;"></div>
+            </div>
+
+            <div class="card">
+                <h3>📊 2. ทดสอบหน้า Educator</h3>
+                <button onclick="testEducatorPage()" id="educatorBtn" disabled>เข้าหน้า Educator</button>
+                <div id="educatorResult" class="result" style="display: none;"></div>
+            </div>
+
+            <div class="card">
+                <h3>🔧 3. ทดสอบ APIs</h3>
+                <button onclick="testAPIs()" id="apiBtn" disabled>ทดสอบ APIs</button>
+                <div id="apiResult" class="result" style="display: none;"></div>
+            </div>
+
+            <div class="card">
+                <h3>🎨 4. ตรวจสอบ UI Elements</h3>
+                <button onclick="checkUIElements()" id="uiBtn" disabled>ตรวจสอบ UI</button>
+                <div id="uiResult" class="result" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📈 สรุปผลการทดสอบ</h3>
+            <div id="summaryResult" class="result">
+                <p>รอการทดสอบ...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+        let testResults = {};
+
+        async function testLogin() {
+            const btn = document.getElementById('loginBtn');
+            const resultDiv = document.getElementById('loginResult');
+            const educatorBtn = document.getElementById('educatorBtn');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> กำลังเข้าสู่ระบบ...';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'กำลังทดสอบ...';
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        identifier: 't6800007@smart-solutions.com',
+                        role: 'อาจารย์ประจำวิชา',
+                        password: '123456'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.user.id;
+                    testResults.login = { status: 'success', message: 'เข้าสู่ระบบสำเร็จ' };
+                    
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <strong>✅ เข้าสู่ระบบสำเร็จ!</strong><br>
+                            ผู้ใช้: ${data.user.name}<br>
+                            Role: ${data.user.roles.join(', ')}<br>
+                            Token: ${authToken}
+                        </div>
+                    `;
+                    
+                    educatorBtn.disabled = false;
+                    educatorBtn.innerHTML = 'เข้าหน้า Educator';
+                } else {
+                    testResults.login = { status: 'error', message: data.message || 'Unknown error' };
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <strong>❌ เข้าสู่ระบบล้มเหลว:</strong><br>
+                            ${data.message || 'Unknown error'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                testResults.login = { status: 'error', message: error.message };
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>❌ เกิดข้อผิดพลาด:</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'เข้าสู่ระบบ (อาจารย์ประจำวิชา)';
+                updateSummary();
+            }
+        }
+
+        async function testEducatorPage() {
+            const btn = document.getElementById('educatorBtn');
+            const resultDiv = document.getElementById('educatorResult');
+            const apiBtn = document.getElementById('apiBtn');
+            const uiBtn = document.getElementById('uiBtn');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> กำลังโหลด...';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'กำลังทดสอบ...';
+            
+            try {
+                const response = await fetch('/educator', {
+                    headers: { 'x-user-id': authToken }
+                });
+                
+                if (response.ok) {
+                    const html = await response.text();
+                    const checks = {
+                        hasSchedule: html.includes('กำหนดการใกล้ถึง'),
+                        hasTimeline: html.includes('ขั้นตอนการยื่นสหกิจศึกษา'),
+                        hasPieChart: html.includes('จำนวนนักศึกษาที่ส่งเอกสารฝึกงาน'),
+                        hasNotifications: html.includes('การแจ้งเตือน'),
+                        hasMyTasks: html.includes('งานของฉัน'),
+                        hasTable: html.includes('รายชื่อ'),
+                        hasPieChartComponent: html.includes('PieChart'),
+                        hasResponsiveContainer: html.includes('ResponsiveContainer')
+                    };
+                    
+                    const passedChecks = Object.values(checks).filter(Boolean).length;
+                    const totalChecks = Object.keys(checks).length;
+                    
+                    testResults.educator = { 
+                        status: 'success', 
+                        message: `ผ่าน ${passedChecks}/${totalChecks} การตรวจสอบ`,
+                        details: checks
+                    };
+                    
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <strong>✅ หน้า Educator โหลดสำเร็จ!</strong><br>
+                            Status: ${response.status}<br>
+                            <br><strong>การตรวจสอบ:</strong><br>
+                            ${Object.entries(checks).map(([key, value]) => 
+                                `• ${key}: ${value ? '✅' : '❌'}`
+                            ).join('<br>')}
+                        </div>
+                    `;
+                    
+                    apiBtn.disabled = false;
+                    uiBtn.disabled = false;
+                } else {
+                    testResults.educator = { status: 'error', message: `HTTP ${response.status}` };
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <strong>❌ ไม่สามารถเข้าหน้า Educator:</strong><br>
+                            Status: ${response.status}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                testResults.educator = { status: 'error', message: error.message };
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>❌ เกิดข้อผิดพลาด:</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'เข้าหน้า Educator';
+                updateSummary();
+            }
+        }
+
+        async function testAPIs() {
+            const btn = document.getElementById('apiBtn');
+            const resultDiv = document.getElementById('apiResult');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> กำลังทดสอบ...';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'กำลังทดสอบ...';
+            
+            const apis = [
+                { name: 'User Profile', url: '/api/user/profile' },
+                { name: 'Educator Dashboard', url: '/api/educator/dashboard' },
+                { name: 'Educator Applications', url: '/api/educator/applications' }
+            ];
+            
+            let results = [];
+            let successCount = 0;
+            
+            for (const api of apis) {
+                try {
+                    const response = await fetch(api.url, {
+                        headers: { 'x-user-id': authToken }
+                    });
+                    
+                    const isSuccess = response.ok;
+                    if (isSuccess) successCount++;
+                    
+                    results.push(`${api.name}: ${isSuccess ? '✅' : '❌'} (${response.status})`);
+                } catch (error) {
+                    results.push(`${api.name}: ❌ Error - ${error.message}`);
+                }
+            }
+            
+            testResults.apis = { 
+                status: successCount === apis.length ? 'success' : 'warning',
+                message: `ผ่าน ${successCount}/${apis.length} APIs`,
+                details: results
+            };
+            
+            resultDiv.innerHTML = `
+                <div class="${testResults.apis.status === 'success' ? 'success' : 'warning'}">
+                    <strong>${testResults.apis.status === 'success' ? '✅' : '⚠️'} ผลการทดสอบ APIs:</strong><br>
+                    ${results.join('<br>')}
+                </div>
+            `;
+            
+            btn.disabled = false;
+            btn.innerHTML = 'ทดสอบ APIs';
+            updateSummary();
+        }
+
+        async function checkUIElements() {
+            const btn = document.getElementById('uiBtn');
+            const resultDiv = document.getElementById('uiResult');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> กำลังตรวจสอบ...';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'กำลังตรวจสอบ...';
+            
+            try {
+                const response = await fetch('/educator', {
+                    headers: { 'x-user-id': authToken }
+                });
+                
+                if (response.ok) {
+                    const html = await response.text();
+                    const uiChecks = {
+                        'กำหนดการใกล้ถึง': html.includes('กำหนดการใกล้ถึง'),
+                        'ขั้นตอนการยื่นสหกิจศึกษา': html.includes('ขั้นตอนการยื่นสหกิจศึกษา'),
+                        'จำนวนนักศึกษาที่ส่งเอกสารฝึกงาน': html.includes('จำนวนนักศึกษาที่ส่งเอกสารฝึกงาน'),
+                        'การแจ้งเตือน': html.includes('การแจ้งเตือน'),
+                        'งานของฉัน': html.includes('งานของฉัน'),
+                        'รายชื่อ': html.includes('รายชื่อ'),
+                        'Pie Chart Component': html.includes('PieChart'),
+                        'Responsive Container': html.includes('ResponsiveContainer'),
+                        'Grid Layout': html.includes('grid-cols-3') || html.includes('grid-cols-2'),
+                        'Card Components': html.includes('Card') && html.includes('CardHeader') && html.includes('CardContent')
+                    };
+                    
+                    const passedChecks = Object.values(uiChecks).filter(Boolean).length;
+                    const totalChecks = Object.keys(uiChecks).length;
+                    
+                    testResults.ui = { 
+                        status: passedChecks >= totalChecks * 0.8 ? 'success' : 'warning',
+                        message: `ผ่าน ${passedChecks}/${totalChecks} การตรวจสอบ UI`,
+                        details: uiChecks
+                    };
+                    
+                    resultDiv.innerHTML = `
+                        <div class="${testResults.ui.status === 'success' ? 'success' : 'warning'}">
+                            <strong>${testResults.ui.status === 'success' ? '✅' : '⚠️'} การตรวจสอบ UI Elements:</strong><br>
+                            ${Object.entries(uiChecks).map(([key, value]) => 
+                                `• ${key}: ${value ? '✅' : '❌'}`
+                            ).join('<br>')}
+                        </div>
+                    `;
+                } else {
+                    testResults.ui = { status: 'error', message: `HTTP ${response.status}` };
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <strong>❌ ไม่สามารถเข้าถึงหน้า:</strong><br>
+                            Status: ${response.status}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                testResults.ui = { status: 'error', message: error.message };
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>❌ เกิดข้อผิดพลาด:</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'ตรวจสอบ UI';
+                updateSummary();
+            }
+        }
+
+        function updateSummary() {
+            const summaryDiv = document.getElementById('summaryResult');
+            const results = Object.values(testResults);
+            
+            if (results.length === 0) {
+                summaryDiv.innerHTML = '<p>รอการทดสอบ...</p>';
+                return;
+            }
+            
+            const successCount = results.filter(r => r.status === 'success').length;
+            const warningCount = results.filter(r => r.status === 'warning').length;
+            const errorCount = results.filter(r => r.status === 'error').length;
+            
+            const overallStatus = errorCount === 0 ? (warningCount === 0 ? 'success' : 'warning') : 'error';
+            const statusIcon = overallStatus === 'success' ? '✅' : overallStatus === 'warning' ? '⚠️' : '❌';
+            const statusText = overallStatus === 'success' ? 'สำเร็จ' : overallStatus === 'warning' ? 'มีปัญหาเล็กน้อย' : 'ล้มเหลว';
+            
+            summaryDiv.innerHTML = `
+                <div class="${overallStatus}">
+                    <h4>${statusIcon} สรุปผลการทดสอบ: ${statusText}</h4>
+                    <p><strong>ผลรวม:</strong> สำเร็จ ${successCount}, มีปัญหา ${warningCount}, ล้มเหลว ${errorCount}</p>
+                    <br>
+                    <strong>รายละเอียด:</strong><br>
+                    ${results.map((result, index) => 
+                        `• ${Object.keys(testResults)[index]}: <span class="status ${result.status}">${result.message}</span>`
+                    ).join('<br>')}
+                </div>
+            `;
+        }
+
+        // Auto-run login test on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testLogin();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

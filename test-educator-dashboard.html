@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Educator Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>ทดสอบหน้า Educator Dashboard</h1>
+    
+    <div class="test-section info">
+        <h3>1. ทดสอบการเข้าสู่ระบบ</h3>
+        <button onclick="testLogin()">เข้าสู่ระบบ (อาจารย์ประจำวิชา)</button>
+        <div id="loginResult" class="result"></div>
+    </div>
+
+    <div class="test-section info">
+        <h3>2. ทดสอบการเข้าถึงหน้า Educator</h3>
+        <button onclick="testEducatorPage()">เข้าหน้า Educator</button>
+        <div id="educatorResult" class="result"></div>
+    </div>
+
+    <div class="test-section info">
+        <h3>3. ทดสอบ API ต่างๆ</h3>
+        <button onclick="testAPIs()">ทดสอบ APIs</button>
+        <div id="apiResult" class="result"></div>
+    </div>
+
+    <script>
+        let authToken = '';
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('loginResult');
+            resultDiv.innerHTML = 'กำลังทดสอบ...';
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        identifier: 't6800007@smart-solutions.com',
+                        role: 'อาจารย์ประจำวิชา',
+                        password: '123456'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.user.id;
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <strong>✅ เข้าสู่ระบบสำเร็จ!</strong><br>
+                            ผู้ใช้: ${data.user.name}<br>
+                            Role: ${data.user.roles.join(', ')}<br>
+                            Token: ${authToken}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <strong>❌ เข้าสู่ระบบล้มเหลว:</strong><br>
+                            ${data.message || 'Unknown error'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>❌ เกิดข้อผิดพลาด:</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testEducatorPage() {
+            const resultDiv = document.getElementById('educatorResult');
+            resultDiv.innerHTML = 'กำลังทดสอบ...';
+            
+            try {
+                const response = await fetch('/educator', {
+                    headers: {
+                        'x-user-id': authToken
+                    }
+                });
+                
+                if (response.ok) {
+                    const html = await response.text();
+                    const hasPieChart = html.includes('PieChart');
+                    const hasTimeline = html.includes('ขั้นตอนการทำงาน');
+                    const hasNotifications = html.includes('การแจ้งเตือน');
+                    
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <strong>✅ หน้า Educator โหลดสำเร็จ!</strong><br>
+                            Status: ${response.status}<br>
+                            มี Pie Chart: ${hasPieChart ? '✅' : '❌'}<br>
+                            มี Timeline: ${hasTimeline ? '✅' : '❌'}<br>
+                            มี Notifications: ${hasNotifications ? '✅' : '❌'}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <strong>❌ ไม่สามารถเข้าหน้า Educator:</strong><br>
+                            Status: ${response.status}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>❌ เกิดข้อผิดพลาด:</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testAPIs() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = 'กำลังทดสอบ...';
+            
+            const apis = [
+                { name: 'User Profile', url: '/api/user/profile' },
+                { name: 'Educator Dashboard', url: '/api/educator/dashboard' },
+                { name: 'Educator Applications', url: '/api/educator/applications' }
+            ];
+            
+            let results = [];
+            
+            for (const api of apis) {
+                try {
+                    const response = await fetch(api.url, {
+                        headers: {
+                            'x-user-id': authToken
+                        }
+                    });
+                    
+                    results.push(`${api.name}: ${response.ok ? '✅' : '❌'} (${response.status})`);
+                } catch (error) {
+                    results.push(`${api.name}: ❌ Error - ${error.message}`);
+                }
+            }
+            
+            resultDiv.innerHTML = `
+                <div class="info">
+                    <strong>ผลการทดสอบ APIs:</strong><br>
+                    ${results.join('<br>')}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

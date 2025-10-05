@@ -34,31 +34,50 @@ export function useEducatorRole() {
       setIsLoading(true);
       setError(null);
 
-      // โหลดข้อมูลผู้ใช้จาก profile API
-      const response = await fetch('/api/user/profile');
-      if (!response.ok) {
-        if (response.status === 401) {
-          setError('User not logged in');
-        } else {
-          throw new Error('Failed to fetch user data');
-        }
+      // Debug: ตรวจสอบ localStorage
+      console.log('🔍 Checking localStorage...');
+      const allKeys = Object.keys(localStorage);
+      console.log('📋 All localStorage keys:', allKeys);
+      
+      // ตรวจสอบข้อมูลผู้ใช้จาก localStorage (ใช้ key เดียวกับ use-auth-provider)
+      const storedUser = localStorage.getItem('internship-flow-user');
+      console.log('👤 Stored user data:', storedUser);
+      
+      if (!storedUser) {
+        console.log('❌ No user data in localStorage');
+        setError('User not logged in');
         setIsLoading(false);
         return;
       }
 
-      const userData = await response.json();
-      setUser(userData);
+      const parsedUser = JSON.parse(storedUser);
+      console.log('📝 Parsed user:', parsedUser);
+      
+      if (!parsedUser || !parsedUser.id) {
+        console.log('❌ Invalid user data');
+        setError('User not logged in');
+        setIsLoading(false);
+        return;
+      }
+
+      // ใช้ข้อมูลจาก localStorage โดยตรง
+      setUser(parsedUser);
+      console.log('✅ User set successfully:', parsedUser);
 
       // ถ้ามี educatorRole ให้ตั้งค่า
-      if (userData.educatorRole) {
-        setEducatorRole(userData.educatorRole);
+      if (parsedUser.educatorRole) {
+        setEducatorRole(parsedUser.educatorRole);
+        console.log('🎭 Educator role set:', parsedUser.educatorRole);
+      } else {
+        console.log('⚠️ No educator role found in user data');
       }
 
     } catch (err) {
-      console.error('Error loading user data:', err);
+      console.error('❌ Error loading user data:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setIsLoading(false);
+      console.log('🏁 Loading completed');
     }
   };
 
@@ -127,8 +146,8 @@ export function useEducatorRole() {
   const hasRole = (roleName: string): boolean => {
     if (!user) return false;
     
-    // ตรวจสอบจาก roles string
-    const userRoles = user.roles.split(',').map(role => role.trim().replace(/[\[\]"]/g, ''));
+    // ตรวจสอบจาก roles array
+    const userRoles = Array.isArray(user.roles) ? user.roles : user.roles.split(',').map(role => role.trim().replace(/[\[\]"]/g, ''));
     if (userRoles.includes(roleName)) return true;
     
     // ตรวจสอบจาก educatorRole
@@ -156,7 +175,7 @@ export function useEducatorRole() {
   // ตรวจสอบว่าผู้ใช้มีหลาย role หรือไม่
   const hasMultipleRoles = (): boolean => {
     if (!user) return false;
-    const userRoles = user.roles.split(',').map(role => role.trim().replace(/[\[\]"]/g, ''));
+    const userRoles = Array.isArray(user.roles) ? user.roles : user.roles.split(',').map(role => role.trim().replace(/[\[\]"]/g, ''));
     return userRoles.length > 1;
   };
 

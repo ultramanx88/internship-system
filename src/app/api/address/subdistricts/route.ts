@@ -26,7 +26,9 @@ export async function GET(request: NextRequest) {
         nameTh: true,
         nameEn: true,
         code: true,
-        districtId: true
+        districtId: true,
+        // เพิ่มรหัสไปรษณีย์สำหรับการตั้งค่าตามตำบลที่เลือก
+        postalCode: true
       }
     });
 
@@ -44,4 +46,3 @@ export async function GET(request: NextRequest) {
     await prisma.$disconnect();
   }
 }
-

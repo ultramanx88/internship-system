@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug User Data</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug User Data</h1>
+        
+        <div class="section info">
+            <h3>📋 Current localStorage Data</h3>
+            <button onclick="showStorageData()">Show Storage Data</button>
+            <div id="storageData"></div>
+        </div>
+
+        <div class="section info">
+            <h3>👤 Test Login as Educator</h3>
+            <button onclick="loginAsEducator()">Login as Course Instructor</button>
+            <div id="loginResult"></div>
+        </div>
+
+        <div class="section info">
+            <h3>🧪 Test API Call</h3>
+            <button onclick="testApiCall()">Test Coop Requests API</button>
+            <div id="apiResult"></div>
+        </div>
+    </div>
+
+    <script>
+        function showStorageData() {
+            const resultDiv = document.getElementById('storageData');
+            const userData = localStorage.getItem('internship-flow-user');
+            const version = localStorage.getItem('internship-flow-version');
+            
+            resultDiv.innerHTML = `
+                <h4>Storage Data:</h4>
+                <pre>${JSON.stringify({
+                    user: userData ? JSON.parse(userData) : null,
+                    version: version
+                }, null, 2)}</pre>
+            `;
+        }
+
+        async function loginAsEducator() {
+            const resultDiv = document.getElementById('loginResult');
+            resultDiv.innerHTML = 'กำลังเข้าสู่ระบบ...';
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        identifier: 'instructor.test@smart-solutions.com',
+                        password: '123456',
+                        role: 'courseInstructor'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // เก็บข้อมูลใน localStorage
+                    localStorage.setItem('internship-flow-user', JSON.stringify(data.user));
+                    localStorage.setItem('internship-flow-version', '1.0');
+                    
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ เข้าสู่ระบบสำเร็จ!</h4>
+                            <pre>${JSON.stringify(data.user, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ เข้าสู่ระบบล้มเหลว</h4>
+                            <p>${data.message || 'Unknown error'}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testApiCall() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = 'กำลังทดสอบ API...';
+            
+            try {
+                const userData = JSON.parse(localStorage.getItem('internship-flow-user') || '{}');
+                
+                if (!userData.id) {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ ไม่พบข้อมูลผู้ใช้</h4>
+                            <p>กรุณาเข้าสู่ระบบก่อน</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const response = await fetch(`/api/educator/coop-requests?userId=${userData.id}&page=1&limit=10`);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="${response.ok ? 'success' : 'error'}">
+                        <h4>${response.ok ? '✅' : '❌'} API Response (${response.status})</h4>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // แสดงข้อมูล storage เมื่อโหลดหน้า
+        window.onload = function() {
+            showStorageData();
+        };
+    </script>
+</body>
+</html>

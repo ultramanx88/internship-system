@@ -77,36 +77,36 @@ export const demoUsers = [
     ]
   },
   {
-    "id": "user_t6800002",
+    "id": "user_t6800006",
     "name": "อาจารย์สมชาย ใจดี",
-    "email": "t6800002@smart-solutions.com",
+    "email": "t6800006@smart-solutions.com",
     "password": "123456",
     "roles": [
       "อาจารย์นิเทศ"
     ]
   },
   {
-    "id": "user_t6800003",
+    "id": "user_t6800007",
     "name": "อาจารย์สมศักดิ์ วิชาการ",
-    "email": "t6800003@smart-solutions.com",
+    "email": "t6800007@smart-solutions.com",
     "password": "123456",
     "roles": [
       "อาจารย์ประจำวิชา"
     ]
   },
   {
-    "id": "user_t6800004",
+    "id": "user_t6800008",
     "name": "อาจารย์สมพร ใจดี",
-    "email": "t6800004@smart-solutions.com",
+    "email": "t6800008@smart-solutions.com",
     "password": "123456",
     "roles": [
       "อาจารย์ประจำวิชา"
     ]
   },
   {
-    "id": "user_t6800005",
+    "id": "user_t6800009",
     "name": "อาจารย์สมชาย เก่งมาก",
-    "email": "t6800005@smart-solutions.com",
+    "email": "t6800009@smart-solutions.com",
     "password": "123456",
     "roles": [
       "อาจารย์ประจำวิชา"

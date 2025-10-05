@@ -12,6 +12,8 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
+    console.log('🔍 Application details API:', { applicationId, userId });
+
     if (!userId) {
       return NextResponse.json(
         { error: 'User ID is required' },
@@ -19,29 +21,13 @@ export async function GET(
       );
     }
 
-    // ดึงข้อมูลผู้ใช้และตรวจสอบว่าเป็น educator หรือไม่
+    // ดึงข้อมูลผู้ใช้
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        educatorRole: true,
-        courseInstructors: {
-          include: {
-            supervisedStudents: {
-              include: {
-                application: {
-                  include: {
-                    student: true,
-                    internship: {
-                      include: {
-                        company: true
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        major: { select: { id: true, nameTh: true, nameEn: true } },
+        department: { select: { id: true, nameTh: true, nameEn: true } },
+        faculty: { select: { id: true, nameTh: true, nameEn: true } }
       }
     });
 
@@ -53,7 +39,24 @@ export async function GET(
     }
 
     // ตรวจสอบว่าเป็น educator หรือไม่
-    if (!user.educatorRole) {
+    let userRoles = user.roles;
+    if (typeof userRoles === 'string') {
+      try {
+        userRoles = JSON.parse(userRoles);
+      } catch (e) {
+        userRoles = [userRoles];
+      }
+    }
+
+    const isEducator = userRoles.includes('courseInstructor') || 
+                       userRoles.includes('committee') || 
+                       userRoles.includes('อาจารย์ประจำวิชา') ||
+                       userRoles.includes('อาจารย์นิเทศ') ||
+                       userRoles.includes('กรรมการ');
+    
+    console.log('🔍 User roles check:', { userRoles, isEducator });
+    
+    if (!isEducator) {
       return NextResponse.json(
         { error: 'User is not an educator' },
         { status: 403 }
@@ -69,22 +72,51 @@ export async function GET(
             id: true,
             name: true,
             email: true,
-            studentId: true,
             phone: true,
-            skills: true,
-            statement: true,
-            profileImage: true
+            profileImage: true,
+            major: {
+              select: {
+                id: true,
+                nameTh: true,
+                nameEn: true
+              }
+            },
+            department: {
+              select: {
+                id: true,
+                nameTh: true,
+                nameEn: true
+              }
+            },
+            faculty: {
+              select: {
+                id: true,
+                nameTh: true,
+                nameEn: true
+              }
+            }
           }
         },
         internship: {
           include: {
-            company: {
-              select: {
-                id: true,
-                name: true,
-                address: true
-              }
-            }
+        company: {
+          select: {
+            id: true,
+            name: true,
+            nameEn: true,
+            address: true,
+            phone: true,
+            email: true,
+            website: true
+          }
+        }
+          }
+        },
+        courseInstructor: {
+          select: {
+            id: true,
+            name: true,
+            email: true
           }
         }
       }
@@ -98,13 +130,9 @@ export async function GET(
     }
 
     // ตรวจสอบสิทธิ์การเข้าถึง
-    if (user.educatorRole.name === 'อาจารย์นิเทศ') {
-      // อาจารย์นิเทศเห็นได้เฉพาะ applications ของนักศึกษาที่อยู่ในความดูแล
-      const supervisedStudentIds = user.courseInstructors
-        .flatMap(ci => ci.supervisedStudents)
-        .map(ss => ss.studentId);
-
-      if (!supervisedStudentIds.includes(application.studentId)) {
+    if (userRoles.includes('courseInstructor') || userRoles.includes('อาจารย์ประจำวิชา')) {
+      // อาจารย์ประจำวิชาเห็นได้เฉพาะ applications ที่มอบหมายให้
+      if (application.courseInstructorId !== userId) {
         return NextResponse.json(
           { error: 'Access denied' },
           { status: 403 }
@@ -113,15 +141,29 @@ export async function GET(
     }
 
     return NextResponse.json({
-      application,
+      success: true,
+      application: {
+        id: application.id,
+        studentId: application.studentId,
+        status: application.status,
+        dateApplied: application.dateApplied.toISOString(),
+        student: application.student,
+        internship: application.internship,
+        courseInstructor: application.courseInstructor
+      },
       user: {
         id: user.id,
         name: user.name,
-        role: user.educatorRole.name
+        role: userRoles.includes('courseInstructor') || userRoles.includes('อาจารย์ประจำวิชา') ? 'อาจารย์ประจำวิชา' :
+              userRoles.includes('committee') || userRoles.includes('กรรมการ') ? 'กรรมการ' : 'ไม่ระบุ'
       }
     });
   } catch (error) {
-    console.error('Error fetching application:', error);
+    console.error('❌ Error fetching application:', error);
+    console.error('❌ Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
       { error: 'Failed to fetch application' },
       { status: 500 }
@@ -140,7 +182,7 @@ export async function PUT(
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const body = await request.json();
-    const { status, feedback } = body;
+    const { status, feedback, isDraft } = body;
 
     if (!userId) {
       return NextResponse.json(
@@ -149,44 +191,74 @@ export async function PUT(
       );
     }
 
-    if (!status || !['approved', 'rejected'].includes(status)) {
+    // Only validate status if it's not a draft submission
+    if (!isDraft && (!status || !['approved', 'rejected'].includes(status))) {
       return NextResponse.json(
         { error: 'Invalid status' },
         { status: 400 }
       );
     }
 
-    // ดึงข้อมูลผู้ใช้และตรวจสอบว่าเป็น educator หรือไม่
+    // ดึงข้อมูลผู้ใช้
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        educatorRole: true
+        major: { select: { id: true, nameTh: true, nameEn: true } },
+        department: { select: { id: true, nameTh: true, nameEn: true } },
+        faculty: { select: { id: true, nameTh: true, nameEn: true } }
       }
     });
 
-    if (!user || !user.educatorRole) {
+    if (!user) {
       return NextResponse.json(
-        { error: 'User not found or not an educator' },
+        { error: 'User not found' },
         { status: 404 }
       );
     }
 
+    // ตรวจสอบว่าเป็น educator หรือไม่
+    let userRoles = user.roles;
+    if (typeof userRoles === 'string') {
+      try {
+        userRoles = JSON.parse(userRoles);
+      } catch (e) {
+        userRoles = [userRoles];
+      }
+    }
+
+    const isEducator = userRoles.includes('courseInstructor') || 
+                       userRoles.includes('committee') || 
+                       userRoles.includes('อาจารย์ประจำวิชา') ||
+                       userRoles.includes('อาจารย์นิเทศ') ||
+                       userRoles.includes('กรรมการ');
+    
+    if (!isEducator) {
+      return NextResponse.json(
+        { error: 'User is not an educator' },
+        { status: 403 }
+      );
+    }
+
     // อัปเดตสถานะ application
+    const updateData: any = {
+      feedback: feedback || null
+    };
+
+    // ถ้าไม่ใช่แบบร่าง ให้อัปเดตสถานะ
+    if (!isDraft) {
+      updateData.status = status as any;
+    }
+
     const updatedApplication = await prisma.application.update({
       where: { id: applicationId },
-      data: {
-        status: status as any,
-        feedback: feedback || null,
-        reviewedAt: new Date(),
-        reviewedBy: user.id
-      },
+      data: updateData,
       include: {
         student: {
           select: {
             id: true,
             name: true,
             email: true,
-            studentId: true
+            id: true
           }
         },
         internship: {
@@ -203,8 +275,9 @@ export async function PUT(
     });
 
     return NextResponse.json({
+      success: true,
       application: updatedApplication,
-      message: `Application ${status === 'approved' ? 'approved' : 'rejected'} successfully`
+      message: isDraft ? 'Draft saved successfully' : `Application ${status === 'approved' ? 'approved' : 'rejected'} successfully`
     });
   } catch (error) {
     console.error('Error updating application:', error);

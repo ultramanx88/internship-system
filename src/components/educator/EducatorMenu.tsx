@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -13,28 +13,10 @@ import {
   PenTool,
   Clock,
   CheckSquare,
-  BarChart3,
   Settings,
-  LogOut,
-  ChevronDown,
-  ChevronUp
+  LogOut
 } from 'lucide-react';
 
-interface MenuItem {
-  id: string;
-  label: string;
-  icon: React.ComponentType<any>;
-  href: string;
-  roles: string[];
-  description?: string;
-}
-
-interface MenuSection {
-  id: string;
-  title: string;
-  items: MenuItem[];
-  roles: string[];
-}
 
 interface EducatorMenuProps {
   userRole: string;
@@ -43,300 +25,193 @@ interface EducatorMenuProps {
 }
 
 export function EducatorMenu({ userRole, educatorRole, className }: EducatorMenuProps) {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['course-instructor', 'academic-advisor']));
   const pathname = usePathname();
 
-  // กำหนดเมนูตาม role
-  const menuSections: MenuSection[] = [
-    {
-      id: 'general',
-      title: 'เมนูทั่วไป',
-      roles: ['อาจารย์ประจำวิชา', 'อาจารย์นิเทศ', 'กรรมการ', 'courseInstructor', 'academicAdvisor', 'committee'],
-      items: [
-        {
-          id: 'dashboard',
-          label: 'หน้าแรก',
-          icon: Home,
-          href: '/educator/dashboard',
-          roles: ['อาจารย์ประจำวิชา', 'อาจารย์นิเทศ', 'กรรมการ', 'courseInstructor', 'academicAdvisor', 'committee'],
-          description: 'ภาพรวมการทำงาน'
-        },
-        {
-          id: 'applications',
-          label: 'จัดการใบสมัคร',
-          icon: FileText,
-          href: '/educator/applications',
-          roles: ['อาจารย์ประจำวิชา', 'กรรมการ', 'courseInstructor', 'committee'],
-          description: 'ตรวจสอบและอนุมัติใบสมัคร'
-        },
-        {
-          id: 'evaluation',
-          label: 'ประเมินผลงาน',
-          icon: BarChart3,
-          href: '/educator/evaluation',
-          roles: ['อาจารย์ประจำวิชา', 'กรรมการ', 'courseInstructor', 'committee'],
-          description: 'ประเมินผลงานนักศึกษา'
-        },
-        {
-          id: 'reports',
-          label: 'รายงาน',
-          icon: FileText,
-          href: '/educator/reports',
-          roles: ['อาจารย์ประจำวิชา', 'อาจารย์นิเทศ', 'กรรมการ', 'courseInstructor', 'academicAdvisor', 'committee'],
-          description: 'รายงานผลการดำเนินงาน'
-        }
-      ]
-    },
-    {
-      id: 'course-instructor',
-      title: 'เมนู อาจารย์ประจำวิชา',
-      roles: ['อาจารย์ประจำวิชา', 'courseInstructor'],
-      items: [
+  // กำหนดเมนูตาม role - แสดงเฉพาะเมนูที่ตรงกับ role ของผู้ใช้
+  const getMenuItems = () => {
+    const currentRole = educatorRole || userRole;
+    
+    if (currentRole === 'อาจารย์ประจำวิชา' || currentRole === 'courseInstructor') {
+      return [
         {
           id: 'coop-requests',
-          label: 'รายการขอสหกิจศึกษา / ฝึกงาน',
+          label: 'รายการขอสหกิจศึกษา/ฝึกงาน',
           icon: FileText,
-          href: '/educator/coop-requests',
-          roles: ['อาจารย์ประจำวิชา', 'courseInstructor'],
-          description: 'จัดการคำขอสหกิจศึกษาและฝึกงาน'
+          href: '/educator/coop-requests'
         },
         {
           id: 'assign-advisor',
           label: 'มอบหมายอาจารย์นิเทศ',
           icon: User,
-          href: '/educator/assign-advisor',
-          roles: ['อาจารย์ประจำวิชา', 'courseInstructor'],
-          description: 'มอบหมายอาจารย์นิเทศให้กับนักศึกษา'
+          href: '/educator/assign-advisor'
         },
         {
           id: 'supervision-report',
           label: 'รายงานผลการนิเทศ',
           icon: Building,
-          href: '/educator/supervision-report',
-          roles: ['อาจารย์ประจำวิชา', 'courseInstructor'],
-          description: 'ดูรายงานผลการนิเทศ'
+          href: '/educator/supervision-report'
         },
         {
           id: 'summary-report',
           label: 'รายงานสรุปผลรวม',
           icon: Crop,
-          href: '/educator/summary-report',
-          roles: ['อาจารย์ประจำวิชา', 'courseInstructor'],
-          description: 'รายงานสรุปผลรวมทั้งหมด'
+          href: '/educator/summary-report'
         },
         {
           id: 'record-grades',
           label: 'บันทึกเกรด',
           icon: PenTool,
-          href: '/educator/record-grades',
-          roles: ['อาจารย์ประจำวิชา', 'courseInstructor'],
-          description: 'บันทึกเกรดนักศึกษา'
+          href: '/educator/record-grades'
         }
-      ]
-    },
-    {
-      id: 'academic-advisor',
-      title: 'เมนู อาจารย์นิเทศ',
-      roles: ['อาจารย์นิเทศ', 'academicAdvisor'],
-      items: [
+      ];
+    }
+    
+    if (currentRole === 'อาจารย์นิเทศ' || currentRole === 'academicAdvisor') {
+      return [
         {
           id: 'internship-letter',
-          label: 'หนังสือขอฝึกงาน',
+          label: 'หนังสือฝึกงาน',
           icon: FileText,
-          href: '/educator/internship-letter',
-          roles: ['อาจารย์นิเทศ', 'academicAdvisor'],
-          description: 'จัดการหนังสือขอฝึกงาน'
+          href: '/educator/internship-letter'
         },
         {
           id: 'supervision-appointment',
           label: 'นัดหมายนิเทศ',
-          icon: User,
-          href: '/educator/supervision-appointment',
-          roles: ['อาจารย์นิเทศ', 'academicAdvisor'],
-          description: 'นัดหมายการนิเทศ'
+          icon: Clock,
+          href: '/educator/supervision-appointment'
         },
         {
           id: 'supervision-report-advisor',
-          label: 'รายงานผลการนิเทศ',
+          label: 'ผลรายงานนิเทศ',
           icon: Building,
-          href: '/educator/supervision-report-advisor',
-          roles: ['อาจารย์นิเทศ', 'academicAdvisor'],
-          description: 'รายงานผลการนิเทศ'
+          href: '/educator/supervision-report-advisor'
         },
         {
           id: 'record-hours',
           label: 'บันทึกชั่วโมง',
           icon: Clock,
-          href: '/educator/record-hours',
-          roles: ['อาจารย์นิเทศ', 'academicAdvisor'],
-          description: 'บันทึกชั่วโมงการนิเทศ'
+          href: '/educator/record-hours'
         },
         {
           id: 'student-projects',
-          label: 'โปรเจกต์ของนักศึกษา',
+          label: 'โปรเจคของนักศึกษา',
           icon: CheckSquare,
-          href: '/educator/student-projects',
-          roles: ['อาจารย์นิเทศ', 'academicAdvisor'],
-          description: 'จัดการโปรเจกต์ของนักศึกษา'
+          href: '/educator/student-projects'
         },
         {
           id: 'evaluate',
           label: 'ประเมิน',
           icon: PenTool,
-          href: '/educator/evaluate',
-          roles: ['อาจารย์นิเทศ', 'academicAdvisor'],
-          description: 'ประเมินนักศึกษา'
+          href: '/educator/evaluate'
         },
         {
           id: 'summary-report-advisor',
+          label: 'รายงานสรุปผล',
+          icon: Crop,
+          href: '/educator/summary-report-advisor'
+        }
+      ];
+    }
+    
+    if (currentRole === 'กรรมการ' || currentRole === 'committee') {
+      return [
+        {
+          id: 'committee-appointment',
+          label: 'นัดหมายนิเทศ',
+          icon: Clock,
+          href: '/educator/committee-appointment'
+        },
+        {
+          id: 'committee-supervision-report',
+          label: 'ผลรายงานนิเทศ',
+          icon: Building,
+          href: '/educator/committee-supervision-report'
+        },
+        {
+          id: 'committee-student-projects',
+          label: 'โปรเจคของนักศึกษา',
+          icon: CheckSquare,
+          href: '/educator/committee-student-projects'
+        },
+        {
+          id: 'committee-evaluate',
+          label: 'ประเมิน',
+          icon: PenTool,
+          href: '/educator/committee-evaluate'
+        },
+        {
+          id: 'committee-summary-report',
           label: 'รายงานสรุปผลรวม',
           icon: Crop,
-          href: '/educator/summary-report-advisor',
-          roles: ['อาจารย์นิเทศ', 'academicAdvisor'],
-          description: 'รายงานสรุปผลรวม'
+          href: '/educator/committee-summary-report'
         }
-      ]
-    },
-    {
-      id: 'committee',
-      title: 'เมนู กรรมการ',
-      roles: ['กรรมการ', 'committee'],
-      items: [
-        {
-          id: 'committee-evaluation',
-          label: 'ประเมินผลงาน',
-          icon: BarChart3,
-          href: '/educator/committee-evaluation',
-          roles: ['กรรมการ', 'committee'],
-          description: 'ประเมินผลงานนักศึกษาและอาจารย์'
-        },
-        {
-          id: 'committee-report',
-          label: 'รายงานกรรมการ',
-          icon: FileText,
-          href: '/educator/committee-report',
-          roles: ['กรรมการ', 'committee'],
-          description: 'รายงานของกรรมการ'
-        },
-        {
-          id: 'committee-meeting',
-          label: 'การประชุมกรรมการ',
-          icon: User,
-          href: '/educator/committee-meeting',
-          roles: ['กรรมการ', 'committee'],
-          description: 'จัดการการประชุมกรรมการ'
-        }
-      ]
+      ];
     }
-  ];
-
-  // ตรวจสอบว่า user มี role ที่สามารถเข้าถึงเมนูได้หรือไม่
-  const hasAccessToSection = (section: MenuSection): boolean => {
-    if (userRole === 'admin' || userRole === 'staff') return true;
-    return section.roles.some(role => 
-      role === educatorRole || 
-      role === userRole ||
-      (userRole === 'instructor' && role === 'อาจารย์ประจำวิชา') ||
-      (userRole === 'instructor' && role === 'อาจารย์นิเทศ')
-    );
+    
+    // Default fallback
+    return [];
   };
 
-  const hasAccessToItem = (item: MenuItem): boolean => {
-    if (userRole === 'admin' || userRole === 'staff') return true;
-    return item.roles.some(role => 
-      role === educatorRole || 
-      role === userRole ||
-      (userRole === 'instructor' && role === 'อาจารย์ประจำวิชา') ||
-      (userRole === 'instructor' && role === 'อาจารย์นิเทศ')
-    );
-  };
-
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(sectionId)) {
-        newSet.delete(sectionId);
-      } else {
-        newSet.add(sectionId);
-      }
-      return newSet;
-    });
-  };
 
   const isActive = (href: string) => {
     return pathname === href || pathname.startsWith(href + '/');
   };
 
+  const menuItems = getMenuItems();
+  const currentRole = educatorRole || userRole;
+
   return (
     <div className={cn("w-64 bg-gray-50 border-r border-gray-200 h-full", className)}>
       {/* หน้าแรก */}
       <Link
-        href="/"
+        href="/educator"
         className={cn(
           "flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 transition-colors",
-          isActive('/') && "bg-blue-100 text-blue-700 border-r-2 border-blue-500"
+          isActive('/educator') && "bg-blue-100 text-blue-700 border-r-2 border-blue-500"
         )}
       >
         <Home className="w-5 h-5" />
         <span className="font-medium">หน้าแรก</span>
       </Link>
 
-      {/* เมนูตาม role */}
-      {menuSections.map((section) => {
-        if (!hasAccessToSection(section)) return null;
-
-        const isExpanded = expandedSections.has(section.id);
-        const hasAccessibleItems = section.items.some(item => hasAccessToItem(item));
-
-        if (!hasAccessibleItems) return null;
-
-        return (
-          <div key={section.id} className="border-b border-gray-200">
-            <button
-              onClick={() => toggleSection(section.id)}
-              className="w-full flex items-center justify-between px-4 py-3 text-left text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              <span className="font-medium">{section.title}</span>
-              {isExpanded ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-            </button>
-
-            {isExpanded && (
-              <div className="bg-white">
-                {section.items.map((item) => {
-                  if (!hasAccessToItem(item)) return null;
-
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 px-6 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors",
-                        isActive(item.href) && "bg-blue-50 text-blue-700 border-r-2 border-blue-500"
-                      )}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
+      {/* เมนูตาม role - แสดงเฉพาะเมนูที่ตรงกับ role */}
+      {menuItems.length > 0 && (
+        <div className="border-b border-gray-200">
+          <div className="px-4 py-3 bg-orange-100">
+            <span className="font-medium text-orange-800">
+              {currentRole === 'อาจารย์ประจำวิชา' || currentRole === 'courseInstructor' ? 'อาจารย์ประจำวิชา' :
+               currentRole === 'อาจารย์นิเทศ' || currentRole === 'academicAdvisor' ? 'อาจารย์นิเทศ' :
+               currentRole === 'กรรมการ' || currentRole === 'committee' ? 'กรรมการ' : 'เมนู'}
+            </span>
           </div>
-        );
-      })}
+          <div className="bg-white">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-6 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors",
+                    isActive(item.href) && "bg-blue-50 text-blue-700 border-r-2 border-blue-500"
+                  )}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-      {/* เมนูทั่วไป */}
+      {/* เมนูท้าย */}
       <div className="mt-auto border-t border-gray-200">
         <Link
-          href="/settings"
+          href="/educator/settings"
           className={cn(
             "flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 transition-colors",
-            isActive('/settings') && "bg-blue-100 text-blue-700 border-r-2 border-blue-500"
+            isActive('/educator/settings') && "bg-blue-100 text-blue-700 border-r-2 border-blue-500"
           )}
         >
           <Settings className="w-5 h-5" />
@@ -346,7 +221,8 @@ export function EducatorMenu({ userRole, educatorRole, className }: EducatorMenu
         <button
           onClick={() => {
             // Handle logout
-            console.log('Logout clicked');
+            localStorage.removeItem('internship-flow-user');
+            window.location.href = '/login';
           }}
           className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-600 hover:bg-red-50 transition-colors"
         >

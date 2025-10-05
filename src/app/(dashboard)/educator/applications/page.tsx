@@ -55,7 +55,7 @@ export default function EducatorApplicationsPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/educator/applications');
+      const response = await fetch(`/api/educator/applications?userId=${user?.id}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch applications');

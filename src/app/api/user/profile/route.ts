@@ -22,17 +22,7 @@ export async function GET(request: NextRequest) {
         name: true,
         email: true,
         roles: true,
-        profileImage: true,
-        educatorRoleId: true,
-        educatorRole: {
-          select: {
-            id: true,
-            name: true,
-            nameEn: true,
-            description: true,
-            isActive: true
-          }
-        }
+        profileImage: true
       }
     });
     

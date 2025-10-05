@@ -20,8 +20,15 @@ export default function DashboardPage() {
         router.replace('/staff');
       } else if (userRoles.includes('student')) {
         router.replace('/student');
-      } else if (userRoles.includes('courseInstructor') || userRoles.includes('visitor') || userRoles.includes('committee')) {
-        router.replace('/teacher');
+      } else if (
+        userRoles.includes('courseInstructor') || 
+        userRoles.includes('อาจารย์ประจำวิชา') ||
+        userRoles.includes('visitor') || 
+        userRoles.includes('อาจารย์นิเทศ') ||
+        userRoles.includes('committee') ||
+        userRoles.includes('กรรมการ')
+      ) {
+        router.replace('/educator');
       } else {
         // Default fallback
         router.replace('/student');

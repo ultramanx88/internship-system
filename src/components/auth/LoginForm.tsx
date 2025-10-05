@@ -181,7 +181,7 @@ export function LoginForm() {
             <SelectValue placeholder="เลือกผู้ใช้สาิธิต" />
           </SelectTrigger>
           <SelectContent>
-            {demoUsers?.filter(user => user?.email && user?.name).map(user => (
+            {demoUsers?.filter(user => user?.id && user?.email && user?.name).map(user => (
               <SelectItem key={user.id} value={user.email}>
                 {user.name} ({Array.isArray(user.roles) ? user.roles.join(', ') : user.roles})
               </SelectItem>

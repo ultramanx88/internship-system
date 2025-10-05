@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, User, GraduationCap, Building, Calendar, Mail, Phone } from 'lucide-react';
 import Link from 'next/link';
-import { ReviewTool } from '@/components/dashboard/teacher/ReviewTool';
+// import { ReviewTool } from '@/components/dashboard/teacher/ReviewTool';
 
 interface Application {
   id: string;
@@ -247,13 +247,17 @@ export default function ApplicationReviewPage() {
           </Card>
         </div>
 
-        {/* Review Tool */}
+        {/* Review Tool - Temporarily disabled */}
         <div className="lg:col-span-2">
-          <ReviewTool 
-            student={application.student} 
-            internship={application.internship} 
-            application={application} 
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle>เครื่องมือตรวจสอบ</CardTitle>
+              <CardDescription>เครื่องมือตรวจสอบใบสมัคร (กำลังพัฒนา)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">เครื่องมือตรวจสอบใบสมัครจะเปิดใช้งานในเร็วๆ นี้</p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

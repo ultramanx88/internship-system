@@ -3,8 +3,8 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { applications } from './data';
-import { reviewApplication } from '@/ai/flows/teacher-application-review';
-import type { ReviewApplicationInput } from '@/ai/flows/teacher-application-review';
+// import { reviewApplication } from '@/ai/flows/teacher-application-review'; // Removed - using educator system
+// import type { ReviewApplicationInput } from '@/ai/flows/teacher-application-review';
 import { ApplicationStatus } from '@prisma/client';
 
 // This is a temporary in-memory store for users until DB is set up again.
@@ -48,15 +48,15 @@ export async function registerStudent(values: z.infer<typeof RegisterSchema>) {
   return { success: true, message: 'ลงทะเบียนสำเร็จ!' };
 }
 
-export async function getAiRecommendation(input: ReviewApplicationInput) {
-    try {
-        const result = await reviewApplication(input);
-        return { success: true, data: result };
-    } catch (error) {
-        console.error('AI recommendation failed:', error);
-        return { success: false, message: 'ไม่สามารถรับคำแนะนำจาก AI ได้' };
-    }
-}
+// export async function getAiRecommendation(input: ReviewApplicationInput) {
+//     try {
+//         const result = await reviewApplication(input);
+//         return { success: true, data: result };
+//     } catch (error) {
+//         console.error('AI recommendation failed:', error);
+//         return { success: false, message: 'ไม่สามารถรับคำแนะนำจาก AI ได้' };
+//     }
+// }
 
 
 export async function updateApplicationStatus(applicationId: string, status: ApplicationStatus, feedback?: string) {
@@ -71,7 +71,7 @@ export async function updateApplicationStatus(applicationId: string, status: App
         applications[applicationIndex].feedback = feedback;
     }
     
-    // In a real app, you would revalidate specific paths, e.g., revalidatePath('/teacher')
+    // In a real app, you would revalidate specific paths, e.g., revalidatePath('/educator')
     // For this demo, we can revalidate the entire app to reflect changes everywhere.
     revalidatePath('/', 'layout');
 
