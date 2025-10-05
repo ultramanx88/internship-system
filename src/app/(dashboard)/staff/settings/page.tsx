@@ -1,6 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
+import { useAuth } from '@/hooks/use-auth';
+import { useProfileImage } from '@/hooks/use-profile-image';
+import { FileStorageService } from '@/lib/file-storage';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +19,9 @@ import { EducatorManagement } from '@/components/staff/settings/EducatorManageme
 import CourseManagement from '@/components/staff/settings/CourseManagement';
 
 export default function SettingsPage() {
+    const { user } = useAuth();
+    const { profileImage, updateProfileImage } = useProfileImage();
+    const [isUploading, setIsUploading] = useState(false);
     const [notifications, setNotifications] = useState({
         email: true,
         sms: false,
@@ -40,6 +47,47 @@ export default function SettingsPage() {
                     <div>
                         <h1 className="text-3xl font-bold text-amber-700">ตั้งค่า</h1>
                         <p className="text-gray-600 mt-2">จัดการการตั้งค่าระบบและข้อมูลส่วนตัว</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="relative h-16 w-16 rounded-full overflow-hidden bg-gray-100 border">
+                            {profileImage ? (
+                                <Image src={profileImage} alt="profile" fill sizes="64px" className="object-cover" />
+                            ) : (
+                                <div className="h-full w-full flex items-center justify-center text-gray-400 text-sm">No Photo</div>
+                            )}
+                        </div>
+                        <div>
+                            <label htmlFor="staff-avatar" className="inline-flex items-center px-3 py-2 rounded-md bg-amber-600 text-white hover:bg-amber-700 cursor-pointer">
+                                {isUploading ? 'กำลังอัปโหลด...' : 'อัปโหลดรูปโปรไฟล์'}
+                            </label>
+                            <input
+                                id="staff-avatar"
+                                type="file"
+                                accept="image/jpeg,image/png,image/jpg,image/webp"
+                                className="hidden"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file && user?.id) {
+                                        setIsUploading(true);
+                                        try {
+                                            const result = await FileStorageService.uploadFile(file, user.id);
+                                            if (result.success && result.url) {
+                                                updateProfileImage(result.url);
+                                                try {
+                                                    await fetch('/api/user/profile', {
+                                                        method: 'PUT',
+                                                        headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
+                                                        body: JSON.stringify({ profileImage: result.url }),
+                                                    });
+                                                } catch {}
+                                            }
+                                        } finally {
+                                            setIsUploading(false);
+                                        }
+                                    }
+                                }}
+                            />
+                        </div>
                     </div>
                 </div>
 

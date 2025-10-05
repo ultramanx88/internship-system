@@ -19,10 +19,22 @@ import { Button } from '@/components/ui/button';
 import { LogOut, User as UserIcon } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Skeleton } from '../ui/skeleton';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export function DashboardHeader() {
   const { user, loading, logout } = useAuth();
   const { profileImage } = useProfileImage();
+  const pathname = usePathname();
+
+  const resolveSettingsPath = () => {
+    if (!pathname) return '/student/settings';
+    if (pathname.startsWith('/admin')) return '/admin/settings';
+    if (pathname.startsWith('/staff')) return '/staff/settings';
+    if (pathname.startsWith('/educator')) return '/educator/settings';
+    if (pathname.startsWith('/student')) return '/student/settings';
+    return '/student/settings';
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -82,9 +94,13 @@ export function DashboardHeader() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <UserIcon className="mr-2 h-4 w-4" />
-                <span>โปรไฟล์</span>
+              <DropdownMenuItem asChild>
+                <Link href={resolveSettingsPath()}>
+                  <div className="flex items-center">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    <span>โปรไฟล์</span>
+                  </div>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={logout}>
