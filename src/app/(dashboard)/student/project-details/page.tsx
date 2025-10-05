@@ -13,8 +13,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { StudentGuard } from '@/components/auth/PermissionGuard';
+import { useAuth } from '@/hooks/use-auth';
+import { logger } from '@/lib/logger';
 
 export default function ProjectDetailsPage() {
+    const { user } = useAuth();
     const [projectChoice, setProjectChoice] = useState('do-project');
     const [isFormSaved, setIsFormSaved] = useState(false);
     const [instructorName, setInstructorName] = useState('อาจารย์ A'); // Default fallback
@@ -31,6 +35,8 @@ export default function ProjectDetailsPage() {
     // Load instructor data
     useEffect(() => {
         loadInstructorData();
+        loadProjectDetails();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadInstructorData = async () => {
@@ -61,6 +67,31 @@ export default function ProjectDetailsPage() {
         }
     };
 
+    const loadProjectDetails = async () => {
+        try {
+            const res = await fetch('/api/student/project-details', {
+                headers: {
+                    'x-user-id': user?.id || ''
+                }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data?.project) {
+                setProjectChoice(data.project.projectChoice || 'do-project');
+                setFormData({
+                    projectName: data.project.projectName || '',
+                    projectInfo: data.project.projectInfo || '',
+                    objective: data.project.objective || '',
+                    software: data.project.software || '',
+                    reasons: data.project.reasons || ''
+                });
+                setIsFormSaved(!!data.project.status && data.project.status !== 'draft');
+            }
+        } catch (error) {
+            logger.error('ProjectDetails: load error', { error: error instanceof Error ? error.message : String(error) });
+        }
+    };
+
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({
             ...prev,
@@ -68,8 +99,26 @@ export default function ProjectDetailsPage() {
         }));
     };
 
-    const handleSave = () => {
-        setIsFormSaved(true);
+    const handleSave = async (status: 'draft' | 'submitted' = 'draft') => {
+        try {
+            const res = await fetch('/api/student/project-details', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': user?.id || ''
+                },
+                body: JSON.stringify({
+                    projectChoice,
+                    ...formData,
+                    status
+                })
+            });
+            if (res.ok) {
+                setIsFormSaved(status === 'submitted');
+            }
+        } catch (error) {
+            logger.error('ProjectDetails: save error', { error: error instanceof Error ? error.message : String(error) });
+        }
     };
 
 
@@ -77,6 +126,7 @@ export default function ProjectDetailsPage() {
 
 
     return (
+        <StudentGuard>
         <div className="min-h-screen bg-gray-50 p-6">
             {/* Header */}
             <div className="mb-8">
@@ -112,11 +162,11 @@ export default function ProjectDetailsPage() {
                         <div className="grid gap-4 md:grid-cols-2">
                             <div>
                                 <span className="text-amber-700 font-medium">ชื่อจริง-นามสกุล (Full-name) : </span>
-                                <span className="text-gray-900">นายรักดี จิตดี</span>
+                                <span className="text-gray-900">{user?.name || '-'}</span>
                             </div>
                             <div>
                                 <span className="text-amber-700 font-medium">รหัสนักศึกษา (Student ID) : </span>
-                                <span className="text-gray-900">6400112233</span>
+                                <span className="text-gray-900">{user?.id || '-'}</span>
                             </div>
                             <div>
                                 <span className="text-amber-700 font-medium">ประเภท (Type) : </span>
@@ -234,10 +284,10 @@ export default function ProjectDetailsPage() {
                                 />
                             </div>
                             <div className="flex gap-2">
-                                <Button className="bg-amber-600 hover:bg-amber-700" onClick={handleSave}>
+                                <Button className="bg-amber-600 hover:bg-amber-700" onClick={() => handleSave('draft')}>
                                     บันทึกแบบร่าง
                                 </Button>
-                                <Button className="bg-amber-600 hover:bg-amber-700" onClick={handleSave}>
+                                <Button className="bg-amber-600 hover:bg-amber-700" onClick={() => handleSave('submitted')}>
                                     บันทึกและส่ง
                                 </Button>
                             </div>
@@ -327,10 +377,10 @@ export default function ProjectDetailsPage() {
                                     </div>
 
                                     <div className="flex gap-2">
-                                        <Button className="bg-amber-600 hover:bg-amber-700" onClick={handleSave}>
+                                        <Button className="bg-amber-600 hover:bg-amber-700" onClick={() => handleSave('draft')}>
                                             บันทึกแบบร่าง
                                         </Button>
-                                        <Button className="bg-amber-600 hover:bg-amber-700" onClick={handleSave}>
+                                        <Button className="bg-amber-600 hover:bg-amber-700" onClick={() => handleSave('submitted')}>
                                             บันทึกและส่ง
                                         </Button>
                                     </div>
@@ -350,5 +400,6 @@ export default function ProjectDetailsPage() {
                 </div>
             </div>
         </div>
+        </StudentGuard>
     );
 }
