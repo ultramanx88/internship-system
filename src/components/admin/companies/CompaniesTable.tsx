@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Company } from '@prisma/client';
+import { useAuth } from '@/hooks/use-auth';
 import Link from 'next/link';
 import {
     Table,
@@ -59,6 +60,7 @@ const industryOptions = [
 
 export function CompaniesTable() {
     console.log('CompaniesTable component rendered');
+    const { user } = useAuth();
     const [companies, setCompanies] = useState<DisplayCompany[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -94,7 +96,11 @@ export function CompaniesTable() {
         try {
             const url = `/api/companies?search=${encodeURIComponent(search)}&industry=${encodeURIComponent(industry)}&size=${encodeURIComponent(size)}&isActive=${encodeURIComponent(status)}&sort=${encodeURIComponent(sort)}&page=${page}&limit=${limit}`;
             
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                headers: {
+                    'x-user-id': user?.id || '',
+                },
+            });
             if (!response.ok) {
                 throw new Error(`API Error (${response.status}): ${response.statusText}`);
             }
@@ -160,7 +166,10 @@ export function CompaniesTable() {
         try {
             const response = await fetch('/api/companies', {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-user-id': user?.id || '',
+                },
                 body: JSON.stringify({ ids: Array.from(selected) }),
             });
 

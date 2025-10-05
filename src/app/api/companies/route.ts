@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { CompanySize } from '@prisma/client';
+import { requireAuth, cleanup } from '@/lib/auth-utils';
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication and authorization
+    const authResult = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+    const { user } = authResult;
+
+    console.log('🔍 Companies API called by:', user.name);
+    
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
     const industry = searchParams.get('industry') || 'all';
@@ -75,6 +85,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication and authorization
+    const authResult = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+    const { user } = authResult;
+
+    console.log('🔍 Companies POST API called by:', user.name);
+    
     const body = await request.json();
     const {
       name,
@@ -142,6 +161,15 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    // Check authentication and authorization
+    const authResult = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+    const { user } = authResult;
+
+    console.log('🔍 Companies DELETE API called by:', user.name);
+    
     const body = await request.json();
     const { ids } = body;
 
