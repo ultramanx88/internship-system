@@ -14,7 +14,7 @@ import { EducatorMenu } from '@/components/educator/EducatorMenu';
 import { useAuth } from '@/hooks/use-auth';
 import { useEducatorRole } from '@/hooks/useEducatorRole';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, User, Building, Calendar, Mail, Phone, GraduationCap, MapPin, Clock, Check, Trash2, ChevronLeft, ChevronRight, Search, Filter, Grid3X3, List, Users, Eye } from 'lucide-react';
+import { ArrowLeft, User, Building, Calendar, Mail, Phone, GraduationCap, MapPin, Clock, Check, Trash2, ChevronLeft, ChevronRight, Search, Filter, Grid3X3, List, Users, Eye, X, Edit } from 'lucide-react';
 import Link from 'next/link';
 
 interface Application {
@@ -47,6 +47,11 @@ export default function AssignAdvisorPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingApplication, setEditingApplication] = useState<Application | null>(null);
+  const [supervisors, setSupervisors] = useState<any[]>([]);
+  const [selectedSupervisorId, setSelectedSupervisorId] = useState<string>('');
+  const [updatingSupervisor, setUpdatingSupervisor] = useState(false);
   
   // Filters
   const [companySearch, setCompanySearch] = useState('');
@@ -103,12 +108,84 @@ export default function AssignAdvisorPage() {
     setSelectedApplications(prev => prev.filter(id => id !== applicationId));
   };
 
-  const handleEditSupervisor = (applicationId: string) => {
-    // TODO: เปิด modal สำหรับแก้ไขอาจารย์นิเทศ
-    toast({
-      title: 'ฟีเจอร์กำลังพัฒนา',
-      description: 'การแก้ไขอาจารย์นิเทศจะพร้อมใช้งานเร็วๆ นี้',
-    });
+  const handleEditSupervisor = async (applicationId: string) => {
+    const application = applications.find(app => app.id === applicationId);
+    if (!application) return;
+
+    setEditingApplication(application);
+    setSelectedSupervisorId(application.supervisor?.id || '');
+    setShowEditModal(true);
+
+    // โหลดรายชื่ออาจารย์นิเทศ
+    try {
+      const response = await fetch(`/api/educator/supervisors?userId=${user?.id}`);
+      const data = await response.json();
+      if (data.success) {
+        setSupervisors(data.supervisors);
+      }
+    } catch (error) {
+      console.error('Error loading supervisors:', error);
+    }
+  };
+
+  const handleUpdateSupervisor = async () => {
+    if (!editingApplication || !selectedSupervisorId) {
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'กรุณาเลือกอาจารย์นิเทศ',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setUpdatingSupervisor(true);
+    try {
+      const response = await fetch(`/api/educator/applications/${editingApplication.id}/update-supervisor?userId=${user?.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ supervisorId: selectedSupervisorId })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: 'สำเร็จ',
+          description: data.message,
+        });
+        
+        // อัปเดตข้อมูลในตาราง
+        setApplications(prev => prev.map(app => 
+          app.id === editingApplication.id 
+            ? { 
+                ...app, 
+                supervisor: data.application.supervisor 
+              } 
+            : app
+        ));
+        
+        setShowEditModal(false);
+        setEditingApplication(null);
+        setSelectedSupervisorId('');
+      } else {
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: data.error || 'ไม่สามารถอัปเดตอาจารย์นิเทศได้',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error updating supervisor:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'มีข้อผิดพลาดในการอัปเดตอาจารย์นิเทศ',
+        variant: 'destructive'
+      });
+    } finally {
+      setUpdatingSupervisor(false);
+    }
   };
 
   const handleConfirmApproval = async () => {
@@ -505,6 +582,132 @@ export default function AssignAdvisorPage() {
                   <Check className="h-4 w-4 mr-2" />
                   {submitting ? 'กำลังดำเนินการ...' : 'ยืนยันการมอบหมายอาจารย์นิเทศ'}
                 </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Supervisor Modal */}
+        {showEditModal && editingApplication && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 relative">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingApplication(null);
+                  setSelectedSupervisorId('');
+                }}
+                className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-6 w-6" />
+              </button>
+              
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">แก้ไขอาจารย์นิเทศ</h2>
+                <p className="text-gray-600">สำหรับนักศึกษา: <span className="font-medium text-amber-600">{editingApplication.studentName}</span></p>
+              </div>
+
+              <div className="space-y-4">
+                {/* ข้อมูลนักศึกษา */}
+                <Card className="border-l-4 border-amber-500">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <User className="h-5 w-5 text-amber-600" />
+                      ข้อมูลนักศึกษา
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-sm text-gray-500">ชื่อ-นามสกุล:</span>
+                        <p className="font-medium">{editingApplication.studentName}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-500">รหัสนักศึกษา:</span>
+                        <p className="font-medium">{editingApplication.studentId}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-500">สาขาวิชา:</span>
+                        <p className="font-medium">{editingApplication.major}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-500">บริษัท:</span>
+                        <p className="font-medium">{editingApplication.companyName}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-sm text-gray-500">ตำแหน่งงาน:</span>
+                        <p className="font-medium">{editingApplication.position}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* เลือกอาจารย์นิเทศ */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">อาจารย์นิเทศปัจจุบัน</label>
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    {editingApplication.supervisor ? (
+                      <>
+                        <User className="h-4 w-4 text-amber-600" />
+                        <span className="font-medium">{editingApplication.supervisor.name}</span>
+                        <span className="text-sm text-gray-500">({editingApplication.supervisor.email})</span>
+                      </>
+                    ) : (
+                      <span className="text-gray-500">ยังไม่ได้กำหนด</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">เปลี่ยนเป็นอาจารย์นิเทศ</label>
+                  <Select value={selectedSupervisorId} onValueChange={setSelectedSupervisorId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="เลือกอาจารย์นิเทศ" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {supervisors.map(supervisor => (
+                        <SelectItem key={supervisor.id} value={supervisor.id}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{supervisor.name}</span>
+                            <span className="text-sm text-gray-500">{supervisor.email}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* ปุ่มดำเนินการ */}
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={handleUpdateSupervisor}
+                    disabled={updatingSupervisor || !selectedSupervisorId}
+                    className="bg-amber-600 hover:bg-amber-700 text-white flex-1"
+                  >
+                    {updatingSupervisor ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        กำลังอัปเดต...
+                      </>
+                    ) : (
+                      <>
+                        <Edit className="h-4 w-4 mr-2" />
+                        อัปเดตอาจารย์นิเทศ
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingApplication(null);
+                      setSelectedSupervisorId('');
+                    }}
+                    className="px-6"
+                  >
+                    ยกเลิก
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

@@ -53,8 +53,6 @@ model User {
   applications  Application[]
   documents     Document[]
   printRecords  PrintRecord[]
-  courseInstructorApplications Application[] @relation("CourseInstructorApplications")
-  supervisorApplications Application[] @relation("SupervisorApplications")
   curriculum    Curriculum?   @relation(fields: [curriculumId], references: [id])
   department    Department?   @relation(fields: [departmentId], references: [id])
   faculty       Faculty?      @relation(fields: [facultyId], references: [id])
@@ -80,8 +78,6 @@ model Application {
   id            String            @id @default(cuid())
   studentId     String
   internshipId  String
-  courseInstructorId String?      // เพิ่มการเชื่อมโยงกับอาจารย์ประจำวิชา
-  supervisorId  String?           // เพิ่มการเชื่อมโยงกับอาจารย์นิเทศ
   status        ApplicationStatus
   dateApplied   DateTime
   feedback      String?
@@ -90,8 +86,6 @@ model Application {
   internship    Internship        @relation(fields: [internshipId], references: [id], onDelete: Cascade)
   printRecord   PrintRecord?      @relation(fields: [printRecordId], references: [id])
   student       User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  courseInstructor User?          @relation("CourseInstructorApplications", fields: [courseInstructorId], references: [id])
-  supervisor    User?             @relation("SupervisorApplications", fields: [supervisorId], references: [id])
 
   @@map("applications")
 }
