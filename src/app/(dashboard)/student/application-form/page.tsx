@@ -31,18 +31,18 @@ export default function ApplicationFormPage() {
         const checkStudentStatus = async () => {
             const perfMonitor = new PerformanceMonitor('ApplicationFormPage:checkStudentStatus');
             
-            if (!user) {
-                logger.info('ApplicationFormPage: No user found, skipping status check');
-                setIsLoading(false);
-                return;
-            }
+            try {
+                if (!user) {
+                    logger.info('ApplicationFormPage: No user found, skipping status check');
+                    setIsLoading(false);
+                    return;
+                }
 
             logger.info('ApplicationFormPage: Checking student status', { 
                 userId: user.id, 
                 userName: user.name 
             });
 
-            try {
                 // ตรวจสอบการลงทะเบียนข้อมูลนักศึกษา
                 const studentRegistered = user.name && user.email && user.phone && 
                                         user.t_name && user.t_surname && 
