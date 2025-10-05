@@ -83,7 +83,7 @@ export default function ApplicationsPage() {
     };
 
     const handleGoToPreviewPage = () => {
-        router.push('/admin/documents/pdf-templates');
+        router.push('/admin/applications/print');
     };
 
     const mockApplications = [
