@@ -58,6 +58,12 @@ type EditUserFormProps = {
 
 export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
   const { toast } = useToast();
+  const normalizeLoginId = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9._-]/g, '');
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -102,7 +108,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       // ลบ password ออกหากเป็นค่าว่าง
-      const submitData = { ...values };
+      const submitData = { ...values, newId: normalizeLoginId(values.newId) };
       if (!submitData.password || submitData.password.trim() === '') {
         delete submitData.password;
       }
@@ -147,7 +153,11 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
             <FormItem>
               <FormLabel>Login ID (รหัสนักศึกษา/ผู้ใช้)</FormLabel>
               <FormControl>
-                <Input placeholder="65010001 หรือ user_admin001" {...field} />
+                <Input
+                  placeholder="65010001 หรือ user_admin001"
+                  {...field}
+                  onChange={(e) => field.onChange(normalizeLoginId(e.target.value))}
+                />
               </FormControl>
               <FormDescription>
                 สามารถแก้ไข Login ID ได้ แต่ต้องไม่ซ้ำกับผู้ใช้อื่น

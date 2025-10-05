@@ -84,6 +84,12 @@ type AddUserFormProps = {
 export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
   const { toast } = useToast();
   const { user } = useAuth();
+  const normalizeLoginId = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9._-]/g, '');
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -106,13 +112,17 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      const payload = {
+        ...values,
+        id: normalizeLoginId(values.id),
+      };
       const response = await fetch('/api/users', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'x-user-id': user?.id || ''
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -122,7 +132,7 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
 
       toast({
         title: 'สร้างผู้ใช้สำเร็จ',
-        description: `ผู้ใช้ ${values.id} ถูกสร้างเรียบร้อยแล้ว`,
+        description: `ผู้ใช้ ${payload.id} ถูกสร้างเรียบร้อยแล้ว`,
       });
       onSuccess();
     } catch (error: any) {
@@ -145,7 +155,11 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
             <FormItem>
               <FormLabel>Login ID (รหัสนักศึกษา/ผู้ใช้) *</FormLabel>
               <FormControl>
-                <Input placeholder="65010001 หรือ user_admin001" {...field} />
+                <Input
+                  placeholder="65010001 หรือ user_admin001"
+                  {...field}
+                  onChange={(e) => field.onChange(normalizeLoginId(e.target.value))}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
