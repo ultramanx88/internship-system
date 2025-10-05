@@ -38,9 +38,10 @@ show_menu() {
     echo "7. 🔐 SSH into VPS shell"
     echo "8. 🔄 Quick Restart app on VPS"
     echo "9. 🛠️  Reinstall app + configure Nginx (one-shot)"
-    echo "10. ❌ Exit"
+    echo "10. 🧠 Smart Deploy (auto-sync + error detection)"
+    echo "11. ❌ Exit"
     echo ""
-    read -p "Choose option (1-10): " choice
+    read -p "Choose option (1-11): " choice
 }
 
 # Compare data between local and VPS
@@ -463,6 +464,299 @@ EOF
     log_info "📊 Check PM2 status above for application health"
 }
 
+# Smart Deploy with Error Detection
+smart_deploy_with_error_detection() {
+    log_info "🧠 Smart Deploy with Error Detection starting..."
+    
+    # Step 1: Auto-sync data first
+    log_info "Step 1: Auto-detecting data sync needs..."
+    compare_data
+    
+    echo ""
+    echo "🤖 Smart Deploy Options:"
+    echo "1. 📤 Deploy Local → VPS (overwrite production with local data)"
+    echo "2. 📥 Sync VPS → Local (keep production data, sync to local)"
+    echo "3. 🔄 Skip data sync (deploy code only)"
+    echo ""
+    read -p "Choose data sync strategy (1-3): " sync_choice
+    
+    case $sync_choice in
+        1) 
+            log_warning "⚠️  This will OVERWRITE VPS data with local data!"
+            read -p "Are you sure? (yes/no): " confirm
+            if [ "$confirm" = "yes" ]; then
+                deploy_local_to_vps
+            else
+                log_info "Data sync cancelled, proceeding with code-only deploy"
+                sync_choice=3
+            fi
+            ;;
+        2) 
+            log_info "📥 Syncing VPS → Local (keeping production data)"
+            sync_vps_to_local
+            ;;
+        3) log_info "Skipping data sync, deploying code only" ;;
+        *) 
+            log_warning "Invalid choice, skipping data sync"
+            sync_choice=3
+            ;;
+    esac
+    
+    # Step 2: Deploy code with enhanced error detection
+    log_info "Step 2: Deploying code with error detection..."
+    
+    # Git workflow
+    echo ""
+    read -p "🔄 Commit and push changes? (y/n): " git_push
+    if [ "$git_push" = "y" ] || [ "$git_push" = "Y" ]; then
+        log_info "Git workflow..."
+        git add .
+        read -p "📝 Commit message: " commit_msg
+        git commit -m "$commit_msg"
+        git push origin main
+        log_success "Code pushed to repository"
+    fi
+    
+    # Deploy with comprehensive error handling
+    log_info "Deploying to VPS with error detection..."
+    
+    DEPLOY_SUCCESS=false
+    ERROR_LOG=""
+    
+    # Execute deployment with error capture
+    ERROR_LOG=$(sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" << 'EOF'
+set -e  # Exit on any error
+
+cd /var/www/internship-system
+echo "📍 Working in: $(pwd)"
+
+# Pull latest code
+echo "📥 Pulling latest code..."
+if ! git pull origin main; then
+    echo "❌ Git pull failed"
+    exit 1
+fi
+
+# Switch to production schema
+echo "🔄 Switching to PostgreSQL schema..."
+if [ -f "prisma/schema.production.prisma" ]; then
+    cp prisma/schema.production.prisma prisma/schema.prisma
+    echo "✅ Using PostgreSQL schema"
+else
+    echo "⚠️  Production schema not found, using current schema"
+fi
+
+# Copy production environment
+echo "🔧 Setting up production environment..."
+if [ -f ".env.production" ]; then
+    cp .env.production .env
+    echo "✅ Production environment configured"
+else
+    echo "⚠️  .env.production not found"
+fi
+
+# Set production environment variables
+export NODE_ENV=production
+export NEXT_DISABLE_SOURCEMAPS=1
+
+# Generate Prisma client
+echo "🔧 Generating Prisma client..."
+if ! npx prisma generate; then
+    echo "❌ Prisma generate failed"
+    exit 1
+fi
+
+# Run database migrations
+echo "🗄️ Running database migrations..."
+if ! npx prisma db push --accept-data-loss; then
+    echo "❌ Database migration failed"
+    exit 1
+fi
+
+# Install dependencies
+echo "📦 Installing dependencies..."
+if ! npm install; then
+    echo "❌ npm install failed"
+    exit 1
+fi
+
+# Build application
+echo "🏗️ Building application..."
+if ! npm run build; then
+    echo "❌ Build failed"
+    exit 1
+fi
+
+# Stop existing PM2 process
+echo "🔄 Managing PM2 process..."
+pm2 delete internship-system >/dev/null 2>&1 || true
+
+# Start with enhanced settings
+echo "🚀 Starting application with PM2..."
+if ! pm2 start npm --name "internship-system" -- start --instances 1 --max-memory-restart 350M --update-env; then
+    echo "❌ PM2 start failed"
+    exit 1
+fi
+
+# Save PM2 configuration
+pm2 save
+
+echo "✅ Deployment completed successfully"
+EOF
+ 2>&1)
+    
+    # Check deployment result
+    if [ $? -eq 0 ] && echo "$ERROR_LOG" | grep -q "✅ Deployment completed successfully"; then
+        DEPLOY_SUCCESS=true
+        log_success "Code deployment successful!"
+    else
+        log_error "Code deployment failed!"
+        echo "Error details:"
+        echo "$ERROR_LOG"
+    fi
+    
+    # Step 3: Comprehensive health checks
+    log_info "Step 3: Running comprehensive health checks..."
+    
+    HEALTH_CHECKS_PASSED=0
+    TOTAL_CHECKS=0
+    
+    # Check 1: PM2 Status
+    TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
+    log_info "Health Check 1: PM2 Status"
+    PM2_STATUS=$(sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" "cd /var/www/internship-system && pm2 status" 2>/dev/null)
+    if echo "$PM2_STATUS" | grep -q "online"; then
+        log_success "✅ PM2 process is online"
+        HEALTH_CHECKS_PASSED=$((HEALTH_CHECKS_PASSED + 1))
+    else
+        log_error "❌ PM2 process is not online"
+        echo "$PM2_STATUS"
+    fi
+    
+    # Check 2: Port 8080 listening
+    TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
+    log_info "Health Check 2: Port 8080 Listening"
+    PORT_CHECK=$(sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" "ss -ltnp | grep :8080" 2>/dev/null)
+    if [ -n "$PORT_CHECK" ]; then
+        log_success "✅ Port 8080 is listening"
+        HEALTH_CHECKS_PASSED=$((HEALTH_CHECKS_PASSED + 1))
+    else
+        log_error "❌ Port 8080 is not listening"
+    fi
+    
+    # Check 3: Application HTTP response
+    TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
+    log_info "Health Check 3: Application HTTP Response"
+    HTTP_RESPONSE=$(sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080" 2>/dev/null)
+    if [ "$HTTP_RESPONSE" = "200" ] || [ "$HTTP_RESPONSE" = "302" ]; then
+        log_success "✅ Application responds with HTTP $HTTP_RESPONSE"
+        HEALTH_CHECKS_PASSED=$((HEALTH_CHECKS_PASSED + 1))
+    else
+        log_error "❌ Application HTTP response: $HTTP_RESPONSE"
+    fi
+    
+    # Check 4: Database connectivity
+    TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
+    log_info "Health Check 4: Database Connectivity"
+    DB_CHECK=$(sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" "cd /var/www/internship-system && PGPASSWORD=internship_pass psql -U internship_user -d internship_system -h localhost -c 'SELECT 1;' -t" 2>/dev/null)
+    if [ "$DB_CHECK" = "1" ]; then
+        log_success "✅ Database connection successful"
+        HEALTH_CHECKS_PASSED=$((HEALTH_CHECKS_PASSED + 1))
+    else
+        log_error "❌ Database connection failed"
+    fi
+    
+    # Check 5: Nginx status (if applicable)
+    TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
+    log_info "Health Check 5: Nginx Status"
+    NGINX_STATUS=$(sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" "systemctl is-active nginx" 2>/dev/null)
+    if [ "$NGINX_STATUS" = "active" ]; then
+        log_success "✅ Nginx is active"
+        HEALTH_CHECKS_PASSED=$((HEALTH_CHECKS_PASSED + 1))
+    else
+        log_warning "⚠️  Nginx status: $NGINX_STATUS"
+    fi
+    
+    # Step 4: Error diagnosis and auto-fix
+    log_info "Step 4: Error diagnosis and auto-fix..."
+    
+    if [ $HEALTH_CHECKS_PASSED -lt $TOTAL_CHECKS ]; then
+        log_warning "⚠️  Some health checks failed ($HEALTH_CHECKS_PASSED/$TOTAL_CHECKS passed)"
+        
+        # Auto-fix attempts
+        log_info "Attempting auto-fixes..."
+        
+        # Fix 1: Restart PM2 if not online
+        if ! echo "$PM2_STATUS" | grep -q "online"; then
+            log_info "Auto-fix: Restarting PM2..."
+            sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" << 'EOF'
+cd /var/www/internship-system
+pm2 delete internship-system || true
+pm2 start npm --name "internship-system" -- start
+pm2 save
+EOF
+        fi
+        
+        # Fix 2: Check and fix port binding
+        if [ -z "$PORT_CHECK" ]; then
+            log_info "Auto-fix: Checking port binding..."
+            sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" << 'EOF'
+cd /var/www/internship-system
+# Kill any process on port 8080
+lsof -ti:8080 | xargs kill -9 2>/dev/null || true
+# Restart PM2
+pm2 restart internship-system || pm2 start npm --name "internship-system" -- start
+EOF
+        fi
+        
+        # Re-run health checks after fixes
+        log_info "Re-running health checks after fixes..."
+        sleep 5
+        
+        # Quick re-check
+        FINAL_HTTP=$(sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080" 2>/dev/null)
+        if [ "$FINAL_HTTP" = "200" ] || [ "$FINAL_HTTP" = "302" ]; then
+            log_success "✅ Auto-fix successful! Application now responding"
+        else
+            log_error "❌ Auto-fix failed. Manual intervention required."
+            
+            # Show diagnostic information
+            log_info "Diagnostic information:"
+            sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" << 'EOF'
+echo "=== PM2 Status ==="
+pm2 status
+echo ""
+echo "=== PM2 Logs (last 50 lines) ==="
+pm2 logs internship-system --lines 50 --nostream || true
+echo ""
+echo "=== Port Status ==="
+ss -ltnp | grep :8080 || echo "Port 8080 not listening"
+echo ""
+echo "=== Nginx Status ==="
+systemctl status nginx --no-pager || true
+EOF
+        fi
+    else
+        log_success "🎉 All health checks passed! ($HEALTH_CHECKS_PASSED/$TOTAL_CHECKS)"
+    fi
+    
+    # Final summary
+    echo ""
+    echo "📊 SMART DEPLOY SUMMARY:"
+    echo "========================"
+    echo "Data Sync: $([ $sync_choice -ne 3 ] && echo "✅ Completed" || echo "⏭️  Skipped")"
+    echo "Code Deploy: $([ "$DEPLOY_SUCCESS" = true ] && echo "✅ Successful" || echo "❌ Failed")"
+    echo "Health Checks: $HEALTH_CHECKS_PASSED/$TOTAL_CHECKS passed"
+    echo "Application URL: http://$VPS_HOST:8080"
+    echo ""
+    
+    if [ "$DEPLOY_SUCCESS" = true ] && [ $HEALTH_CHECKS_PASSED -eq $TOTAL_CHECKS ]; then
+        log_success "🎉 Smart Deploy completed successfully!"
+    else
+        log_warning "⚠️  Smart Deploy completed with issues. Check logs above."
+    fi
+}
+
 # Cleanup old scripts
 cleanup_scripts() {
     log_info "Cleaning up old scripts..."
@@ -537,12 +831,15 @@ main() {
                     log_info "Skipped provision/reinstall"
                 fi
                 ;;
-            10) 
+            10)
+                smart_deploy_with_error_detection
+                ;;
+            11) 
                 log_success "Goodbye! 👋"
                 exit 0
                 ;;
             *)
-                log_warning "Invalid option. Please choose 1-10."
+                log_warning "Invalid option. Please choose 1-11."
                 ;;
         esac
         
