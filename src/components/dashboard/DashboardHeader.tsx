@@ -20,19 +20,24 @@ import { LogOut, User as UserIcon } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Skeleton } from '../ui/skeleton';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 export function DashboardHeader() {
   const { user, loading, logout } = useAuth();
   const { profileImage } = useProfileImage();
-  const pathname = usePathname();
-
   const resolveSettingsPath = () => {
-    if (!pathname) return '/student/settings';
-    if (pathname.startsWith('/admin')) return '/admin/settings';
-    if (pathname.startsWith('/staff')) return '/staff/settings';
-    if (pathname.startsWith('/educator')) return '/educator/settings';
-    if (pathname.startsWith('/student')) return '/student/settings';
+    const rawRoles: any = user?.roles;
+    const roles: string[] = Array.isArray(rawRoles)
+      ? rawRoles
+      : (rawRoles ? (() => { try { return JSON.parse(rawRoles); } catch { return []; } })() : []);
+    const currentRole: string | undefined = (user as any)?.currentRole || roles[0];
+
+    // Prefer currentRole; fallback by role precedence
+    const has = (r: string) => roles.includes(r);
+    const role = currentRole || (has('admin') ? 'admin' : has('staff') ? 'staff' : has('courseInstructor') || has('committee') ? 'educator' : 'student');
+
+    if (role === 'admin') return '/admin/settings';
+    if (role === 'staff') return '/staff/settings';
+    if (role === 'courseInstructor' || role === 'committee') return '/educator/settings';
     return '/student/settings';
   };
 
