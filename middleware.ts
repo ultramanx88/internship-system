@@ -16,8 +16,20 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Simple redirect for /admin to /staff (will be handled by client-side auth)
-  // This is just a basic redirect, the real role checking happens in AuthRedirect component
+  // Basic role-based routing redirects
+  // Note: This is a basic implementation. Full authentication should be handled by client-side AuthRedirect component
+  
+  // Redirect root to login if not authenticated
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // Basic dashboard redirects (will be overridden by client-side auth)
+  if (pathname.startsWith('/admin') || pathname.startsWith('/staff') || 
+      pathname.startsWith('/educator') || pathname.startsWith('/student')) {
+    // Let client-side AuthRedirect handle the actual role checking
+    return NextResponse.next();
+  }
   
   return NextResponse.next();
 }
