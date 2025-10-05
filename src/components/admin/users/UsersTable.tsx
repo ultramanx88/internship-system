@@ -73,7 +73,8 @@ export function UsersTable({ defaultRole, lockRole = false }: UsersTableProps) {
     const fetchUsers = useCallback(async (search: string, role: string, sort: string, page: number, limit: number) => {
         setIsLoading(true);
         try {
-            const url = `/api/users?search=${encodeURIComponent(search)}&role=${encodeURIComponent(role)}&sort=${encodeURIComponent(sort)}&page=${page}&limit=${limit}`;
+            const endpoint = lockRole && defaultRole === 'student' ? '/api/students' : '/api/users';
+            const url = `${endpoint}?search=${encodeURIComponent(search)}&role=${encodeURIComponent(role)}&sort=${encodeURIComponent(sort)}&page=${page}&limit=${limit}`;
             console.log('Fetching users from:', url);
 
             const response = await fetch(url, {
@@ -84,8 +85,27 @@ export function UsersTable({ defaultRole, lockRole = false }: UsersTableProps) {
             console.log('Response status:', response.status, response.statusText);
 
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`API Error (${response.status}): ${response.statusText}`);
+                let message = `API Error (${response.status}): ${response.statusText}`;
+                try {
+                    const contentType = response.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const errJson = await response.json();
+                        message = errJson.message || errJson.error || message;
+                    } else {
+                        const errorText = await response.text();
+                        if (errorText) message = `${message} - ${errorText}`;
+                    }
+                } catch {}
+
+                toast({
+                    variant: 'destructive',
+                    title: 'โหลดข้อมูลผู้ใช้ล้มเหลว',
+                    description: message,
+                });
+                setUsers([]);
+                setTotalUsers(0);
+                setTotalPages(1);
+                return;
             }
 
             const data = await response.json();
