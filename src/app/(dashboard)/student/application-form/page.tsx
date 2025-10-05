@@ -128,8 +128,8 @@ export default function ApplicationFormPage() {
                         title: 'ยื่นเอกสารให้กับทางบริษัท',
                         date: '7 มิ.ย. 68 - 19 มิ.ย. 68',
                         status: hasApproved ? 'completed' : (hasApplied ? 'current' : 'upcoming'),
-                        isEditable: hasApproved,
-                        buttonText: hasApproved ? 'ส่งเอกสารสำเร็จ' : (hasApplied ? 'รอการอนุมัติ' : 'รอการสมัคร'),
+                        isEditable: hasApplied && !hasApproved,
+                        buttonText: hasApproved ? 'ส่งแล้ว' : (hasApplied ? 'ดำเนินการ' : 'รอการสมัคร'),
                         description: 'ส่งเอกสารที่จำเป็นให้บริษัท'
                     },
                     {
@@ -137,8 +137,8 @@ export default function ApplicationFormPage() {
                         title: 'ช่วงสหกิจศึกษา / ฝึกงาน',
                         date: '7 มิ.ย. 68 - 19 มิ.ย. 68',
                         status: hasCompleted ? 'completed' : (hasApproved ? 'current' : 'upcoming'),
-                        isEditable: hasCompleted,
-                        buttonText: hasCompleted ? 'สำเร็จการฝึกงาน' : (hasApproved ? 'กำลังฝึกงาน' : 'รอการอนุมัติ'),
+                        isEditable: hasApproved && !hasCompleted,
+                        buttonText: hasCompleted ? 'เสร็จสิ้น' : (hasApproved ? 'กำลังฝึกงาน' : 'รอการอนุมัติ'),
                         description: 'ปฏิบัติงานตามที่ได้รับมอบหมาย'
                     },
                     {
@@ -248,155 +248,123 @@ export default function ApplicationFormPage() {
 
     return (
         <StudentGuard>
-        <div className="min-h-screen bg-gray-50 p-6">
+            <div className="min-h-screen bg-gray-50 p-6">
             {/* Header */}
             <div className="mb-8">
                 <div className="flex items-center gap-4 mb-4">
                     <div>
                         <h1 className="text-2xl font-bold text-amber-700">ขั้นตอนฝึกงาน / ขอสหกิจศึกษา</h1>
-                        <p className="text-amber-600 font-medium">ยื่นขอสหกิจศึกษา</p>
-                        <p className="text-gray-600">ขั้นตอนสหกิจศึกษาของคุณ</p>
+                        <p className="text-gray-600 mt-1">ติดตามความคืบหน้าของการสมัครฝึกงานหรือสหกิจศึกษา</p>
                     </div>
-                </div>
-                
-                {/* Current Status Summary */}
-                <div className="bg-white rounded-lg p-4 shadow-sm border">
-                    <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
-                        <div>
-                            <h3 className="font-semibold text-gray-800">สถานะปัจจุบัน</h3>
-                            <p className="text-sm text-gray-600">
-                                {timelineSteps.find(step => step.status === 'current')?.title || 'กำลังตรวจสอบสถานะ...'}
-                            </p>
-                        </div>
-                    </div>
-                    
-                    {/* แสดงสถานะการลงทะเบียน */}
-                    {user && (
-                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                            <div className="flex items-center gap-2">
-                                <div className={`w-3 h-3 rounded-full ${isStudentRegistered ? 'bg-green-500' : 'bg-orange-500'}`}></div>
-                                <span className="text-sm font-medium text-gray-700">
-                                    {isStudentRegistered ? 'ข้อมูลนักศึกษาครบถ้วน' : 'กรุณากรอกข้อมูลนักศึกษาให้ครบถ้วน'}
-                                </span>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
 
-            {/* Main Content */}
-            <div className="max-w-4xl mx-auto">
-                <Card className="bg-white shadow-sm">
-                    <CardContent className="p-8">
-                        {/* Timeline */}
-                        <div className="relative">
-                            {timelineSteps.map((step, index) => (
-                                <div key={step.step} className="relative flex items-start mb-8 last:mb-0">
-                                    {/* Connecting Line */}
-                                    {index < timelineSteps.length - 1 && (
-                                        <div className={`absolute left-6 top-12 w-0.5 h-16 ${
-                                            step.status === 'completed' ? 'bg-orange-300' : 'bg-orange-200'
-                                        }`} />
-                                    )}
+            {/* Current Status Summary */}
+            <div className="bg-white rounded-lg p-4 shadow-sm border mb-8">
+                <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800">สถานะปัจจุบัน</h3>
+                        <p className="text-sm text-gray-600">
+                            {timelineSteps.find(step => step.status === 'current')?.title || 'กำลังตรวจสอบสถานะ...'}
+                        </p>
+                    </div>
+                </div>
 
-                                    {/* Step Number Circle */}
-                                    <div className={`relative z-10 flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${
-                                        step.status === 'completed'
-                                        ? 'bg-orange-500 text-white'
-                                        : step.status === 'current'
-                                                ? 'bg-orange-400 text-white animate-pulse'
-                                            : 'bg-orange-100 text-orange-400'
-                                        }`}>
-                                        {step.status === 'completed' ? (
-                                            <CheckCircle2 className="h-5 w-5" />
-                                        ) : step.status === 'current' ? (
-                                            <AlertCircle className="h-5 w-5" />
-                                        ) : (
-                                            step.step
-                                        )}
+                {/* แสดงสถานะการลงทะเบียน */}
+                {user && (
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${isStudentRegistered ? 'bg-green-500' : 'bg-orange-500'}`}></div>
+                            <span className="text-sm font-medium text-gray-700">
+                                {isStudentRegistered ? 'ข้อมูลนักศึกษาครบถ้วน' : 'กรุณากรอกข้อมูลนักศึกษาให้ครบถ้วน'}
+                            </span>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Timeline */}
+            <div className="space-y-6">
+                {timelineSteps.map((step, index) => (
+                    <Card key={step.step} className={`transition-all duration-200 ${
+                        step.status === 'current' ? 'ring-2 ring-orange-400 shadow-lg' : 
+                        step.status === 'completed' ? 'bg-green-50 border-green-200' : 
+                        'bg-gray-50 border-gray-200'
+                    }`}>
+                        <CardHeader className="pb-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                                        step.status === 'completed' ? 'bg-green-500' :
+                                        step.status === 'current' ? 'bg-orange-500' :
+                                        'bg-gray-400'
+                                    }`}>
+                                        {step.status === 'completed' ? <CheckCircle2 className="w-5 h-5" /> : step.step}
                                     </div>
-
-                                    {/* Step Content */}
-                                    <div className="ml-6 flex-1">
-                                        <div className={`p-6 rounded-lg transition-all duration-300 ${
-                                            step.status === 'current'
-                                                ? 'bg-orange-50 border-2 border-orange-200 shadow-md'
-                                                : step.status === 'completed'
-                                                    ? 'bg-green-50 border border-green-200'
-                                                    : 'bg-gray-50 border border-gray-200'
+                                    <div>
+                                        <CardTitle className={`text-lg ${
+                                            step.status === 'completed' ? 'text-green-800' :
+                                            step.status === 'current' ? 'text-orange-800' :
+                                            'text-gray-600'
                                         }`}>
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex-1">
-                                                    <h3 className={`font-semibold text-lg mb-2 ${
-                                                        step.status === 'current' 
-                                                            ? 'text-orange-800' 
-                                                            : step.status === 'completed'
-                                                                ? 'text-green-800'
-                                                                : 'text-gray-700'
-                                                        }`}>
-                                                        {step.title}
-                                                    </h3>
-                                                    {step.description && (
-                                                        <p className="text-sm text-gray-600 mb-2">{step.description}</p>
-                                                    )}
-                                                    <p className="text-sm text-gray-500">{step.date}</p>
-                                                </div>
-
-                                                {/* Status Button */}
-                                                <div className="flex items-center gap-3 ml-4">
-                                                    <span className={`px-4 py-2 rounded-full text-sm font-medium ${
-                                                        step.status === 'completed'
-                                                        ? 'bg-green-100 text-green-700'
-                                                            : step.status === 'current'
-                                                                ? 'bg-orange-100 text-orange-700'
-                                                                : 'bg-gray-100 text-gray-500'
-                                                        }`}>
-                                                        {step.buttonText}
-                                                    </span>
-                                                    
-                                                    {/* Action Button */}
-                                                    {step.isEditable && (
-                                                        <Button 
-                                                            size="sm" 
-                                                            className="bg-orange-500 hover:bg-orange-600 text-white"
-                                                            asChild
-                                                        >
-                                                            <Link href={
-                                                                step.step === 1 
-                                                                    ? "/student/settings" 
-                                                                    : step.step === 2 
-                                                                        ? "/student/application-form/internship-form"
-                                                                        : step.step === 3
-                                                                            ? "/student/documents"
-                                                                            : step.step === 4
-                                                                                ? "/student/internships"
-                                                                                : step.step === 5
-                                                                                    ? "/student/project-details"
-                                                                                    : "/student/dashboard"
-                                                            }>
-                                                                <Edit className="w-4 h-4 mr-2" />
-                                                                {step.step === 1 ? 'กรอกข้อมูล' : 
-                                                                 step.step === 2 ? 'ดำเนินการ' :
-                                                                 step.step === 3 ? 'ส่งเอกสาร' :
-                                                                 step.step === 4 ? 'ดูสถานะ' :
-                                                                 step.step === 5 ? 'กรอกหัวข้อ' : 'เริ่มต้น'}
-                                                            </Link>
-                                                        </Button>
-                                                    )}
-                                                    
-                                                    {step.status === 'completed' && (
-                                                        <CheckCircle2 className="w-5 h-5 text-green-500" />
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
+                                            {step.title}
+                                        </CardTitle>
+                                        <p className="text-sm text-gray-500 mt-1">{step.date}</p>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                                <div className="text-right">
+                                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                                        step.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                        step.status === 'current' ? 'bg-orange-100 text-orange-800' :
+                                        'bg-gray-100 text-gray-600'
+                                    }`}>
+                                        {step.status === 'completed' && <CheckCircle2 className="w-4 h-4" />}
+                                        {step.status === 'current' && <Clock className="w-4 h-4" />}
+                                        {step.status === 'upcoming' && <AlertCircle className="w-4 h-4" />}
+                                        {step.status === 'completed' ? 'เสร็จสิ้น' :
+                                         step.status === 'current' ? 'กำลังดำเนินการ' : 'รอดำเนินการ'}
+                                    </div>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                    <p className="text-gray-600 mb-4">{step.description}</p>
+                                    {step.status === 'current' && (
+                                        <div className="flex items-center gap-2 text-orange-600 text-sm">
+                                            <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                                            <span>ขั้นตอนนี้พร้อมให้ดำเนินการ</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="ml-4">
+                                    <Link href={
+                                        step.step === 1 ? "/student/settings" :           // ลงทะเบียนข้อมูล
+                                        step.step === 2 ? "/student/application-form/internship-form" : // กรอกข้อมูลสหกิจศึกษา
+                                        step.step === 3 ? "/student/documents" :          // ส่งเอกสาร
+                                        step.step === 4 ? "/student/internships" :        // ดูสถานะ
+                                        step.step === 5 ? "/student/project-details" :    // กรอกหัวข้อ
+                                        "/student/dashboard"
+                                    }>
+                                        <Button 
+                                            variant={step.isEditable ? "default" : "outline"}
+                                            size="sm"
+                                            disabled={!step.isEditable}
+                                            className={`${
+                                                step.isEditable ? 'bg-orange-600 hover:bg-orange-700' : ''
+                                            }`}
+                                        >
+                                            {step.isEditable && <Edit className="w-4 h-4 mr-2" />}
+                                            {step.buttonText}
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
             </div>
         </div>
         </StudentGuard>
