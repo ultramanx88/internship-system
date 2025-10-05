@@ -1,79 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { requireAuth, roleChecks, cleanup } from '@/lib/auth-utils';
 
 const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication and authorization
+    const authResult = await requireAuth(request, ['courseInstructor', 'committee', 'visitor']);
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+    const { user } = authResult;
+
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
     const status = searchParams.get('status');
     const major = searchParams.get('major');
     const search = searchParams.get('search');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
-      );
-    }
-
-    // ดึงข้อมูลผู้ใช้และตรวจสอบว่าเป็น educator หรือไม่
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        major: { select: { id: true, nameTh: true, nameEn: true } },
-        department: { select: { id: true, nameTh: true, nameEn: true } },
-        faculty: { select: { id: true, nameTh: true, nameEn: true } }
-      }
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
-    // Debug: ดูข้อมูล user และ roles
-    console.log('🔍 User data:', {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      roles: user.roles,
-      rolesType: typeof user.roles,
-      rolesIsArray: Array.isArray(user.roles)
-    });
-
-    // ตรวจสอบว่าเป็น educator หรือไม่ (courseInstructor, committee)
-    // รองรับทั้ง string และ array
-    let userRoles = user.roles;
-    if (typeof userRoles === 'string') {
-      try {
-        userRoles = JSON.parse(userRoles);
-      } catch (e) {
-        // ถ้า parse ไม่ได้ ให้ใช้ string เดิม
-        userRoles = [userRoles];
-      }
-    }
-
-    console.log('🔍 Parsed roles:', userRoles);
-
-    const isEducator = userRoles.includes('courseInstructor') || 
-                       userRoles.includes('committee') || 
-                       userRoles.includes('อาจารย์ประจำวิชา') ||
-                       userRoles.includes('อาจารย์นิเทศ') ||
-                       userRoles.includes('กรรมการ');
-    console.log('🔍 Is educator:', isEducator);
-
-    if (!isEducator) {
-      return NextResponse.json(
-        { error: 'User is not an educator' },
-        { status: 403 }
-      );
-    }
+    // User is already authenticated and authorized via requireAuth
 
     // สร้าง where clause สำหรับการกรอง
     const whereClause: any = {};
@@ -120,7 +67,7 @@ export async function GET(request: NextRequest) {
     // ดึงข้อมูล applications ตาม role
     let applications = [];
 
-    if (userRoles.includes('courseInstructor') || userRoles.includes('อาจารย์ประจำวิชา')) {
+    if (user.roles.includes('courseInstructor')) {
       // อาจารย์ประจำวิชาเห็น applications ทั้งหมด (เนื่องจากไม่มี courseInstructorId field แล้ว)
       applications = await prisma.application.findMany({
         where: {
@@ -175,7 +122,7 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit
       });
-    } else if (userRoles.includes('committee') || userRoles.includes('กรรมการ')) {
+    } else if (user.roles.includes('committee')) {
       // กรรมการเห็น applications ทั้งหมด
       applications = await prisma.application.findMany({
         where: whereClause,
@@ -232,13 +179,13 @@ export async function GET(request: NextRequest) {
 
     // นับจำนวนทั้งหมดสำหรับ pagination
     let totalCount;
-    if (userRoles.includes('courseInstructor') || userRoles.includes('อาจารย์ประจำวิชา')) {
+    if (user.roles.includes('courseInstructor')) {
       totalCount = await prisma.application.count({
         where: {
           ...whereClause
         }
       });
-    } else if (userRoles.includes('committee') || userRoles.includes('กรรมการ')) {
+    } else if (user.roles.includes('committee')) {
       totalCount = await prisma.application.count({
         where: whereClause
       });
@@ -295,7 +242,7 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    await cleanup();
   }
 }
 
@@ -346,7 +293,7 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    await cleanup();
   }
 }
 

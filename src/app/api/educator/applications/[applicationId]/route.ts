@@ -50,9 +50,7 @@ export async function GET(
 
     const isEducator = userRoles.includes('courseInstructor') || 
                        userRoles.includes('committee') || 
-                       userRoles.includes('อาจารย์ประจำวิชา') ||
-                       userRoles.includes('อาจารย์นิเทศ') ||
-                       userRoles.includes('กรรมการ');
+                       userRoles.includes('visitor');
     
     console.log('🔍 User roles check:', { userRoles, isEducator });
     
@@ -228,9 +226,7 @@ export async function PUT(
 
     const isEducator = userRoles.includes('courseInstructor') || 
                        userRoles.includes('committee') || 
-                       userRoles.includes('อาจารย์ประจำวิชา') ||
-                       userRoles.includes('อาจารย์นิเทศ') ||
-                       userRoles.includes('กรรมการ');
+                       userRoles.includes('visitor');
     
     if (!isEducator) {
       return NextResponse.json(
