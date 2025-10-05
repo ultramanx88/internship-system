@@ -9,15 +9,15 @@ const DEFAULT_LOGO_URL =
 export function useAppTheme() {
   const [logo, setLogo] = useState<string | null>(DEFAULT_LOGO_URL);
   const [isThemeLoading, setIsThemeLoading] = useState(true);
+  const [loginBackground, setLoginBackground] = useState<string | null>(null);
 
   useEffect(() => {
     try {
       const themeItem = localStorage.getItem(THEME_STORAGE_KEY);
       if (themeItem) {
         const parsedTheme: AppTheme = JSON.parse(themeItem);
-        if (parsedTheme.logo) {
-          setLogo(parsedTheme.logo);
-        }
+        if (parsedTheme.logo) setLogo(parsedTheme.logo);
+        if (parsedTheme.loginBackground) setLoginBackground(parsedTheme.loginBackground);
       }
     } catch (error) {
       console.error("Failed to parse theme from localStorage", error);
@@ -54,9 +54,21 @@ export function useAppTheme() {
     }
   };
 
+  const handleLoginBgChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        setLoginBackground(dataUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const saveTheme = useCallback(() => {
     try {
-      const themeToStore: AppTheme = { logo };
+      const themeToStore: AppTheme = { logo, loginBackground };
       localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(themeToStore));
       if (logo) {
         updateFavicon(logo);
@@ -68,9 +80,10 @@ export function useAppTheme() {
     }
   }, [logo]);
 
-  return { logo, isThemeLoading, handleLogoChange, saveTheme };
+  return { logo, loginBackground, isThemeLoading, handleLogoChange, handleLoginBgChange, saveTheme };
 }
 
 type AppTheme = {
   logo: string | null;
+  loginBackground?: string | null;
 };

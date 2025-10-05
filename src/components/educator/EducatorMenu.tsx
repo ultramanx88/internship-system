@@ -17,6 +17,8 @@ import {
   Settings,
   LogOut
 } from 'lucide-react';
+import Image from 'next/image';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 
 interface EducatorMenuProps {
@@ -28,6 +30,7 @@ interface EducatorMenuProps {
 export function EducatorMenu({ userRole, educatorRole, className }: EducatorMenuProps) {
   const pathname = usePathname();
   const { logout } = useAuth();
+  const { logo } = useAppTheme();
 
   // กำหนดเมนูตาม role - แสดงเฉพาะเมนูที่ตรงกับ role ของผู้ใช้
   const getMenuItems = () => {
@@ -156,14 +159,24 @@ export function EducatorMenu({ userRole, educatorRole, className }: EducatorMenu
 
 
   const isActive = (href: string) => {
+    if (!pathname) return false;
     return pathname === href || pathname.startsWith(href + '/');
   };
 
-  const menuItems = getMenuItems();
   const currentRole = educatorRole || userRole;
+  const menuItems = getMenuItems();
 
   return (
     <div className={cn("w-64 bg-gray-50 border-r border-gray-200 h-full", className)}>
+      {/* App Logo Header */}
+      <div className="flex items-center gap-3 px-4 py-4 border-b bg-white">
+        {logo ? (
+          <Image src={logo} alt="App Logo" width={28} height={28} className="rounded" />
+        ) : (
+          <Home className="w-5 h-5" />
+        )}
+        <span className="font-semibold text-gray-800">Internship System</span>
+      </div>
       {/* หน้าแรก */}
       <Link
         href="/educator"
@@ -219,7 +232,6 @@ export function EducatorMenu({ userRole, educatorRole, className }: EducatorMenu
           <Settings className="w-5 h-5" />
           <span className="font-medium">ตั้งค่า</span>
         </Link>
-
         <button
           onClick={logout}
           className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-600 hover:bg-red-50 transition-colors"

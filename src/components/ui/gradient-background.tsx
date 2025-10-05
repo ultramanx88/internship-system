@@ -5,12 +5,14 @@ interface GradientBackgroundProps {
   variant?: 'login' | 'dashboard' | 'internship' | 'default';
   className?: string;
   children?: React.ReactNode;
+  backgroundUrl?: string; // optional override for background image
 }
 
 export function GradientBackground({ 
   variant = 'default', 
   className,
-  children 
+  children,
+  backgroundUrl
 }: GradientBackgroundProps) {
   return (
     <div 
@@ -23,7 +25,7 @@ export function GradientBackground({
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url(/assets/images/Background.webp)'
+          backgroundImage: `url(${backgroundUrl || '/assets/images/Background.webp'})`
         }}
       />
       

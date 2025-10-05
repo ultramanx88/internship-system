@@ -35,9 +35,12 @@ show_menu() {
     echo "4. 🔄 Smart Sync (auto-detect newer data)"
     echo "5. 🚀 Full Deploy (git + migrate + restart)"
     echo "6. 🧹 Cleanup old scripts"
-    echo "7. ❌ Exit"
+    echo "7. 🔐 SSH into VPS shell"
+    echo "8. 🔄 Quick Restart app on VPS"
+    echo "9. 🛠️  Reinstall app + configure Nginx (one-shot)"
+    echo "10. ❌ Exit"
     echo ""
-    read -p "Choose option (1-7): " choice
+    read -p "Choose option (1-10): " choice
 }
 
 # Compare data between local and VPS
@@ -517,12 +520,29 @@ main() {
             4) smart_sync ;;
             5) full_deploy ;;
             6) cleanup_scripts ;;
-            7) 
+            7)
+                log_info "Opening SSH session to VPS..."
+                sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST"
+                ;;
+            8)
+                log_info "Running quick restart script on VPS..."
+                bash scripts/restart-on-vps.sh
+                ;;
+            9)
+                log_warning "This will rebuild app and rewrite Nginx config. Continue?"
+                read -p "Type 'yes' to proceed: " confirm
+                if [ "$confirm" = "yes" ]; then
+                    bash scripts/provision-or-reinstall.sh
+                else
+                    log_info "Skipped provision/reinstall"
+                fi
+                ;;
+            10) 
                 log_success "Goodbye! 👋"
                 exit 0
                 ;;
             *)
-                log_warning "Invalid option. Please choose 1-7."
+                log_warning "Invalid option. Please choose 1-10."
                 ;;
         esac
         

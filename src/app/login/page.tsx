@@ -14,12 +14,13 @@ import {
 import { useAppTheme } from '@/hooks/use-app-theme';
 
 export default function LoginPage() {
-  const { logo } = useAppTheme();
+  const { logo, loginBackground } = useAppTheme();
 
   return (
     <GradientBackground 
       variant="login" 
       className="flex min-h-screen w-full flex-col items-center justify-center"
+      backgroundUrl={loginBackground || undefined}
     >
       <Card className="w-96 bg-background/90 backdrop-blur-sm shadow-2xl border-0">
         <CardHeader className="text-center">

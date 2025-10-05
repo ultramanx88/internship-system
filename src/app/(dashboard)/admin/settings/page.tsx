@@ -16,7 +16,7 @@ import { AdminGuard } from '@/components/auth/PermissionGuard';
 import Image from 'next/image';
 
 export default function AdminSettingsPage() {
-  const { logo, handleLogoChange, saveTheme } = useAppTheme();
+  const { logo, loginBackground, handleLogoChange, handleLoginBgChange, saveTheme } = useAppTheme();
 
   return (
     <AdminGuard>
@@ -53,6 +53,17 @@ export default function AdminSettingsPage() {
             </div>
              <p className="text-sm text-muted-foreground">
                 อัปโหลดไฟล์ภาพสำหรับโลโก้ (แนะนำ .png, .svg)
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="login-bg-upload">ภาพพื้นหลังหน้า Login</Label>
+            <div className="flex items-center gap-4">
+              {loginBackground && <Image src={loginBackground} alt="Login Background" width={80} height={45} className="rounded-md object-cover" />}
+              <Input id="login-bg-upload" type="file" accept="image/*" onChange={handleLoginBgChange} className="max-w-sm"/>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              เลือกภาพพื้นหลังสำหรับหน้าเข้าสู่ระบบ (แนวแนะนำ 1920x1080)
             </p>
           </div>
 
