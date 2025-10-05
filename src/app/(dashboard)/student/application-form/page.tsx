@@ -34,6 +34,7 @@ export default function ApplicationFormPage() {
             try {
                 if (!user) {
                     logger.info('ApplicationFormPage: No user found, skipping status check');
+                    setIsLoading(false);
                     return;
                 }
 
