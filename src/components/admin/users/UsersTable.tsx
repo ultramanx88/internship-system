@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import type { User } from '@prisma/client';
 import { roles as roleData } from '@/lib/permissions';
+import { useAuth } from '@/hooks/use-auth';
 import Link from 'next/link';
 import {
     Table,
@@ -43,6 +44,7 @@ type DisplayUser = User & {
 }
 
 export function UsersTable() {
+    const { user } = useAuth();
     const [users, setUsers] = useState<DisplayUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -69,7 +71,11 @@ export function UsersTable() {
             const url = `/api/users?search=${encodeURIComponent(search)}&role=${encodeURIComponent(role)}&sort=${encodeURIComponent(sort)}&page=${page}&limit=${limit}`;
             console.log('Fetching users from:', url);
 
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                headers: {
+                    'x-user-id': user?.id || '',
+                },
+            });
             console.log('Response status:', response.status, response.statusText);
 
             if (!response.ok) {
@@ -138,7 +144,10 @@ export function UsersTable() {
         try {
             const response = await fetch('/api/users', {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-user-id': user?.id || '',
+                },
                 body: JSON.stringify({ ids: Array.from(selected) }),
             });
 
