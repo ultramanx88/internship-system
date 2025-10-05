@@ -348,6 +348,23 @@ npm run build
 # Run database migrations if needed
 npx prisma db push --accept-data-loss
 
+# Ensure PM2 app runs on port 8080 (Next.js production)
+echo "-- Ensuring PM2 process on port 8080 --"
+if ! pm2 describe internship-system >/dev/null 2>&1; then
+  pm2 start npm --name internship-system -- start
+else
+  # Reload gracefully if already exists
+  pm2 reload internship-system || pm2 restart internship-system
+fi
+
+# Verify port 8080 is listening; if not, restart with npm start
+LISTEN_8080=$(ss -ltnp 2>/dev/null | grep -c ":8080")
+if [ "$LISTEN_8080" = "0" ]; then
+  echo "Port 8080 not listening. Restarting with npm start..."
+  pm2 delete internship-system || true
+  pm2 start npm --name internship-system -- start
+fi
+
 # Check if all required tables exist and seed if needed
 log_info "Checking all system tables..."
 TABLES_TO_CHECK=("academic_years" "committees" "committee_members" "print_records" "provinces" "districts" "subdistricts")
@@ -374,7 +391,7 @@ else
     log_success "Educator data already exists ($ACADEMIC_YEARS_COUNT academic years)"
 fi
 
-pm2 restart internship-system
+pm2 save
 EOF
     
     # Handle database
