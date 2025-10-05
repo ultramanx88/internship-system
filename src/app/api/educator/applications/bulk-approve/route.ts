@@ -94,8 +94,8 @@ export async function POST(request: NextRequest) {
     // มอบหมายอาจารย์นิเทศ (ใช้ supervisor_test_001 เป็น default)
     const supervisorId = 'supervisor_test_001';
     
-    // อัปเดต applications ให้มี supervisorId
-    console.log('🔍 Updating applications with supervisor:', { applicationIds, supervisorId });
+    // อัปเดต applications (ไม่มี supervisorId field แล้ว)
+    console.log('🔍 Updating applications:', { applicationIds });
     
     const updatedApplications = await prisma.application.updateMany({
       where: { 
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
         status: 'approved'
       },
       data: {
-        supervisorId: supervisorId
+        // ไม่มี supervisorId field แล้ว
       }
     });
     

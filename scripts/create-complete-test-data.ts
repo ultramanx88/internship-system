@@ -110,7 +110,6 @@ async function createCompleteTestData() {
         id: 'app_test_001',
         studentId: testStudent.id,
         internshipId: internship.id,
-        courseInstructorId: instructor.id, // มอบหมายให้ user_t6800008
         status: 'pending',
         dateApplied: new Date(),
         feedback: null,

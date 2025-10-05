@@ -121,10 +121,9 @@ export async function GET(request: NextRequest) {
     let applications = [];
 
     if (userRoles.includes('courseInstructor') || userRoles.includes('อาจารย์ประจำวิชา')) {
-      // อาจารย์ประจำวิชาเห็นเฉพาะ applications ที่ถูกกำหนดให้ตน
+      // อาจารย์ประจำวิชาเห็น applications ทั้งหมด (เนื่องจากไม่มี courseInstructorId field แล้ว)
       applications = await prisma.application.findMany({
         where: {
-          courseInstructorId: userId,
           ...whereClause
         },
         include: {
@@ -133,7 +132,6 @@ export async function GET(request: NextRequest) {
               id: true,
               name: true,
               email: true,
-              id: true,
               phone: true,
               profileImage: true,
               major: { 
@@ -170,20 +168,6 @@ export async function GET(request: NextRequest) {
               }
             }
           },
-          courseInstructor: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          },
-          supervisor: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          }
         },
         orderBy: {
           dateApplied: 'desc'
@@ -201,7 +185,6 @@ export async function GET(request: NextRequest) {
               id: true,
               name: true,
               email: true,
-              id: true,
               phone: true,
               profileImage: true,
               major: { 
@@ -238,20 +221,6 @@ export async function GET(request: NextRequest) {
               }
             }
           },
-          courseInstructor: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          },
-          supervisor: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          }
         },
         orderBy: {
           dateApplied: 'desc'
@@ -266,7 +235,6 @@ export async function GET(request: NextRequest) {
     if (userRoles.includes('courseInstructor') || userRoles.includes('อาจารย์ประจำวิชา')) {
       totalCount = await prisma.application.count({
         where: {
-          courseInstructorId: userId,
           ...whereClause
         }
       });

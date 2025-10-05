@@ -57,10 +57,6 @@ model User {
   department    Department?   @relation(fields: [departmentId], references: [id])
   faculty       Faculty?      @relation(fields: [facultyId], references: [id])
   major         Major?        @relation(fields: [majorId], references: [id])
-  courseInstructorApplications Application[] @relation("CourseInstructorApplications")
-  supervisorApplications Application[] @relation("SupervisorApplications")
-  committeeMembers CommitteeMember[]
-  assignedCommittees ApplicationCommittee[]
 
   @@map("users")
 }
@@ -82,8 +78,6 @@ model Application {
   id            String            @id @default(cuid())
   studentId     String
   internshipId  String
-  courseInstructorId String?      // เพิ่มการเชื่อมโยงกับอาจารย์ประจำวิชา
-  supervisorId  String?           // เพิ่มการเชื่อมโยงกับอาจารย์นิเทศ
   status        ApplicationStatus
   dateApplied   DateTime
   feedback      String?
@@ -92,9 +86,6 @@ model Application {
   internship    Internship        @relation(fields: [internshipId], references: [id], onDelete: Cascade)
   printRecord   PrintRecord?      @relation(fields: [printRecordId], references: [id])
   student       User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  courseInstructor User?          @relation("CourseInstructorApplications", fields: [courseInstructorId], references: [id])
-  supervisor    User?             @relation("SupervisorApplications", fields: [supervisorId], references: [id])
-  committees    ApplicationCommittee[] // เพิ่มการเชื่อมโยงกับกรรมการ
 
   @@map("applications")
 }
@@ -125,52 +116,6 @@ model PrintRecord {
   printedBy      User          @relation(fields: [printedById], references: [id])
 
   @@map("print_records")
-}
-
-model Committee {
-  id          String       @id @default(cuid())
-  name        String
-  nameEn      String?
-  description String?
-  isActive    Boolean      @default(true)
-  academicYear String      // ปีการศึกษา เช่น "2567"
-  semester    String       // ภาคเรียน เช่น "1", "2", "3"
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  members     CommitteeMember[]
-  applications ApplicationCommittee[]
-
-  @@map("committees")
-}
-
-model CommitteeMember {
-  id         String    @id @default(cuid())
-  committeeId String
-  userId     String
-  role       String    @default("member") // member, chair, secretary
-  isActive   Boolean   @default(true)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  committee  Committee @relation(fields: [committeeId], references: [id], onDelete: Cascade)
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([committeeId, userId])
-  @@map("committee_members")
-}
-
-model ApplicationCommittee {
-  id           String      @id @default(cuid())
-  applicationId String
-  committeeId  String
-  assignedBy   String      // user ID ของคนที่มอบหมาย
-  assignedAt   DateTime    @default(now())
-  isActive     Boolean     @default(true)
-  application  Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  committee    Committee   @relation(fields: [committeeId], references: [id], onDelete: Cascade)
-  assignedByUser User      @relation(fields: [assignedBy], references: [id])
-
-  @@unique([applicationId, committeeId])
-  @@map("application_committees")
 }
 
 model Faculty {

@@ -115,7 +115,7 @@ export async function PUT(request: Request, { params }: { params: { applicationI
     const updatedApplication = await prisma.application.update({
       where: { id: applicationId },
       data: {
-        supervisorId: supervisorId
+        // supervisorId field ไม่มีแล้ว
         // ไม่เปลี่ยน status เพื่อรักษาสถานะเดิม
       },
       include: {

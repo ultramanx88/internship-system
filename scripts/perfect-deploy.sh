@@ -61,6 +61,9 @@ compare_data() {
             const companies = await prisma.company.count();
             const internships = await prisma.internship.count();
             const applications = await prisma.application.count();
+            const committees = await prisma.committee.count();
+            const committeeMembers = await prisma.committeeMember.count();
+            const printRecords = await prisma.printRecord.count();
             
             // Get latest update timestamp (only from users table)
             const latestUser = await prisma.user.findFirst({
@@ -71,7 +74,7 @@ compare_data() {
             const localTimestamp = latestUser?.updatedAt || new Date(0);
             
             console.log(JSON.stringify({
-                users, companies, internships, applications,
+                users, companies, internships, applications, committees, committeeMembers, printRecords,
                 lastUpdate: localTimestamp.toISOString(),
                 source: 'local'
             }));
@@ -95,6 +98,9 @@ SELECT json_build_object(
     'companies', (SELECT COUNT(*) FROM companies),
     'internships', (SELECT COUNT(*) FROM internships),
     'applications', (SELECT COUNT(*) FROM applications),
+    'committees', COALESCE((SELECT COUNT(*) FROM committees), 0),
+    'committeeMembers', COALESCE((SELECT COUNT(*) FROM committee_members), 0),
+    'printRecords', COALESCE((SELECT COUNT(*) FROM print_records), 0),
     'lastUpdate', COALESCE(
         (SELECT MAX(\"updatedAt\") FROM users),
         '1970-01-01T00:00:00.000Z'
@@ -119,20 +125,32 @@ EOF
     LOCAL_APPS=$(echo "$LOCAL_INFO" | jq -r '.applications // 0' 2>/dev/null || echo "0")
     VPS_APPS=$(echo "$VPS_INFO" | jq -r '.applications // 0' 2>/dev/null || echo "0")
     
+    LOCAL_COMMITTEES=$(echo "$LOCAL_INFO" | jq -r '.committees // 0' 2>/dev/null || echo "0")
+    VPS_COMMITTEES=$(echo "$VPS_INFO" | jq -r '.committees // 0' 2>/dev/null || echo "0")
+    
+    LOCAL_PRINT_RECORDS=$(echo "$LOCAL_INFO" | jq -r '.printRecords // 0' 2>/dev/null || echo "0")
+    VPS_PRINT_RECORDS=$(echo "$VPS_INFO" | jq -r '.printRecords // 0' 2>/dev/null || echo "0")
+    
     echo "📈 SUMMARY:"
     echo "Users:        Local=$LOCAL_USERS, VPS=$VPS_USERS"
     echo "Applications: Local=$LOCAL_APPS, VPS=$VPS_APPS"
+    echo "Committees:   Local=$LOCAL_COMMITTEES, VPS=$VPS_COMMITTEES"
+    echo "Print Records: Local=$LOCAL_PRINT_RECORDS, VPS=$VPS_PRINT_RECORDS"
     echo ""
     
     # Calculate data difference
     USER_DIFF=$((LOCAL_USERS - VPS_USERS))
     APP_DIFF=$((LOCAL_APPS - VPS_APPS))
+    COMMITTEE_DIFF=$((LOCAL_COMMITTEES - VPS_COMMITTEES))
+    PRINT_DIFF=$((LOCAL_PRINT_RECORDS - VPS_PRINT_RECORDS))
     
-    if [ "$USER_DIFF" -gt 0 ] || [ "$APP_DIFF" -gt 0 ]; then
-        log_warning "📊 Local has MORE data (+$USER_DIFF users, +$APP_DIFF apps)"
+    TOTAL_LOCAL_DIFF=$((USER_DIFF + APP_DIFF + COMMITTEE_DIFF + PRINT_DIFF))
+    
+    if [ "$TOTAL_LOCAL_DIFF" -gt 0 ]; then
+        log_warning "📊 Local has MORE data (+$USER_DIFF users, +$APP_DIFF apps, +$COMMITTEE_DIFF committees, +$PRINT_DIFF print records)"
         log_warning "💡 Recommendation: Deploy Local → VPS (overwrite production)"
-    elif [ "$USER_DIFF" -lt 0 ] || [ "$APP_DIFF" -lt 0 ]; then
-        log_success "📊 VPS has MORE data ($((-USER_DIFF)) more users, $((-APP_DIFF)) more apps)"
+    elif [ "$TOTAL_LOCAL_DIFF" -lt 0 ]; then
+        log_success "📊 VPS has MORE data ($((-USER_DIFF)) more users, $((-APP_DIFF)) more apps, $((-COMMITTEE_DIFF)) more committees, $((-PRINT_DIFF)) more print records)"
         log_success "💡 Recommendation: Sync VPS → Local (keep production data)"
     else
         log_success "📊 Data counts match between Local and VPS"
@@ -143,6 +161,11 @@ EOF
 # Deploy local to VPS
 deploy_local_to_vps() {
     log_info "Deploying Local → VPS with backup..."
+    
+    # Ensure local schema is up to date
+    log_info "Updating local schema..."
+    npx prisma db push
+    npx prisma generate
     
     # Create VPS backup first
     log_info "Creating VPS backup..."
@@ -176,6 +199,10 @@ mv /tmp/deploy-data.json backups/deploy-data.json
 # Switch to production schema for PostgreSQL
 cp prisma/schema.production.prisma prisma/schema.prisma
 npx prisma generate
+
+# Run database migrations to ensure schema is up to date
+log_info "Running database migrations..."
+npx prisma db push --accept-data-loss
 
 # Clear and import
 PGPASSWORD=internship_pass psql -U internship_user -d internship_system -h localhost -c "
@@ -321,21 +348,30 @@ npm run build
 # Run database migrations if needed
 npx prisma db push --accept-data-loss
 
-# Check if educator tables exist and seed if needed
-log_info "Checking educator system tables..."
-TABLE_EXISTS=$(PGPASSWORD=internship_pass psql -U internship_user -d internship_system -h localhost -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'academic_years');" | tr -d ' ')
+# Check if all required tables exist and seed if needed
+log_info "Checking all system tables..."
+TABLES_TO_CHECK=("academic_years" "committees" "committee_members" "print_records" "provinces" "districts" "subdistricts")
 
-if [ "$TABLE_EXISTS" = "t" ]; then
-    log_info "Educator tables exist, checking if data needs seeding..."
-    DATA_COUNT=$(PGPASSWORD=internship_pass psql -U internship_user -d internship_system -h localhost -t -c "SELECT COUNT(*) FROM academic_years;" | tr -d ' ')
-    if [ "$DATA_COUNT" = "0" ]; then
-        log_info "Seeding educator system data..."
-        npx tsx scripts/seed-vps-educator-data.ts
+for table in "${TABLES_TO_CHECK[@]}"; do
+    TABLE_EXISTS=$(PGPASSWORD=internship_pass psql -U internship_user -d internship_system -h localhost -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = '$table');" | tr -d ' ')
+    
+    if [ "$TABLE_EXISTS" = "t" ]; then
+        DATA_COUNT=$(PGPASSWORD=internship_pass psql -U internship_user -d internship_system -h localhost -t -c "SELECT COUNT(*) FROM $table;" | tr -d ' ')
+        log_success "Table $table exists with $DATA_COUNT records"
     else
-        log_success "Educator data already exists ($DATA_COUNT academic years)"
+        log_warning "Table $table not found"
     fi
+done
+
+# Seed educator system data if needed
+log_info "Checking if educator system data needs seeding..."
+ACADEMIC_YEARS_COUNT=$(PGPASSWORD=internship_pass psql -U internship_user -d internship_system -h localhost -t -c "SELECT COUNT(*) FROM academic_years;" | tr -d ' ' 2>/dev/null || echo "0")
+
+if [ "$ACADEMIC_YEARS_COUNT" = "0" ]; then
+    log_info "Seeding educator system data..."
+    npx tsx scripts/seed-vps-educator-data.ts
 else
-    log_warning "Educator tables not found, they should have been created by prisma db push"
+    log_success "Educator data already exists ($ACADEMIC_YEARS_COUNT academic years)"
 fi
 
 pm2 restart internship-system
