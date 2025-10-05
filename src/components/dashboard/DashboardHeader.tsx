@@ -16,14 +16,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { roles as roleData } from '@/lib/permissions';
 import { LogOut, User as UserIcon } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Skeleton } from '../ui/skeleton';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export function DashboardHeader() {
   const { user, loading, logout } = useAuth();
   const { profileImage } = useProfileImage();
+  const pathname = usePathname();
   const resolveSettingsPath = () => {
     const rawRoles: any = user?.roles;
     const roles: string[] = Array.isArray(rawRoles)
@@ -48,6 +51,24 @@ export function DashboardHeader() {
       .join('');
   };
 
+  const getRoleLabelForContext = (): string => {
+    // Prioritize current route section to determine visible role context
+    if (pathname?.startsWith('/admin')) return 'ผู้ดูแลระบบ';
+    if (pathname?.startsWith('/staff')) return 'ธุรการ';
+    if (pathname?.startsWith('/educator')) return 'อาจารย์';
+    if (pathname?.startsWith('/student')) return 'นักศึกษา';
+
+    // Fallback to currentRole/roles of user
+    const rawRoles: any = user?.roles;
+    const roles: string[] = Array.isArray(rawRoles)
+      ? rawRoles
+      : (rawRoles ? (() => { try { return JSON.parse(rawRoles); } catch { return []; } })() : []);
+    const currentRole: string | undefined = (user as any)?.currentRole || roles[0];
+    const map: Record<string, string> = roleData.reduce((acc, r) => { acc[r.id] = r.label; return acc; }, {} as Record<string, string>);
+    if (currentRole === 'นักศึกษา' || currentRole === 'ธุรการ') return currentRole;
+    return map[currentRole || 'student'] || currentRole || 'student';
+  };
+
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6">
       <div className="md:hidden">
@@ -64,13 +85,18 @@ export function DashboardHeader() {
           </div>
         ) : user ? (
           <div className="flex items-center gap-3">
-            {/* แสดงรหัสนักศึกษาและชื่อ */}
+            {/* แสดงชื่อและรหัส โดยเลือกชื่อจากข้อมูลไทย/อังกฤษที่มี */}
             <div className="text-right hidden sm:block">
               <p className="text-sm font-medium leading-none text-gray-900">
-                {user.name}
+                {(() => {
+                  const u: any = user;
+                  const thai = [u.t_title, u.t_name, u.t_middle_name, u.t_surname].filter(Boolean).join(' ').trim();
+                  const eng = [u.e_title, u.e_name, u.e_middle_name, u.e_surname].filter(Boolean).join(' ').trim();
+                  return thai || eng || user.name || user.id;
+                })()}
               </p>
               <p className="text-xs leading-none text-muted-foreground mt-1">
-                {user.id}
+                {getRoleLabelForContext()} • {user.id}
               </p>
             </div>
             
