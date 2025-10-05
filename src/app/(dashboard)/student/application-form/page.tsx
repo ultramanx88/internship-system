@@ -21,6 +21,7 @@ export default function ApplicationFormPage() {
     const { user } = useAuth();
     const [timelineSteps, setTimelineSteps] = useState<TimelineStep[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isStudentRegistered, setIsStudentRegistered] = useState(false);
 
     // ตรวจสอบสถานะการฝึกงานของนักศึกษา
     useEffect(() => {
@@ -32,9 +33,11 @@ export default function ApplicationFormPage() {
 
             try {
                 // ตรวจสอบการลงทะเบียนข้อมูลนักศึกษา
-                const isStudentRegistered = user.name && user.email && user.phone && 
-                                          user.t_name && user.t_surname && 
-                                          user.facultyId && user.majorId;
+                const studentRegistered = user.name && user.email && user.phone && 
+                                        user.t_name && user.t_surname && 
+                                        user.facultyId && user.majorId;
+                
+                setIsStudentRegistered(studentRegistered);
                 
                 // ตรวจสอบการสมัครฝึกงาน
                 const applicationsResponse = await fetch('/api/applications');
@@ -55,18 +58,18 @@ export default function ApplicationFormPage() {
                         step: 1,
                         title: 'ลงทะเบียนข้อมูลนักศึกษา',
                         date: '7 มิ.ย. 68 - 19 มิ.ย. 68',
-                        status: isStudentRegistered ? 'completed' : 'current',
-                        isEditable: !isStudentRegistered,
-                        buttonText: isStudentRegistered ? 'บันทึกแล้ว' : 'กรอกข้อมูล',
+                        status: studentRegistered ? 'completed' : 'current',
+                        isEditable: !studentRegistered,
+                        buttonText: studentRegistered ? 'บันทึกแล้ว' : 'กรอกข้อมูล',
                         description: 'กรอกข้อมูลส่วนตัวและติดต่อ'
                     },
                     {
                         step: 2,
                         title: 'กรอกข้อมูลสหกิจศึกษาหรือฝึกงาน',
                         date: '7 มิ.ย. 68 - 19 มิ.ย. 68',
-                        status: hasApplied ? 'completed' : (isStudentRegistered ? 'current' : 'upcoming'),
-                        isEditable: isStudentRegistered && !hasApplied,
-                        buttonText: hasApplied ? 'บันทึกแล้ว' : (isStudentRegistered ? 'ดำเนินการ' : 'รอการลงทะเบียน'),
+                        status: hasApplied ? 'completed' : (studentRegistered ? 'current' : 'upcoming'),
+                        isEditable: studentRegistered && !hasApplied,
+                        buttonText: hasApplied ? 'บันทึกแล้ว' : (studentRegistered ? 'ดำเนินการ' : 'รอการลงทะเบียน'),
                         description: 'เลือกประเภทการฝึกงานและบริษัทที่ต้องการ'
                     },
                     {
