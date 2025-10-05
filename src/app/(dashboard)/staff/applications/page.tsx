@@ -277,8 +277,8 @@ export default function ApplicationsPage() {
                                 <p className="text-gray-500">ไม่พบข้อมูลการสมัคร</p>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
-                                <Table>
+                        <div className="overflow-x-auto">
+                            <Table>
                                 <TableHeader>
                                     <TableRow className="bg-amber-50">
                                         <TableHead className="font-semibold text-amber-700">รหัสเอกสาร</TableHead>
@@ -333,8 +333,8 @@ export default function ApplicationsPage() {
                                                     <Button 
                                                         variant="outline" 
                                                         size="sm" 
-                                                        title="พิมพ์เอกสาร"
-                                                        onClick={() => handlePrintDocument(app.id)}
+                                                        title="ไปยังหน้าพิมพ์เอกสาร"
+                                                        onClick={handleGoToPrintPage}
                                                     >
                                                         <FileText className="h-4 w-4" />
                                                     </Button>
@@ -344,7 +344,7 @@ export default function ApplicationsPage() {
                                     ))}
                                 </TableBody>
                             </Table>
-                            </div>
+                        </div>
                         )}
                     </CardContent>
                 </Card>
