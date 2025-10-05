@@ -20,12 +20,14 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function UserProfilePage() {
   const router = useRouter();
   const params = useParams();
   const userId = params?.id as string;
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const [user, setUser] = useState<User | null>(null);
   const [isEdit, setIsEdit] = useState(false);
@@ -53,7 +55,11 @@ export default function UserProfilePage() {
       try {
         setIsLoading(true);
         console.log('Fetching user:', userId);
-        const response = await fetch(`/api/users/${userId}`);
+        const response = await fetch(`/api/users/${userId}`, {
+          headers: {
+            'x-user-id': user?.id || ''
+          }
+        });
         console.log('Response status:', response.status);
         
         if (response.ok) {
@@ -161,7 +167,7 @@ export default function UserProfilePage() {
         
         const response = await fetch(`/api/users/${userId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'x-user-id': user?.id || '' },
             body: JSON.stringify(apiData),
         });
 

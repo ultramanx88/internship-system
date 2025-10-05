@@ -26,6 +26,7 @@ import {
 import { Loader2, UserPlus } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { roles as roleData } from '@/lib/permissions';
+import { useAuth } from '@/hooks/use-auth';
 
 const formSchema = z.object({
   id: z.string().min(1, 'Login ID จำเป็นต้องระบุ'),
@@ -82,6 +83,7 @@ type AddUserFormProps = {
 
 export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -106,7 +108,10 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
     try {
       const response = await fetch('/api/users', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-user-id': user?.id || ''
+        },
         body: JSON.stringify(values),
       });
 

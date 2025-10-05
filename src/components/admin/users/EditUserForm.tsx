@@ -109,7 +109,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
 
       const response = await fetch(`/api/users/${user.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-user-id': (typeof window !== 'undefined' ? (JSON.parse(localStorage.getItem('internship-flow-user') || '{}')?.id || '') : '') },
         body: JSON.stringify(submitData),
       });
 
