@@ -8,6 +8,7 @@ import { users } from '@/lib/data';
 import { roles as validRolesData } from '@/lib/permissions';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { requireAuth, cleanup } from '@/lib/auth-utils';
 
 const validRoles = validRolesData.map(r => r.id);
 
@@ -114,7 +115,14 @@ const excelUserSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔍 Users API called');
+    // Check authentication and authorization
+    const authResult = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+    const { user } = authResult;
+
+    console.log('🔍 Users API called by:', user.name);
     
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
@@ -684,6 +692,15 @@ async function handleUserUpload(sheetData: any[][]) {
 
 export async function POST(request: Request) {
     try {
+        // Check authentication and authorization
+        const authResult = await requireAuth(request, ['admin', 'staff']);
+        if ('error' in authResult) {
+            return authResult.error;
+        }
+        const { user } = authResult;
+
+        console.log('🔍 Users POST API called by:', user.name);
+        
         const body = await request.json();
 
         // Check if this is an upload action
@@ -742,6 +759,15 @@ const deleteUsersSchema = z.object({
 
 export async function DELETE(request: Request) {
   try {
+    // Check authentication and authorization
+    const authResult = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+    const { user } = authResult;
+
+    console.log('🔍 Users DELETE API called by:', user.name);
+    
     const body = await request.json();
     const result = deleteUsersSchema.safeParse(body);
 
