@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/use-auth';
 import { 
   Home, 
   FileText, 
@@ -26,6 +27,7 @@ interface EducatorMenuProps {
 
 export function EducatorMenu({ userRole, educatorRole, className }: EducatorMenuProps) {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   // กำหนดเมนูตาม role - แสดงเฉพาะเมนูที่ตรงกับ role ของผู้ใช้
   const getMenuItems = () => {
@@ -219,11 +221,7 @@ export function EducatorMenu({ userRole, educatorRole, className }: EducatorMenu
         </Link>
 
         <button
-          onClick={() => {
-            // Handle logout
-            localStorage.removeItem('internship-flow-user');
-            window.location.href = '/login';
-          }}
+          onClick={logout}
           className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-600 hover:bg-red-50 transition-colors"
         >
           <LogOut className="w-5 h-5" />

@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/use-auth';
 import { 
   Home, 
   FileText, 
@@ -19,6 +20,7 @@ interface StudentMenuProps {
 
 export function StudentMenu({ className }: StudentMenuProps) {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   const isActive = (path: string) => {
     return pathname === path || pathname.startsWith(path + '/');
@@ -93,6 +95,7 @@ export function StudentMenu({ className }: StudentMenuProps) {
       {/* ออกจากระบบ */}
       <div className="mt-auto p-4">
         <button
+          onClick={logout}
           className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
         >
           <LogOut className="w-4 h-4" />
