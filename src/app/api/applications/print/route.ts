@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       data: {
         documentNumber,
         documentDate: new Date(documentDate),
-        printedById: "user-1", // Mock user ID - should get from auth
+        printedAt: new Date(),
         applications: {
           connect: applicationIds.map((id: string) => ({ id })),
         },

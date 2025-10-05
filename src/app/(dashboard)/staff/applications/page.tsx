@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Eye, Download, FileText, Calendar } from 'lucide-react';
+import { Search, Eye, Download, FileText, Calendar, Printer } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface Application {
     id: string;
@@ -29,6 +30,7 @@ export default function ApplicationsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
         loadApplications();
@@ -74,6 +76,10 @@ export default function ApplicationsPage() {
             console.error('Error printing document:', error);
             alert('เกิดข้อผิดพลาดในการพิมพ์เอกสาร');
         }
+    };
+
+    const handleGoToPrintPage = () => {
+        router.push('/admin/applications/print');
     };
 
     const mockApplications = [
@@ -151,6 +157,13 @@ export default function ApplicationsPage() {
                         <p className="text-gray-600 mt-2">จัดการเอกสารขอฝึกงานและสหกิจศึกษา</p>
                     </div>
                     <div className="flex gap-2">
+                        <Button 
+                            onClick={handleGoToPrintPage}
+                            className="bg-amber-600 hover:bg-amber-700 text-white"
+                        >
+                            <Printer className="mr-2 h-4 w-4" />
+                            ไปยังหน้าพิมพ์เอกสาร
+                        </Button>
                         <Button variant="outline">
                             <Download className="h-4 w-4 mr-2" />
                             ส่งออกรายงาน
