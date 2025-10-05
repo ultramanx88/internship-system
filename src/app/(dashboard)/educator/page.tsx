@@ -4,9 +4,6 @@ import { useEducatorRole } from '@/hooks/useEducatorRole';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { EducatorMenu } from '@/components/educator/EducatorMenu';
 import { 
   CheckCircle2, 
   AlertCircle,
@@ -127,22 +124,13 @@ export default function EducatorDashboardPage() {
 
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <EducatorMenu 
-          userRole={user?.roles?.[0] || 'courseInstructor'} 
-          educatorRole={educatorRole?.name}
-        />
-      </Sidebar>
-      <SidebarInset>
-        <DashboardHeader />
-        <div className="p-6 space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">หน้าแรก</h1>
-            <p className="text-muted-foreground">
-              ยินดีต้อนรับ! ภาพรวมการทำงานของ{educatorRole ? educatorRole.name : 'บุคลากรทางการศึกษา'}
-            </p>
-          </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">หน้าแรก</h1>
+        <p className="text-muted-foreground">
+          ยินดีต้อนรับ! ภาพรวมการทำงานของ{educatorRole ? educatorRole.name : 'บุคลากรทางการศึกษา'}
+        </p>
+      </div>
 
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
         {/* คอลัมน์ซ้าย 2/3 - มี 3 แถว */}
@@ -348,8 +336,6 @@ export default function EducatorDashboardPage() {
           </CardContent>
         </Card>
       </div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   );
 }

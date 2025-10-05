@@ -301,23 +301,14 @@ export default function CoopRequestsPage() {
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <EducatorMenu 
-          userRole={user?.roles?.[0] || 'courseInstructor'} 
-          educatorRole={educatorRole?.name}
-        />
-      </Sidebar>
-      <SidebarInset>
-        <DashboardHeader />
-        <div className="p-6 space-y-6">
-          {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">รายการขอฝึกงาน / สหกิจศึกษา</h1>
-            <p className="text-muted-foreground">
-              จัดการคำขอฝึกงานและสหกิจศึกษาของนักศึกษา
-            </p>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">รายการขอฝึกงาน / สหกิจศึกษา</h1>
+        <p className="text-muted-foreground">
+          จัดการคำขอฝึกงานและสหกิจศึกษาของนักศึกษา
+        </p>
+      </div>
 
       {/* Search Section */}
       <Card className="bg-white shadow-sm">
@@ -579,8 +570,6 @@ export default function CoopRequestsPage() {
           </div>
         </CardContent>
       </Card>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   );
 }

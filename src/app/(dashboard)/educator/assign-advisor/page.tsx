@@ -8,9 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { EducatorMenu } from '@/components/educator/EducatorMenu';
 import { useAuth } from '@/hooks/use-auth';
 import { useEducatorRole } from '@/hooks/useEducatorRole';
 import { useToast } from '@/hooks/use-toast';
@@ -52,6 +49,10 @@ export default function AssignAdvisorPage() {
   const [supervisors, setSupervisors] = useState<any[]>([]);
   const [selectedSupervisorId, setSelectedSupervisorId] = useState<string>('');
   const [updatingSupervisor, setUpdatingSupervisor] = useState(false);
+  const [committees, setCommittees] = useState<any[]>([]);
+  const [selectedCommitteeIds, setSelectedCommitteeIds] = useState<string[]>([]);
+  const [showCommitteeModal, setShowCommitteeModal] = useState(false);
+  const [assigningCommittee, setAssigningCommittee] = useState(false);
   
   // Filters
   const [companySearch, setCompanySearch] = useState('');
@@ -188,6 +189,82 @@ export default function AssignAdvisorPage() {
     }
   };
 
+  const handleAssignCommittee = async (applicationId: string) => {
+    const application = applications.find(app => app.id === applicationId);
+    if (!application) return;
+
+    setEditingApplication(application);
+    setSelectedCommitteeIds([]);
+    setShowCommitteeModal(true);
+
+    // โหลดรายชื่อกรรมการ
+    try {
+      const response = await fetch('/api/committees?includeMembers=true');
+      const data = await response.json();
+      if (data.success) {
+        setCommittees(data.committees);
+      }
+    } catch (error) {
+      console.error('Error loading committees:', error);
+    }
+  };
+
+  const handleUpdateCommittee = async () => {
+    if (!editingApplication || selectedCommitteeIds.length === 0) {
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'กรุณาเลือกกรรมการอย่างน้อย 1 ท่าน',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setAssigningCommittee(true);
+    try {
+      const response = await fetch(`/api/educator/applications/${editingApplication.id}/assign-committee?userId=${user?.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          committeeIds: selectedCommitteeIds,
+          assignedBy: user?.id
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: 'สำเร็จ',
+          description: data.message,
+        });
+        
+        setShowCommitteeModal(false);
+        setEditingApplication(null);
+        setSelectedCommitteeIds([]);
+        
+        // โหลดข้อมูลใหม่
+        loadApplications();
+      } else {
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: data.error || 'ไม่สามารถมอบหมายกรรมการได้',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error assigning committee:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'มีข้อผิดพลาดในการมอบหมายกรรมการ',
+        variant: 'destructive'
+      });
+    } finally {
+      setAssigningCommittee(false);
+    }
+  };
+
   const handleConfirmApproval = async () => {
     if (selectedApplications.length === 0) {
       toast({
@@ -252,31 +329,17 @@ export default function AssignAdvisorPage() {
 
   if (loading) {
     return (
-      <SidebarProvider>
-        <Sidebar>
-          <EducatorMenu userRole={user?.roles || 'courseInstructor'} />
-        </Sidebar>
-        <SidebarInset>
-          <DashboardHeader />
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">กำลังโหลด...</p>
-            </div>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">กำลังโหลด...</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <EducatorMenu userRole={user?.roles || 'courseInstructor'} />
-      </Sidebar>
-      <SidebarInset>
-        <DashboardHeader />
-        <div className="p-6">
+    <div className="space-y-6">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4">
@@ -467,11 +530,21 @@ export default function AssignAdvisorPage() {
                               </Badge>
                             )}
                           </td>
-                          <td className="px-4 py-3">
-                            <Button variant="outline" size="sm" className="text-amber-600 hover:text-amber-700">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </td>
+                     <td className="px-4 py-3">
+                       <div className="flex gap-2">
+                         <Button 
+                           variant="outline" 
+                           size="sm" 
+                           className="text-amber-600 hover:text-amber-700"
+                           onClick={() => handleAssignCommittee(application.id)}
+                         >
+                           <Users className="h-4 w-4" />
+                         </Button>
+                         <Button variant="outline" size="sm" className="text-blue-600 hover:text-blue-700">
+                           <Eye className="h-4 w-4" />
+                         </Button>
+                       </div>
+                     </td>
                         </tr>
                       ))}
                     </tbody>
@@ -506,7 +579,6 @@ export default function AssignAdvisorPage() {
             </Card>
 
           </div>
-        </div>
 
         {/* Modal */}
         {showModal && (
@@ -712,7 +784,150 @@ export default function AssignAdvisorPage() {
             </div>
           </div>
         )}
-      </SidebarInset>
-    </SidebarProvider>
+
+        {/* Committee Assignment Modal */}
+        {showCommitteeModal && editingApplication && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl p-6 relative max-h-[90vh] overflow-y-auto">
+              <button
+                onClick={() => {
+                  setShowCommitteeModal(false);
+                  setEditingApplication(null);
+                  setSelectedCommitteeIds([]);
+                }}
+                className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-6 w-6" />
+              </button>
+              
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">มอบหมายกรรมการ</h2>
+                <p className="text-gray-600">สำหรับนักศึกษา: <span className="font-medium text-amber-600">{editingApplication.studentName}</span></p>
+              </div>
+
+              <div className="space-y-4">
+                {/* ข้อมูลนักศึกษา */}
+                <Card className="border-l-4 border-amber-500">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <User className="h-5 w-5 text-amber-600" />
+                      ข้อมูลนักศึกษา
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-sm text-gray-500">ชื่อ-นามสกุล:</span>
+                        <p className="font-medium">{editingApplication.studentName}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-500">รหัสนักศึกษา:</span>
+                        <p className="font-medium">{editingApplication.studentId}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-500">สาขาวิชา:</span>
+                        <p className="font-medium">{editingApplication.major}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-500">บริษัท:</span>
+                        <p className="font-medium">{editingApplication.companyName}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-sm text-gray-500">ตำแหน่งงาน:</span>
+                        <p className="font-medium">{editingApplication.position}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* เลือกกรรมการ */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">เลือกกรรมการ (สามารถเลือกได้ 1-6 ท่าน)</label>
+                    <div className="grid gap-3 max-h-60 overflow-y-auto">
+                      {committees.map(committee => (
+                        <Card key={committee.id} className="border border-gray-200">
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                              <Checkbox
+                                checked={selectedCommitteeIds.includes(committee.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    if (selectedCommitteeIds.length < 6) {
+                                      setSelectedCommitteeIds(prev => [...prev, committee.id]);
+                                    } else {
+                                      toast({
+                                        title: 'ข้อจำกัด',
+                                        description: 'สามารถเลือกกรรมการได้สูงสุด 6 ท่าน',
+                                        variant: 'destructive'
+                                      });
+                                    }
+                                  } else {
+                                    setSelectedCommitteeIds(prev => prev.filter(id => id !== committee.id));
+                                  }
+                                }}
+                                disabled={!selectedCommitteeIds.includes(committee.id) && selectedCommitteeIds.length >= 6}
+                              />
+                              <div className="flex-1">
+                                <h3 className="font-medium text-gray-900">{committee.name}</h3>
+                                <p className="text-sm text-gray-500">{committee.academicYear} ภาคเรียนที่ {committee.semester}</p>
+                                <div className="mt-2">
+                                  <p className="text-sm text-gray-600 mb-1">สมาชิกกรรมการ:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {committee.members?.map((member: any, index: number) => (
+                                      <Badge key={index} variant="outline" className="text-xs">
+                                        {member.user.name} ({member.role === 'chair' ? 'ประธาน' : member.role === 'secretary' ? 'เลขา' : 'กรรมการ'})
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                      เลือกแล้ว: {selectedCommitteeIds.length}/6 ท่าน
+                    </p>
+                  </div>
+                </div>
+
+                {/* ปุ่มดำเนินการ */}
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={handleUpdateCommittee}
+                    disabled={assigningCommittee || selectedCommitteeIds.length === 0}
+                    className="bg-amber-600 hover:bg-amber-700 text-white flex-1"
+                  >
+                    {assigningCommittee ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        กำลังมอบหมาย...
+                      </>
+                    ) : (
+                      <>
+                        <Users className="h-4 w-4 mr-2" />
+                        มอบหมายกรรมการ ({selectedCommitteeIds.length} ท่าน)
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowCommitteeModal(false);
+                      setEditingApplication(null);
+                      setSelectedCommitteeIds([]);
+                    }}
+                    className="px-6"
+                  >
+                    ยกเลิก
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+    </div>
   );
 }
