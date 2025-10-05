@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth, cleanup } from '@/lib/auth-utils';
+import { sanitizeUserInput, sanitizeString } from '@/lib/security';
+import { rateLimitMiddleware, applicationRateLimiter } from '@/lib/rate-limiter';
+import { csrfMiddleware } from '@/lib/csrf';
 
 export async function GET(request: NextRequest) {
   try {
@@ -83,6 +86,18 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check CSRF protection
+    const csrfResponse = csrfMiddleware(request);
+    if (csrfResponse) {
+      return csrfResponse;
+    }
+
+    // Check rate limiting
+    const rateLimitResponse = rateLimitMiddleware(request, applicationRateLimiter);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     // Check authentication and authorization
     const authResult = await requireAuth(request, ['student']);
     if ('error' in authResult) {
@@ -91,6 +106,20 @@ export async function POST(request: NextRequest) {
     const { user } = authResult;
 
     const body = await request.json();
+    
+    // Sanitize input
+    const sanitizedBody = sanitizeUserInput(body);
+    if (!sanitizedBody.isValid) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Invalid input data', 
+          details: sanitizedBody.errors 
+        },
+        { status: 400 }
+      );
+    }
+    
     const { 
       internshipId, 
       studentReason, 
@@ -98,12 +127,17 @@ export async function POST(request: NextRequest) {
       preferredStartDate, 
       availableDuration,
       projectProposal 
-    } = body;
+    } = sanitizedBody.sanitized;
+
+    // Additional sanitization
+    const sanitizedReason = sanitizeString(studentReason);
+    const sanitizedSkills = expectedSkills ? sanitizeString(expectedSkills) : null;
+    const sanitizedProposal = projectProposal ? sanitizeString(projectProposal) : null;
 
     console.log('Student Applications API - Creating application for user:', user.id);
 
     // Validation
-    if (!internshipId || !studentReason || !preferredStartDate) {
+    if (!internshipId || !sanitizedReason || !preferredStartDate) {
       return NextResponse.json(
         { 
           success: false, 
@@ -138,8 +172,8 @@ export async function POST(request: NextRequest) {
         internshipId,
         status: 'pending',
         dateApplied: new Date(),
-        feedback: studentReason,
-        projectTopic: projectProposal,
+        feedback: sanitizedReason,
+        projectTopic: sanitizedProposal,
       },
       include: {
         internship: {
