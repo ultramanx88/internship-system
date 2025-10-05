@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Search, Eye, Download, FileText, Calendar, Printer } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { StaffDocumentPreview } from '@/components/staff/StaffDocumentPreview';
 
 interface Application {
     id: string;
@@ -30,6 +31,8 @@ export default function ApplicationsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -84,6 +87,11 @@ export default function ApplicationsPage() {
 
     const handleGoToPreviewPage = () => {
         router.push('/admin/applications/print');
+    };
+
+    const handlePreviewDocument = (application: Application) => {
+        setSelectedApplication(application);
+        setIsPreviewOpen(true);
     };
 
     const mockApplications = [
@@ -337,8 +345,8 @@ export default function ApplicationsPage() {
                                                     <Button 
                                                         variant="outline" 
                                                         size="sm" 
-                                                        title="ไปยังหน้าพรีวิวเอกสาร"
-                                                        onClick={handleGoToPreviewPage}
+                                                        title="พรีวิวเอกสาร"
+                                                        onClick={() => handlePreviewDocument(app)}
                                                     >
                                                         <FileText className="h-4 w-4" />
                                                     </Button>
@@ -353,6 +361,19 @@ export default function ApplicationsPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Staff Document Preview Modal */}
+            {selectedApplication && (
+                <StaffDocumentPreview
+                    isOpen={isPreviewOpen}
+                    onClose={() => {
+                        setIsPreviewOpen(false);
+                        setSelectedApplication(null);
+                    }}
+                    application={selectedApplication}
+                    type="co_op" // Default to co_op, can be made dynamic based on application data
+                />
+            )}
         </div>
     );
 }
