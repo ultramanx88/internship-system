@@ -13,7 +13,7 @@ async function calculateFileHash(buffer: Buffer): Promise<string> {
   return crypto.createHash('md5').update(buffer).digest('hex');
 }
 
-// Helper function to clean old profile images
+// Helper function to clean old profile images (keep ONLY current file)
 async function cleanOldProfileImages(userId: string, currentFilePath: string) {
   try {
     const userDir = path.dirname(path.join(process.cwd(), 'public', currentFilePath));
@@ -25,28 +25,13 @@ async function cleanOldProfileImages(userId: string, currentFilePath: string) {
         !currentFilePath.endsWith(file)
       );
       
-      // Keep only the 2 most recent files, delete the rest
-      if (profileFiles.length > 2) {
-        const fileStats = await Promise.all(
-          profileFiles.map(async (file) => {
-            const filePath = path.join(userDir, file);
-            const stats = await stat(filePath);
-            return { file, path: filePath, mtime: stats.mtime };
-          })
-        );
-        
-        // Sort by modification time (newest first)
-        fileStats.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
-        
-        // Delete old files (keep only 2 newest)
-        const filesToDelete = fileStats.slice(2);
-        for (const fileInfo of filesToDelete) {
-          try {
-            await unlink(fileInfo.path);
-            console.log('Deleted old profile image:', fileInfo.file);
-          } catch (error) {
-            console.warn('Failed to delete old file:', fileInfo.file, error);
-          }
+      // Delete all other files (replace mode)
+      for (const file of profileFiles) {
+        const filePath = path.join(userDir, file);
+        try {
+          await unlink(filePath);
+        } catch (error) {
+          console.warn('Failed to delete old file:', file, error);
         }
       }
     }

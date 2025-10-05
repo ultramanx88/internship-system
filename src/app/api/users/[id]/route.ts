@@ -350,12 +350,22 @@ export async function DELETE(
       return NextResponse.json({ message: 'ไม่พบผู้ใช้งาน' }, { status: 404 });
     }
 
-    // ลบรูปโปรไฟล์ถ้ามี
+    // ลบโฟลเดอร์รูปโปรไฟล์ของผู้ใช้ทั้งโฟลเดอร์ (ถ้ามี)
     try {
       if (existingUser.profileImage) {
-        const fullPath = path.join(process.cwd(), 'public', existingUser.profileImage);
-        if (existsSync(fullPath)) {
-          await unlink(fullPath);
+        const userDir = path.dirname(path.join(process.cwd(), 'public', existingUser.profileImage));
+        if (existsSync(userDir)) {
+          // ลบทุกไฟล์ภายใต้โฟลเดอร์ของ user แล้วลบโฟลเดอร์
+          try {
+            const { readdir } = await import('fs/promises');
+            const entries = await readdir(userDir);
+            for (const entry of entries) {
+              const p = path.join(userDir, entry);
+              try { await unlink(p); } catch {}
+            }
+            const { rmdir } = await import('fs/promises');
+            try { await rmdir(userDir); } catch {}
+          } catch {}
         }
       }
     } catch (e) {
