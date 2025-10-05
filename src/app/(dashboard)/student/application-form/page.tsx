@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Edit, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { logger, PerformanceMonitor } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { studentCache } from '@/lib/cache';
 import { StudentGuard } from '@/components/auth/PermissionGuard';
 
@@ -29,11 +29,10 @@ export default function ApplicationFormPage() {
     // ตรวจสอบสถานะการฝึกงานของนักศึกษา
     useEffect(() => {
         const checkStudentStatus = async () => {
-            const perfMonitor = new PerformanceMonitor('ApplicationFormPage:checkStudentStatus');
-            
             try {
                 if (!user) {
                     logger.info('ApplicationFormPage: No user found, skipping status check');
+                    setTimelineSteps(getDefaultTimeline());
                     setIsLoading(false);
                     return;
                 }
@@ -169,7 +168,6 @@ export default function ApplicationFormPage() {
                 // ใช้ไทม์ไลน์เริ่มต้นหากเกิดข้อผิดพลาด
                 setTimelineSteps(getDefaultTimeline());
             } finally {
-                perfMonitor.end();
                 setIsLoading(false);
             }
         };
