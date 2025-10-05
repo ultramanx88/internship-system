@@ -13,9 +13,24 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = (page - 1) * limit;
 
-    const where: any = {
-      roles: { contains: '"student"' }
-    };
+    const role = (searchParams.get('role') || 'students+educators').toLowerCase();
+
+    const roleFilters: any[] = [];
+    const addRoleContains = (r: string) => roleFilters.push({ roles: { contains: `"${r}"` } });
+
+    if (role === 'student' || role === 'students' || role === 'students+educators') {
+      addRoleContains('student');
+    }
+    if (role === 'educator' || role === 'educators' || role === 'students+educators') {
+      addRoleContains('courseInstructor');
+      addRoleContains('committee');
+      addRoleContains('visitor');
+      addRoleContains('อาจารย์ประจำวิชา');
+      addRoleContains('อาจารย์นิเทศ');
+      addRoleContains('กรรมการ');
+    }
+
+    const where: any = roleFilters.length > 0 ? { OR: roleFilters } : {};
     if (search) {
       where.OR = [
         { id: { contains: search } },
