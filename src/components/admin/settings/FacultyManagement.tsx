@@ -9,23 +9,29 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { PlusCircle, Save, Trash2, Loader2 } from 'lucide-react';
 import { Faculty } from '@prisma/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 
 export function FacultyManagement() {
   const [faculties, setFaculties] = useState<Omit<Faculty, 'createdAt' | 'updatedAt'>[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   
   useEffect(() => {
     async function fetchFaculties() {
       setIsLoading(true);
       try {
-        const response = await fetch('/api/faculties');
+        const response = await fetch('/api/faculties', {
+          headers: {
+            'x-user-id': user?.id || '',
+          },
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch faculties');
         }
         const data = await response.json();
-        setFaculties(data);
+        setFaculties(Array.isArray(data.faculties) ? data.faculties : []);
       } catch (error) {
         console.error(error);
         toast({
@@ -38,11 +44,11 @@ export function FacultyManagement() {
       }
     }
     fetchFaculties();
-  }, [toast]);
+  }, [toast, user?.id]);
 
   const handleAddFaculty = () => {
-    setFaculties([
-      ...faculties,
+    setFaculties(prev => [
+      ...(Array.isArray(prev) ? prev : []),
       {
         id: `new-${Date.now()}`, // Temporary ID for new items
         nameTh: '',
@@ -52,11 +58,11 @@ export function FacultyManagement() {
   };
   
   const handleRemoveFaculty = (id: string) => {
-    setFaculties(faculties.filter(f => f.id !== id));
+    setFaculties(prev => Array.isArray(prev) ? prev.filter(f => f.id !== id) : []);
   };
   
   const handleFacultyChange = (id: string, field: 'nameTh' | 'nameEn', value: string) => {
-    setFaculties(faculties.map(f => f.id === id ? { ...f, [field]: value } : f));
+    setFaculties(prev => Array.isArray(prev) ? prev.map(f => f.id === id ? { ...f, [field]: value } : f) : []);
   };
 
   const handleSaveChanges = async () => {
@@ -117,7 +123,7 @@ export function FacultyManagement() {
                     กำลังโหลดข้อมูล...
                   </TableCell>
                 </TableRow>
-              ) : faculties.map((faculty) => (
+              ) : (faculties && Array.isArray(faculties) ? faculties : []).map((faculty) => (
                 <TableRow key={faculty.id}>
                   <TableCell>
                     <Input 

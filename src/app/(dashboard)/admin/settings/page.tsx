@@ -12,23 +12,25 @@ import { TitleManagement } from '@/components/admin/settings/TitleManagement';
 import { MajorManagement } from '@/components/admin/settings/MajorManagement';
 import { FacultyManagement } from '@/components/admin/settings/FacultyManagement';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { AdminGuard } from '@/components/auth/PermissionGuard';
 import Image from 'next/image';
 
 export default function AdminSettingsPage() {
   const { logo, handleLogoChange, saveTheme } = useAppTheme();
 
   return (
-    <div className="grid gap-8 text-secondary-600">
-      <div>
-        <h1 className="text-3xl font-bold gradient-text">ตั้งค่าระบบ</h1>
-        <p>จัดการการตั้งค่าและค่ากำหนดต่างๆ ของแอปพลิเคชัน</p>
-      </div>
+    <AdminGuard>
+      <div className="grid gap-8 text-secondary-600">
+        <div>
+          <h1 className="text-3xl font-bold gradient-text">ตั้งค่าระบบ</h1>
+          <p>จัดการการตั้งค่าและค่ากำหนดต่างๆ ของแอปพลิเคชัน</p>
+        </div>
 
-      <TitleManagement />
-      <FacultyManagement />
-      <MajorManagement />
-      <AcademicCalendarSettings />
-      <RoleManagementMatrix />
+        <TitleManagement />
+        <FacultyManagement />
+        <MajorManagement />
+        <AcademicCalendarSettings />
+        <RoleManagementMatrix />
 
       <Card>
         <CardHeader>
@@ -69,7 +71,7 @@ export default function AdminSettingsPage() {
           </Button>
         </CardContent>
       </Card>
-      
-    </div>
+      </div>
+    </AdminGuard>
   );
 }

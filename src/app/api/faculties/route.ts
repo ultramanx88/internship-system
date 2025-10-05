@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAuth, cleanup } from '@/lib/auth-utils';
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication and authorization
+    const authResult = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+    const { user } = authResult;
+
     const { searchParams } = new URL(request.url);
     const includeRelations = searchParams.get('include') === 'true';
 
@@ -52,11 +60,20 @@ export async function GET(request: NextRequest) {
       { error: 'Internal server error' },
       { status: 500 }
     );
+  } finally {
+    await cleanup();
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication and authorization
+    const authResult = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+    const { user } = authResult;
+
     const body = await request.json();
     const { nameTh, nameEn, code } = body;
 
@@ -102,5 +119,7 @@ export async function POST(request: NextRequest) {
       { error: 'Internal server error' },
       { status: 500 }
     );
+  } finally {
+    await cleanup();
   }
 }
