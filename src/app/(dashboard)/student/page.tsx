@@ -1,72 +1,130 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { internships, applications, users, companies } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Loader2 } from 'lucide-react';
 import {
     FileText,
     BookOpen,
     MapPin,
     Building,
     User,
-    CheckCircle2
+    CheckCircle2,
+    Clock,
+    AlertCircle,
+    Calendar
 } from 'lucide-react';
+
+interface DashboardData {
+    user: {
+        id: string;
+        name: string;
+        email: string;
+        roles: string[];
+    };
+    applications: any[];
+    approvedApplication: any;
+    upcomingDeadlines: any[];
+    recentActivities: any[];
+    stats: {
+        totalApplications: number;
+        approvedApplications: number;
+        pendingApplications: number;
+        completedApplications: number;
+    };
+}
 
 export default function StudentPage() {
     const { user } = useAuth();
+    const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // Use fallback for demo if no user
-    const studentId = user?.id || 'test001';
-    const student = users.find(u => u.id === studentId);
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            if (!user?.id) {
+                setIsLoading(false);
+                return;
+            }
 
-    // Use state to make applications data mutable
-    const myApplications = applications.filter(app => app.studentId === studentId);
+            try {
+                setIsLoading(true);
+                setError(null);
 
-    const approvedApplication = myApplications.find(app => app.status === 'approved');
-    const approvedInternship = approvedApplication ? internships.find(i => i.id === approvedApplication.internshipId) : null;
-    const approvedCompany = approvedInternship ? companies.find(c => c.id === approvedInternship.companyId) : null;
+                const response = await fetch('/api/student/dashboard', {
+                    headers: {
+                        'x-user-id': user.id,
+                    },
+                });
 
-    const coopTimeline = [
-        {
-            step: 1,
-            title: 'กรอกข้อมูลสหกิจศึกษา',
-            date: '7 มี.ค. 68 - 19 มี.ค. 68',
-            status: 'completed'
-        },
-        {
-            step: 2,
-            title: 'ยื่นเอกสาร ณ ห้องธุรการชั้น 4',
-            date: '7 มี.ค. 68 - 19 มี.ค. 68',
-            status: 'current'
-        },
-        {
-            step: 3,
-            title: 'ยื่นเอกสารให้กับทางบริษัท',
-            date: '7 มี.ค. 68 - 19 มี.ค. 68',
-            status: 'upcoming'
-        },
-        {
-            step: 4,
-            title: 'สหกิจศึกษา',
-            date: '7 มี.ค. 68 - 19 มี.ค. 68',
-            status: 'upcoming'
-        },
-        {
-            step: 5,
-            title: 'กรอกข้อมูลโปรเจกต์',
-            date: '7 มี.ค. 68 - 19 มี.ค. 68',
-            status: 'upcoming'
-        }
-    ];
+                if (!response.ok) {
+                    throw new Error('Failed to fetch dashboard data');
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    setDashboardData(result.data);
+                } else {
+                    throw new Error(result.error || 'Failed to fetch dashboard data');
+                }
+            } catch (err) {
+                console.error('Error fetching dashboard data:', err);
+                setError(err instanceof Error ? err.message : 'An error occurred');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, [user?.id]);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                    <p className="text-muted-foreground">กำลังโหลดข้อมูล...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-4" />
+                    <p className="text-red-600 mb-4">เกิดข้อผิดพลาด: {error}</p>
+                    <Button onClick={() => window.location.reload()}>
+                        ลองใหม่
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
+    if (!dashboardData) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <p className="text-muted-foreground">ไม่พบข้อมูล</p>
+                </div>
+            </div>
+        );
+    }
+
+    const { applications, approvedApplication, upcomingDeadlines, recentActivities, stats } = dashboardData;
 
     return (
         <div className="space-y-6">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">หน้าแรก</h1>
                 <p className="text-muted-foreground">
-                    ยินดีต้อนรับ, {student?.name}! ติดตามความคืบหน้าการฝึกงาน/สหกิจศึกษาของคุณ
+                    ยินดีต้อนรับ, {dashboardData.user.name}! ติดตามความคืบหน้าการฝึกงาน/สหกิจศึกษาของคุณ
                 </p>
             </div>
 
