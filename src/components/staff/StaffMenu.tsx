@@ -31,10 +31,10 @@ export function StaffMenu({ className }: StaffMenuProps) {
 
   const menuItems = [
     {
-      id: 'students',
-      label: 'อัปโหลดรายชื่อ',
+      id: 'users',
+      label: 'ข้อมูลผู้ใช้งาน',
       icon: Users,
-      href: '/staff/students'
+      href: '/staff/users'
     },
     {
       id: 'applications',

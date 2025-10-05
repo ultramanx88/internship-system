@@ -9,6 +9,25 @@
 - Approval Process Tracking: Allow the system to notify about acceptance/rejection. Keep track of requests at all states, and provide statistics for the admin.
 - Progress tracking: Allow students to report about the progress in the internship.
 
+## Admin/Staff Users Listing
+
+- Endpoints
+  - GET `/api/users` (roles: admin, staff)
+    - Query: `search`, `role`, `sort`, `page`, `limit`
+    - Rate limit: 120 requests / 15 minutes per user (`X-RateLimit-*` headers)
+  - GET `/api/students` (roles: admin, staff)
+    - Query: `search`, `role=student|educator|students+educators`, `page`, `limit`
+    - Rate limit: 120 requests / 15 minutes per user
+
+- Client
+  - `staff/users` uses `UsersTable` with `defaultRole="students+educators"` and `lockRole` to pull from `/api/students`.
+  - `admin/users` uses `UsersTable` with `/api/users`.
+
+- Notes
+  - Authentication via header `x-user-id` (temporary)
+  - Pagination and minimal select fields for performance
+  - Roles stored as JSON string in DB; parsed before response
+
 ## Style Guidelines:
 
 - Primary color: A calm, professional blue (#2979FF) reflecting trust and efficiency.

@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, cleanup } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
+import { rateLimitMiddleware, studentsListRateLimiter } from '@/lib/rate-limiter';
 
 export async function GET(request: NextRequest) {
   try {
+    const rateLimitResponse = rateLimitMiddleware(request, studentsListRateLimiter);
+    if (rateLimitResponse) return rateLimitResponse;
     const auth = await requireAuth(request, ['admin', 'staff']);
     if ('error' in auth) return auth.error;
 

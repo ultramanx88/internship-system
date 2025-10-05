@@ -233,8 +233,8 @@ export default function StudentPage() {
                                 <div className="space-y-3">
                                     {applications.map((app) => (
                                         <div key={app.id} className="p-4 bg-orange-50 rounded-lg">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-8">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-8">
                                                     <span className="text-sm font-medium text-gray-700">
                                                         เอกสาร {app.id}
                                                     </span>

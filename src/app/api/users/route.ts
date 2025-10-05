@@ -9,6 +9,8 @@ import { roles as validRolesData } from '@/lib/permissions';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { requireAuth, cleanup } from '@/lib/auth-utils';
+import { rateLimitMiddleware, usersListRateLimiter } from '@/lib/rate-limiter';
+import { logger } from '@/lib/logger';
 
 const validRoles = validRolesData.map(r => r.id);
 
@@ -115,14 +117,15 @@ const excelUserSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
+    const rateLimitResponse = rateLimitMiddleware(request, usersListRateLimiter);
+    if (rateLimitResponse) return rateLimitResponse;
     // Check authentication and authorization
     const authResult = await requireAuth(request, ['admin', 'staff']);
     if ('error' in authResult) {
       return authResult.error;
     }
     const { user } = authResult;
-
-    console.log('🔍 Users API called by:', user.name);
+    logger.info('Users API GET called', { byUserId: user.id, byUserName: user.name });
     
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
@@ -131,7 +134,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    console.log('📝 Query params:', { search, role, sort, page, limit });
+    logger.info('Users API GET query params', { search, role, sort, page, limit });
 
     // คำนวณ offset สำหรับ pagination
     const offset = (page - 1) * limit;
@@ -139,9 +142,9 @@ export async function GET(request: NextRequest) {
     // Test database connection first
     try {
       await prisma.$connect();
-      console.log('✅ Database connected');
+      logger.debug?.('Users API GET: Database connected');
     } catch (dbError) {
-      console.error('❌ Database connection failed:', dbError);
+      logger.error('Users API GET: Database connection failed', { error: dbError instanceof Error ? dbError.message : dbError });
       return NextResponse.json({ 
         message: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้',
         error: dbError instanceof Error ? dbError.message : 'Unknown database error'
@@ -152,7 +155,7 @@ export async function GET(request: NextRequest) {
     const whereClause: any = {};
     
     if (search) {
-      console.log('🔍 Searching for:', search);
+      logger.info('Users API GET searching', { search });
       // SQLite ไม่รองรับ case insensitive search โดยตรง ใช้ LIKE แทน
       const searchLower = search.toLowerCase();
       whereClause.OR = [
@@ -167,11 +170,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (role && role !== 'all') {
-      console.log('🎭 Filtering by role:', role);
+      logger.info('Users API GET filtering by role', { role });
       whereClause.roles = { contains: `"${role}"` };
     }
 
-    console.log('📋 Where clause:', JSON.stringify(whereClause, null, 2));
+    logger.debug?.('Users API GET where clause', { where: whereClause });
 
     // กำหนดการจัดเรียง - ใช้ updatedAt หรือ createdAt สำหรับแสดงรายการล่าสุด
     const orderBy: any = sort === 'desc' 
@@ -179,17 +182,15 @@ export async function GET(request: NextRequest) {
       : [{ updatedAt: 'asc' }, { createdAt: 'asc' }, { name: 'asc' }];
 
     // นับจำนวนรายการทั้งหมดสำหรับ pagination
-    console.log('📊 Counting users...');
     const totalCount = await prisma.user.count({
       where: whereClause
     });
-    console.log(`📊 Total users found: ${totalCount}`);
+    logger.info('Users API GET count complete', { total: totalCount });
 
     // ตรวจสอบว่าต้องการ include relations หรือไม่
     const includeRelations = searchParams.get('include') === 'relations';
 
     // ดึงข้อมูลพร้อม pagination
-    console.log('📥 Fetching users with pagination...');
     const dbUsers = await prisma.user.findMany({
       where: whereClause,
       orderBy,
@@ -299,10 +300,9 @@ export async function GET(request: NextRequest) {
         })
       }
     });
-    console.log(`📥 Fetched ${dbUsers.length} users`);
+    logger.info('Users API GET fetched users', { fetched: dbUsers.length, page, limit });
 
     // แปลง roles จาก JSON string กลับเป็น array และเพิ่ม username
-    console.log('🔄 Processing user roles...');
     const usersWithParsedRoles = dbUsers.map(user => {
       try {
         return {
@@ -311,7 +311,7 @@ export async function GET(request: NextRequest) {
           roles: JSON.parse(user.roles)
         };
       } catch (roleError) {
-        console.error(`❌ Failed to parse roles for user ${user.id}:`, user.roles, roleError);
+        logger.warn?.('Users API GET failed to parse roles', { userId: user.id, roles: user.roles, error: roleError instanceof Error ? roleError.message : roleError });
         return {
           ...user,
           username: user.id,
@@ -319,8 +319,7 @@ export async function GET(request: NextRequest) {
         };
       }
     });
-
-    console.log('✅ Users API response ready');
+    logger.info('Users API GET response ready', { total: totalCount, returned: usersWithParsedRoles.length, page, limit });
     return NextResponse.json({
       users: usersWithParsedRoles,
       total: totalCount,
@@ -329,7 +328,7 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil(totalCount / limit)
     });
   } catch (error) {
-    console.error('❌ Failed to fetch users:', error);
+    logger.error('Users API GET failed', { error: error instanceof Error ? error.message : error });
     return NextResponse.json({ 
       message: 'ไม่สามารถดึงข้อมูลผู้ใช้ได้', 
       error: error instanceof Error ? error.message : 'Unknown error',

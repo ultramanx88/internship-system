@@ -73,8 +73,14 @@ export function UsersTable({ defaultRole, lockRole = false }: UsersTableProps) {
     const fetchUsers = useCallback(async (search: string, role: string, sort: string, page: number, limit: number) => {
         setIsLoading(true);
         try {
-            const endpoint = lockRole && defaultRole === 'student' ? '/api/students' : '/api/users';
-            const roleParam = endpoint === '/api/students' ? 'students+educators' : role;
+            let endpoint = '/api/users';
+            let roleParam = role;
+
+            if (lockRole && (defaultRole === 'student' || defaultRole === 'educator' || defaultRole === 'students+educators')) {
+                endpoint = '/api/students';
+                roleParam = defaultRole || 'students+educators';
+            }
+
             const url = `${endpoint}?search=${encodeURIComponent(search)}&role=${encodeURIComponent(roleParam)}&sort=${encodeURIComponent(sort)}&page=${page}&limit=${limit}`;
             console.log('Fetching users from:', url);
 

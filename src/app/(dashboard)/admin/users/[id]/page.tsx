@@ -29,7 +29,7 @@ export default function UserProfilePage() {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<User | null>(null);
   const [isEdit, setIsEdit] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -55,7 +55,7 @@ export default function UserProfilePage() {
       try {
         setIsLoading(true);
         console.log('Fetching user:', userId);
-        const response = await fetch(`/api/users/${userId}`, {
+        const response = await fetch(`/api/users/${encodeURIComponent(userId)}`, {
           headers: {
             'x-user-id': user?.id || ''
           }
@@ -65,7 +65,7 @@ export default function UserProfilePage() {
         if (response.ok) {
           const foundUser = await response.json();
           console.log('Found user:', foundUser);
-          setUser(foundUser as User);
+          setProfile(foundUser as User);
           const userRoles = Array.isArray(foundUser.roles) ? foundUser.roles : JSON.parse(foundUser.roles || '[]');
           const newFormData = {
             Login_id: foundUser.id || '',
@@ -88,12 +88,50 @@ export default function UserProfilePage() {
           console.log('e_title value:', newFormData.e_title);
           setFormData(newFormData);
         } else {
-          toast({
-            variant: 'destructive',
-            title: 'ไม่พบผู้ใช้งาน',
-            description: 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้',
+          // Fallback: try search endpoint
+          console.warn('Primary fetch failed, trying fallback search for:', userId);
+          const searchRes = await fetch(`/api/users?search=${encodeURIComponent(userId)}&page=1&limit=50`, {
+            headers: { 'x-user-id': user?.id || '' }
           });
-          router.push('/admin/users');
+          if (searchRes.ok) {
+            const data = await searchRes.json();
+            const list: any[] = Array.isArray(data.users) ? data.users : [];
+            // Prefer exact id match; otherwise take first
+            const candidate = list.find(u => u.id === userId) || (list.length > 0 ? list[0] : null);
+            if (candidate) {
+              setProfile(candidate as User);
+              const userRoles = Array.isArray(candidate.roles) ? candidate.roles : JSON.parse(candidate.roles || '[]');
+              const newFormData = {
+                Login_id: candidate.id || '',
+                password: '',
+                role_id: userRoles.length > 0 ? userRoles[0] : '',
+                t_name: candidate.t_name || '',
+                t_surname: candidate.t_surname || '',
+                e_name: candidate.e_name || '',
+                e_surname: candidate.e_surname || '',
+                email: candidate.email || '',
+                t_title: candidate.t_title || 'not-specified',
+                t_middlename: candidate.t_middle_name || '',
+                e_title: candidate.e_title || 'not-specified',
+                e_middle_name: candidate.e_middle_name || '',
+              };
+              setFormData(newFormData);
+            } else {
+              toast({
+                variant: 'destructive',
+                title: 'ไม่พบผู้ใช้งาน',
+                description: 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้',
+              });
+              router.push('/admin/users');
+            }
+          } else {
+            toast({
+              variant: 'destructive',
+              title: 'ไม่พบผู้ใช้งาน',
+              description: 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้',
+            });
+            router.push('/admin/users');
+          }
         }
       } catch (error) {
         console.error('Error fetching user:', error);
@@ -165,7 +203,8 @@ export default function UserProfilePage() {
 
         console.log('Sending API data:', apiData);
         
-        const response = await fetch(`/api/users/${userId}`, {
+        const targetId = profile?.id || userId;
+        const response = await fetch(`/api/users/${encodeURIComponent(targetId)}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'x-user-id': user?.id || '' },
             body: JSON.stringify(apiData),
@@ -187,14 +226,16 @@ export default function UserProfilePage() {
         setIsEdit(false);
         
         // ถ้าเปลี่ยน Login ID ให้ redirect ไปหน้าใหม่
-        if (formData.Login_id !== userId) {
-          router.push(`/admin/users/${formData.Login_id}`);
+        if (formData.Login_id !== targetId) {
+          router.push(`/admin/users/${encodeURIComponent(formData.Login_id)}`);
         } else {
           // Refresh ข้อมูลผู้ใช้
-          const refreshResponse = await fetch(`/api/users/${userId}`);
+          const refreshResponse = await fetch(`/api/users/${encodeURIComponent(targetId)}`, {
+            headers: { 'x-user-id': user?.id || '' }
+          });
           if (refreshResponse.ok) {
             const updatedUser = await refreshResponse.json();
-            setUser(updatedUser);
+            setProfile(updatedUser);
           }
         }
     } catch (error: any) {
@@ -219,7 +260,7 @@ export default function UserProfilePage() {
     );
   }
 
-  if (!user) {
+  if (!profile) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <div className="text-center">

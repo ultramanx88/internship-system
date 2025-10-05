@@ -90,7 +90,11 @@ export default function ApplicationsPage() {
     };
 
     const handlePreviewDocument = (application: Application) => {
-        setSelectedApplication(application);
+        const normalized: Application = {
+            ...application,
+            studentId: application.studentId || (application as any)?.student?.id || (application as any)?.userId || ''
+        };
+        setSelectedApplication(normalized);
         setIsPreviewOpen(true);
     };
 

@@ -96,6 +96,25 @@ export const generalRateLimiter = new RateLimiter({
   windowMs: 15 * 60 * 1000, // per 15 minutes
 });
 
+// Light list endpoints rate limiters
+export const usersListRateLimiter = new RateLimiter({
+  maxRequests: 120, // 120 list calls
+  windowMs: 15 * 60 * 1000, // per 15 minutes
+  keyGenerator: (request: NextRequest) => {
+    const userId = request.headers.get('x-user-id');
+    return `users_list:${userId || 'anonymous'}`;
+  },
+});
+
+export const studentsListRateLimiter = new RateLimiter({
+  maxRequests: 120, // 120 list calls
+  windowMs: 15 * 60 * 1000, // per 15 minutes
+  keyGenerator: (request: NextRequest) => {
+    const userId = request.headers.get('x-user-id');
+    return `students_list:${userId || 'anonymous'}`;
+  },
+});
+
 // Rate limiting middleware
 export function rateLimitMiddleware(
   request: NextRequest,
@@ -130,4 +149,6 @@ setInterval(() => {
   studentRateLimiter.cleanup();
   applicationRateLimiter.cleanup();
   generalRateLimiter.cleanup();
+  usersListRateLimiter.cleanup();
+  studentsListRateLimiter.cleanup();
 }, 5 * 60 * 1000);
