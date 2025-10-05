@@ -6,7 +6,7 @@ import { sanitizeString } from '@/lib/security';
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAuth(request, ['student']);
+    const auth = await requireAuth(request, ['admin', 'staff', 'courseInstructor', 'committee', 'student']);
     if ('error' in auth) return auth.error;
     const { user } = auth;
     
@@ -143,7 +143,7 @@ const SettingsSchema = z.object({
 
 export async function PUT(request: NextRequest) {
   try {
-    const auth = await requireAuth(request, ['student']);
+    const auth = await requireAuth(request, ['admin', 'staff', 'courseInstructor', 'committee', 'student']);
     if ('error' in auth) return auth.error;
     const { user } = auth;
     const raw = await request.json();
@@ -223,7 +223,7 @@ export async function PUT(request: NextRequest) {
 // เพิ่ม DELETE method สำหรับลบการตั้งค่า (reset to default)
 export async function DELETE(request: NextRequest) {
   try {
-    const auth = await requireAuth(request, ['student']);
+    const auth = await requireAuth(request, ['admin', 'staff', 'courseInstructor', 'committee', 'student']);
     if ('error' in auth) return auth.error;
     const { user } = auth;
 
