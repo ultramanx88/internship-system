@@ -326,7 +326,9 @@ export async function PUT(
     const message = error?.message || 'ไม่สามารถอัปเดตข้อมูลผู้ใช้ได้';
     // Prisma unique constraint
     if (error?.code === 'P2002') {
-      return NextResponse.json({ message: 'ข้อมูลซ้ำกับผู้ใช้อื่น (unique constraint)' }, { status: 409 });
+      const target = Array.isArray(error?.meta?.target) ? error.meta.target.join(',') : (error?.meta?.target || 'unique field');
+      const fieldName = typeof target === 'string' && target.includes('email') ? 'อีเมล' : (target.includes('id') ? 'Login ID' : target);
+      return NextResponse.json({ message: `ข้อมูลซ้ำกับผู้ใช้อื่น: ${fieldName} ซ้ำ` }, { status: 409 });
     }
     return NextResponse.json({ message, stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined }, { status: 500 });
   } finally {
