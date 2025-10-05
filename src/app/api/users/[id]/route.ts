@@ -1,8 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { existsSync } from 'fs';
+import path from 'path';
+import { unlink } from 'fs/promises';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { roles as validRolesData } from '@/lib/permissions';
+import { requireAuth, cleanup } from '@/lib/auth-utils';
 
 const validRoles = validRolesData.map(r => r.id);
 
@@ -34,13 +38,18 @@ const updateUserSchema = z.object({
 
 // GET single user
 export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const auth = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in auth) return auth.error;
+
+    const { id } = params;
+    const normalizedId = decodeURIComponent(id).trim();
+    console.info('GET /api/users/[id] - fetching user', { id, normalizedId });
     const user = await prisma.user.findUnique({
-      where: { id: id },
+      where: { id: normalizedId },
       select: {
         id: true,
         name: true,
@@ -75,29 +84,44 @@ export async function GET(
     });
 
     if (!user) {
+      console.warn('GET /api/users/[id] - user not found', { id, normalizedId });
       return NextResponse.json({ message: 'ไม่พบผู้ใช้งาน' }, { status: 404 });
     }
 
-    // แปลง roles จาก JSON string เป็น array
+    // แปลง roles จาก JSON string เป็น array อย่างปลอดภัย
+    let parsedRoles: any = [];
+    try {
+      parsedRoles = Array.isArray((user as any).roles)
+        ? (user as any).roles
+        : ((user as any).roles ? JSON.parse((user as any).roles as any) : []);
+    } catch {
+      parsedRoles = [];
+    }
     const userWithParsedRoles = {
       ...user,
-      roles: JSON.parse(user.roles)
+      roles: parsedRoles
     };
 
     return NextResponse.json(userWithParsedRoles);
   } catch (error) {
     console.error('Failed to fetch user:', error);
     return NextResponse.json({ message: 'ไม่สามารถดึงข้อมูลผู้ใช้ได้' }, { status: 500 });
+  } finally {
+    await cleanup();
   }
 }
 
 // PUT update user
 export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const auth = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in auth) return auth.error;
+
+    const { id } = params;
+    const normalizedId = decodeURIComponent(id).trim();
     const body = await request.json();
     console.log('PUT request body:', body);
     console.log('Params:', params);
@@ -118,13 +142,18 @@ export async function PUT(
       facultyId, departmentId, curriculumId, majorId, studentYear
     } = result.data;
 
+    // Normalize optional fields
+    const sanitizedEmail = email && email.trim() !== '' ? email.trim().toLowerCase() : undefined;
+
     // ตรวจสอบว่าผู้ใช้มีอยู่จริง
+    console.info('PUT /api/users/[id] - checking existing user', { id, normalizedId });
     const existingUser = await prisma.user.findUnique({
-      where: { id: id }
+      where: { id: normalizedId }
     });
 
     if (!existingUser) {
-      return NextResponse.json({ message: 'ไม่พบผู้ใช้งาน' }, { status: 404 });
+      console.warn('PUT /api/users/[id] - user not found for update', { id, normalizedId });
+      return NextResponse.json({ message: 'ไม่พบผู้ใช้งาน', id: normalizedId }, { status: 404 });
     }
 
     // ตรวจสอบว่า Login ID ใหม่ซ้ำกับผู้ใช้อื่นหรือไม่ (ถ้ามีการเปลี่ยน ID)
@@ -139,9 +168,9 @@ export async function PUT(
     }
 
     // ตรวจสอบว่าอีเมลซ้ำกับผู้ใช้อื่นหรือไม่ (ถ้ามีการเปลี่ยนอีเมล)
-    if (email && email !== existingUser.email) {
+    if (sanitizedEmail && sanitizedEmail !== existingUser.email) {
       const emailExists = await prisma.user.findUnique({
-        where: { email: email.toLowerCase() }
+        where: { email: sanitizedEmail }
       });
 
       if (emailExists) {
@@ -172,7 +201,7 @@ export async function PUT(
       const newUserData: any = {
         id: newId,
         name: fullName,
-        email: email !== undefined ? email.toLowerCase() : existingUser.email,
+        email: sanitizedEmail !== undefined ? sanitizedEmail : existingUser.email,
         password: password ? await bcrypt.hash(password, 10) : existingUser.password,
         roles: roles !== undefined ? JSON.stringify(roles) : existingUser.roles,
         skills: existingUser.skills,
@@ -209,7 +238,7 @@ export async function PUT(
 
         // ลบผู้ใช้เก่า
         await tx.user.delete({
-          where: { id: id }
+          where: { id: normalizedId }
         });
 
         return newUser;
@@ -238,7 +267,7 @@ export async function PUT(
         updateData.name = t_fullName || e_fullName || existingUser.id;
       }
       
-      if (email !== undefined) updateData.email = email.toLowerCase();
+      if (sanitizedEmail !== undefined) updateData.email = sanitizedEmail;
       if (roles !== undefined) updateData.roles = JSON.stringify(roles);
       if (t_title !== undefined) updateData.t_title = t_title;
       if (t_name !== undefined) updateData.t_name = t_name;
@@ -260,7 +289,7 @@ export async function PUT(
       }
 
       updatedUser = await prisma.user.update({
-        where: { id: id },
+        where: { id: normalizedId },
         data: updateData,
         select: {
           id: true,
@@ -273,10 +302,18 @@ export async function PUT(
       });
     }
 
-    // แปลง roles จาก JSON string เป็น array
+    // แปลง roles จาก JSON string เป็น array อย่างปลอดภัย
+    let updatedParsedRoles: any = [];
+    try {
+      updatedParsedRoles = Array.isArray((updatedUser as any).roles)
+        ? (updatedUser as any).roles
+        : ((updatedUser as any).roles ? JSON.parse((updatedUser as any).roles as any) : []);
+    } catch {
+      updatedParsedRoles = [];
+    }
     const userWithParsedRoles = {
       ...updatedUser,
-      roles: JSON.parse(updatedUser.roles)
+      roles: updatedParsedRoles
     };
 
     return NextResponse.json({
@@ -287,28 +324,47 @@ export async function PUT(
   } catch (error) {
     console.error('Failed to update user:', error);
     return NextResponse.json({ message: 'ไม่สามารถอัปเดตข้อมูลผู้ใช้ได้' }, { status: 500 });
+  } finally {
+    await cleanup();
   }
 }
 
 // DELETE single user
 export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const auth = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in auth) return auth.error;
+
+    const { id } = params;
+    const normalizedId = decodeURIComponent(id).trim();
     // ตรวจสอบว่าผู้ใช้มีอยู่จริง
     const existingUser = await prisma.user.findUnique({
-      where: { id: id }
+      where: { id: normalizedId },
+      select: { id: true, profileImage: true }
     });
 
     if (!existingUser) {
       return NextResponse.json({ message: 'ไม่พบผู้ใช้งาน' }, { status: 404 });
     }
 
+    // ลบรูปโปรไฟล์ถ้ามี
+    try {
+      if (existingUser.profileImage) {
+        const fullPath = path.join(process.cwd(), 'public', existingUser.profileImage);
+        if (existsSync(fullPath)) {
+          await unlink(fullPath);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to delete user profile image on delete:', existingUser.id, e);
+    }
+
     // ลบผู้ใช้
     await prisma.user.delete({
-      where: { id: id }
+      where: { id: normalizedId }
     });
 
     return NextResponse.json({ message: 'ลบผู้ใช้สำเร็จ' });
@@ -316,5 +372,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Failed to delete user:', error);
     return NextResponse.json({ message: 'ไม่สามารถลบผู้ใช้ได้' }, { status: 500 });
+  } finally {
+    await cleanup();
   }
 }
