@@ -31,6 +31,11 @@ export default function ApplicationFormPage() {
             }
 
             try {
+                // ตรวจสอบการลงทะเบียนข้อมูลนักศึกษา
+                const isStudentRegistered = user.name && user.email && user.phone && 
+                                          user.t_name && user.t_surname && 
+                                          user.facultyId && user.majorId;
+                
                 // ตรวจสอบการสมัครฝึกงาน
                 const applicationsResponse = await fetch('/api/applications');
                 const applicationsData = await applicationsResponse.json();
@@ -50,18 +55,18 @@ export default function ApplicationFormPage() {
                         step: 1,
                         title: 'ลงทะเบียนข้อมูลนักศึกษา',
                         date: '7 มิ.ย. 68 - 19 มิ.ย. 68',
-                        status: 'completed',
-                        isEditable: false,
-                        buttonText: 'บันทึกแล้ว',
+                        status: isStudentRegistered ? 'completed' : 'current',
+                        isEditable: !isStudentRegistered,
+                        buttonText: isStudentRegistered ? 'บันทึกแล้ว' : 'กรอกข้อมูล',
                         description: 'กรอกข้อมูลส่วนตัวและติดต่อ'
                     },
                     {
                         step: 2,
                         title: 'กรอกข้อมูลสหกิจศึกษาหรือฝึกงาน',
                         date: '7 มิ.ย. 68 - 19 มิ.ย. 68',
-                        status: hasApplied ? 'completed' : 'current',
-                        isEditable: !hasApplied,
-                        buttonText: hasApplied ? 'บันทึกแล้ว' : 'ดำเนินการ',
+                        status: hasApplied ? 'completed' : (isStudentRegistered ? 'current' : 'upcoming'),
+                        isEditable: isStudentRegistered && !hasApplied,
+                        buttonText: hasApplied ? 'บันทึกแล้ว' : (isStudentRegistered ? 'ดำเนินการ' : 'รอการลงทะเบียน'),
                         description: 'เลือกประเภทการฝึกงานและบริษัทที่ต้องการ'
                     },
                     {
@@ -189,6 +194,18 @@ export default function ApplicationFormPage() {
                             </p>
                         </div>
                     </div>
+                    
+                    {/* แสดงสถานะการลงทะเบียน */}
+                    {user && (
+                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="flex items-center gap-2">
+                                <div className={`w-3 h-3 rounded-full ${isStudentRegistered ? 'bg-green-500' : 'bg-orange-500'}`}></div>
+                                <span className="text-sm font-medium text-gray-700">
+                                    {isStudentRegistered ? 'ข้อมูลนักศึกษาครบถ้วน' : 'กรุณากรอกข้อมูลนักศึกษาให้ครบถ้วน'}
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -271,13 +288,23 @@ export default function ApplicationFormPage() {
                                                         >
                                                             <Link href={
                                                                 step.step === 1 
-                                                                    ? "/student/profile" 
+                                                                    ? "/student/settings" 
                                                                     : step.step === 2 
                                                                         ? "/student/application-form/internship-form"
-                                                                        : "/student/internships"
+                                                                        : step.step === 3
+                                                                            ? "/student/documents"
+                                                                            : step.step === 4
+                                                                                ? "/student/internships"
+                                                                                : step.step === 5
+                                                                                    ? "/student/project-details"
+                                                                                    : "/student/dashboard"
                                                             }>
                                                                 <Edit className="w-4 h-4 mr-2" />
-                                                                {step.step === 2 ? 'ดำเนินการ' : 'เริ่มต้น'}
+                                                                {step.step === 1 ? 'กรอกข้อมูล' : 
+                                                                 step.step === 2 ? 'ดำเนินการ' :
+                                                                 step.step === 3 ? 'ส่งเอกสาร' :
+                                                                 step.step === 4 ? 'ดูสถานะ' :
+                                                                 step.step === 5 ? 'กรอกหัวข้อ' : 'เริ่มต้น'}
                                                             </Link>
                                                         </Button>
                                                     )}
