@@ -152,10 +152,10 @@ class Logger {
 
 // Create logger instances
 export const logger = new Logger(
-  process.env.NODE_ENV === 'development' ? LogLevel.DEBUG : LogLevel.INFO
+  process.env.NODE_ENV === 'development' ? LogLevel.DEBUG : LogLevel.WARN
 );
 
-export const apiLogger = new Logger(LogLevel.INFO);
+export const apiLogger = new Logger(LogLevel.WARN);
 export const userLogger = new Logger(LogLevel.INFO);
 export const performanceLogger = new Logger(LogLevel.INFO);
 

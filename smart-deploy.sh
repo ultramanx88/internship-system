@@ -54,6 +54,10 @@ else
     echo "⚠️  .env.production not found"
 fi
 
+# Ensure production env vars for Node/Next.js to reduce memory footprint
+export NODE_ENV=production
+export NEXT_DISABLE_SOURCEMAPS=1
+
 # Generate Prisma client for PostgreSQL (only if schema changed)
 echo "🔧 Generating Prisma client..."
 npx prisma generate
@@ -65,12 +69,18 @@ npx prisma migrate deploy || {
     npx prisma db push
 }
 
-# Restart PM2
+# Restart PM2 with hardened settings
 echo "🔄 Restarting PM2..."
-pm2 restart internship-system || {
-    echo "⚠️  Starting new PM2 process..."
-    pm2 start npm --name "internship-system" -- start
+# Limit instances to 1 and auto-restart if memory exceeds 350MB
+pm2 delete internship-system >/dev/null 2>&1 || true
+pm2 start npm --name "internship-system" -- start --instances 1 --max-memory-restart 350M --update-env || {
+    echo "⚠️  Fallback restart existing PM2 process..."
+    pm2 restart internship-system --update-env --max-memory-restart 350M
 }
+
+# Persist pm2 settings
+echo "💾 Saving PM2 state"
+pm2 save
 
 # Show status
 echo "📊 PM2 Status:"

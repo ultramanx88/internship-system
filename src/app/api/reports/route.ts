@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { requireAuth, cleanup } from '@/lib/auth-utils';
-
-const prisma = new PrismaClient();
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,7 +19,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    console.log('Reports API - Fetching reports by:', user.name, 'search:', search, 'status:', status, 'page:', page);
+    logger.info('Reports API - Fetching reports by:', user.name, 'search:', search, 'status:', status, 'page:', page);
 
     const whereClause: any = {};
     
@@ -130,7 +129,7 @@ export async function GET(request: NextRequest) {
       prisma.report.count({ where: whereClause })
     ]);
 
-    console.log('Reports API - Found reports:', reports.length, 'total:', total, 'execution time:', Date.now() - Date.now());
+    logger.info('Reports API - Found reports:', reports.length, 'total:', total, 'execution time:', Date.now() - Date.now());
 
     return NextResponse.json({
       success: true,
@@ -140,7 +139,7 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil(total / limit)
     });
   } catch (error) {
-    console.error('Reports API - Error fetching reports:', error);
+    logger.error('Reports API - Error fetching reports:', error);
     return NextResponse.json(
       { 
         success: false, 
@@ -173,7 +172,7 @@ export async function POST(request: NextRequest) {
       status = 'draft' 
     } = body;
 
-    console.log('Reports API - Creating report by:', user.name);
+    logger.info('Reports API - Creating report by:', user.name);
 
     // Validation
     if (!applicationId || !studentId || !title || !content) {
@@ -233,14 +232,14 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    console.log('Reports API - Created report:', report.id);
+    logger.info('Reports API - Created report:', report.id);
 
     return NextResponse.json({
       success: true,
       report
     });
   } catch (error) {
-    console.error('Reports API - Error creating report:', error);
+    logger.error('Reports API - Error creating report:', error);
     return NextResponse.json(
       { 
         success: false, 
