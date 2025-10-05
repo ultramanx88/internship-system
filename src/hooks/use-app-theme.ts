@@ -50,7 +50,7 @@ export function useAppTheme() {
         formData.append('file', file);
         formData.append('type', 'logo');
         
-        const response = await fetch('/api/upload', {
+        const response = await fetch('/api/upload-theme', {
           method: 'POST',
           body: formData,
         });
@@ -61,11 +61,12 @@ export function useAppTheme() {
           setLogo(logoPath);
           alert('อัปโหลดโลโก้สำเร็จ');
         } else {
-          throw new Error('Upload failed');
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Upload failed');
         }
       } catch (error) {
         console.error('Error uploading logo:', error);
-        alert('เกิดข้อผิดพลาดในการอัปโหลดโลโก้');
+        alert(`เกิดข้อผิดพลาดในการอัปโหลดโลโก้: ${error.message}`);
       }
     }
   };
@@ -79,7 +80,7 @@ export function useAppTheme() {
         formData.append('file', file);
         formData.append('type', 'background');
         
-        const response = await fetch('/api/upload', {
+        const response = await fetch('/api/upload-theme', {
           method: 'POST',
           body: formData,
         });
@@ -90,11 +91,12 @@ export function useAppTheme() {
           setLoginBackground(bgPath);
           alert('อัปโหลดภาพพื้นหลังสำเร็จ');
         } else {
-          throw new Error('Upload failed');
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Upload failed');
         }
       } catch (error) {
         console.error('Error uploading background:', error);
-        alert('เกิดข้อผิดพลาดในการอัปโหลดภาพพื้นหลัง');
+        alert(`เกิดข้อผิดพลาดในการอัปโหลดภาพพื้นหลัง: ${error.message}`);
       }
     }
   };
