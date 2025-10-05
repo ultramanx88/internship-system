@@ -165,11 +165,11 @@ export function useEducatorRole() {
   };
 
   const isAcademicAdvisor = (): boolean => {
-    return hasRole('อาจารย์นิเทศ') || hasRole('academicAdvisor');
+    return hasRole('visitor') || hasRole('academicAdvisor');
   };
 
   const isCommittee = (): boolean => {
-    return hasRole('กรรมการ') || hasRole('committee');
+    return hasRole('committee');
   };
 
   // ตรวจสอบว่าผู้ใช้มีหลาย role หรือไม่
@@ -181,15 +181,15 @@ export function useEducatorRole() {
 
   // ตรวจสอบสิทธิ์การเข้าถึง
   const canAccessApplications = (): boolean => {
-    return hasRole('อาจารย์ประจำวิชา') || hasRole('กรรมการ') || hasRole('courseInstructor') || hasRole('committee');
+    return hasRole('courseInstructor') || hasRole('committee');
   };
 
   const canAccessSupervision = (): boolean => {
-    return hasRole('อาจารย์นิเทศ') || hasRole('academicAdvisor');
+    return hasRole('visitor') || hasRole('academicAdvisor');
   };
 
   const canAccessEvaluation = (): boolean => {
-    return hasRole('อาจารย์ประจำวิชา') || hasRole('กรรมการ') || hasRole('courseInstructor') || hasRole('committee');
+    return hasRole('courseInstructor') || hasRole('committee');
   };
 
   return {

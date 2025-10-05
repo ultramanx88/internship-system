@@ -82,7 +82,7 @@ export const demoUsers = [
     "email": "t6800006@smart-solutions.com",
     "password": "123456",
     "roles": [
-      "อาจารย์นิเทศ"
+      "visitor"
     ]
   },
   {
@@ -91,7 +91,7 @@ export const demoUsers = [
     "email": "t6800007@smart-solutions.com",
     "password": "123456",
     "roles": [
-      "อาจารย์ประจำวิชา"
+      "courseInstructor"
     ]
   },
   {
@@ -100,7 +100,7 @@ export const demoUsers = [
     "email": "t6800008@smart-solutions.com",
     "password": "123456",
     "roles": [
-      "อาจารย์ประจำวิชา"
+      "courseInstructor"
     ]
   },
   {
@@ -109,7 +109,7 @@ export const demoUsers = [
     "email": "t6800009@smart-solutions.com",
     "password": "123456",
     "roles": [
-      "อาจารย์ประจำวิชา"
+      "courseInstructor"
     ]
   },
   {

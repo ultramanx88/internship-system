@@ -72,10 +72,7 @@ export function AuthRedirect({ children }: { children: React.ReactNode }) {
       if (
         (userRoles.includes("courseInstructor") ||
           userRoles.includes("visitor") ||
-          userRoles.includes("committee") ||
-          userRoles.includes("อาจารย์ประจำวิชา") ||
-          userRoles.includes("อาจารย์นิเทศ") ||
-          userRoles.includes("กรรมการ")) &&
+          userRoles.includes("committee")) &&
         (pathname?.startsWith("/admin") || pathname?.startsWith("/staff"))
       ) {
         router.replace("/educator");

@@ -136,11 +136,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         router.push('/admin');
       } else if (
         role === 'courseInstructor' || 
-        role === 'อาจารย์ประจำวิชา' ||
         role === 'committee' || 
-        role === 'กรรมการ' ||
-        role === 'visitor' ||
-        role === 'อาจารย์นิเทศ'
+        role === 'visitor'
       ) {
         router.push('/educator');
       } else if (role === 'student') {
