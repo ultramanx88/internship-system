@@ -321,9 +321,14 @@ export async function PUT(
       user: userWithParsedRoles
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to update user:', error);
-    return NextResponse.json({ message: 'ไม่สามารถอัปเดตข้อมูลผู้ใช้ได้' }, { status: 500 });
+    const message = error?.message || 'ไม่สามารถอัปเดตข้อมูลผู้ใช้ได้';
+    // Prisma unique constraint
+    if (error?.code === 'P2002') {
+      return NextResponse.json({ message: 'ข้อมูลซ้ำกับผู้ใช้อื่น (unique constraint)' }, { status: 409 });
+    }
+    return NextResponse.json({ message, stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined }, { status: 500 });
   } finally {
     await cleanup();
   }
