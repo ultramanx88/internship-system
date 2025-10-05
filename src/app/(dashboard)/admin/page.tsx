@@ -4,10 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Building2, Users, FileText, BarChart2 } from 'lucide-react';
+import { AdminGuard } from '@/components/auth/PermissionGuard';
 
 export default function AdminPage() {
     return (
-        <div className="container mx-auto py-6">
+        <AdminGuard>
+            <div className="container mx-auto py-6">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold">แดชบอร์ดผู้ดูแลระบบ</h1>
                 <p className="text-muted-foreground">จัดการระบบฝึกงานและสหกิจศึกษา</p>
@@ -85,5 +87,6 @@ export default function AdminPage() {
                 </CardContent>
             </Card>
         </div>
+        </AdminGuard>
     );
 }

@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { CheckCircle2, AlertTriangle, FileText } from 'lucide-react';
+import { StaffGuard } from '@/components/auth/PermissionGuard';
 
 export default function StaffDashboardPage() {
     // ข้อมูลสำหรับ Pie Chart
@@ -81,7 +82,8 @@ export default function StaffDashboardPage() {
     ];
 
     return (
-        <div className="space-y-6">
+        <StaffGuard>
+            <div className="space-y-6">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">หน้าแรก</h1>
                 <p className="text-muted-foreground">
@@ -263,5 +265,6 @@ export default function StaffDashboardPage() {
                 </Card>
             </div>
         </div>
+        </StaffGuard>
     );
 }

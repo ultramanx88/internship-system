@@ -22,11 +22,8 @@ export default function DashboardPage() {
         router.replace('/student');
       } else if (
         userRoles.includes('courseInstructor') || 
-        userRoles.includes('อาจารย์ประจำวิชา') ||
         userRoles.includes('visitor') || 
-        userRoles.includes('อาจารย์นิเทศ') ||
-        userRoles.includes('committee') ||
-        userRoles.includes('กรรมการ')
+        userRoles.includes('committee')
       ) {
         router.replace('/educator');
       } else {
