@@ -11,6 +11,7 @@ import { AcademicCalendarSettings } from '@/components/admin/settings/AcademicCa
 import { TitleManagement } from '@/components/admin/settings/TitleManagement';
 import { MajorManagement } from '@/components/admin/settings/MajorManagement';
 import { FacultyManagement } from '@/components/admin/settings/FacultyManagement';
+import { DocumentNumberSettings } from '@/components/admin/settings/DocumentNumberSettings';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { AdminGuard } from '@/components/auth/PermissionGuard';
 import Image from 'next/image';
@@ -29,6 +30,7 @@ export default function AdminSettingsPage() {
         <TitleManagement />
         <FacultyManagement />
         <MajorManagement />
+        <DocumentNumberSettings />
         <AcademicCalendarSettings />
         <RoleManagementMatrix />
 

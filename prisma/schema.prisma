@@ -247,3 +247,13 @@ enum DocumentStatus {
   approved
   rejected
 }
+
+model DocumentTemplate {
+  id        String   @id @default(cuid())
+  type      String   @unique
+  config    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("document_templates")
+}
