@@ -53,6 +53,12 @@ model User {
   applications  Application[]
   documents     Document[]
   printRecords  PrintRecord[]
+  // Reports relations
+  studentReports        Report[]         @relation("StudentReports")
+  supervisorReports     Report[]         @relation("SupervisorReports")
+  studentProgressReports ProgressReport[] @relation("StudentProgressReports")
+  supervisorProgressReports ProgressReport[] @relation("SupervisorProgressReports")
+  evaluations           Evaluation[]
   curriculum    Curriculum?   @relation(fields: [curriculumId], references: [id])
   department    Department?   @relation(fields: [departmentId], references: [id])
   faculty       Faculty?      @relation(fields: [facultyId], references: [id])
@@ -86,6 +92,10 @@ model Application {
   internship    Internship        @relation(fields: [internshipId], references: [id], onDelete: Cascade)
   printRecord   PrintRecord?      @relation(fields: [printRecordId], references: [id])
   student       User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  // Reports relations
+  reports       Report[]
+  evaluations   Evaluation[]
+  progressReports ProgressReport[]
 
   @@map("applications")
 }
@@ -244,6 +254,93 @@ enum DocumentType {
 
 enum DocumentStatus {
   pending
+  approved
+  rejected
+}
+
+// Reports and Evaluations Models
+model Report {
+  id            String        @id @default(cuid())
+  applicationId String
+  studentId     String
+  supervisorId  String?
+  title         String
+  content       String
+  status        ReportStatus  @default(draft)
+  submittedAt   DateTime?
+  reviewedAt    DateTime?
+  feedback      String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relations
+  application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  student       User          @relation("StudentReports", fields: [studentId], references: [id], onDelete: Cascade)
+  supervisor    User?         @relation("SupervisorReports", fields: [supervisorId], references: [id], onDelete: SetNull)
+  evaluations   Evaluation[]
+
+  @@map("reports")
+}
+
+model Evaluation {
+  id            String        @id @default(cuid())
+  reportId      String
+  applicationId String
+  evaluatorId   String
+  score         Int           @default(0)
+  comments      String?
+  status        EvaluationStatus @default(pending)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relations
+  report        Report        @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  evaluator     User          @relation(fields: [evaluatorId], references: [id], onDelete: Cascade)
+
+  @@map("evaluations")
+}
+
+model ProgressReport {
+  id            String        @id @default(cuid())
+  applicationId String
+  studentId     String
+  supervisorId  String?
+  week          Int
+  content       String
+  status        ProgressStatus @default(draft)
+  submittedAt   DateTime?
+  reviewedAt    DateTime?
+  feedback      String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relations
+  application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  student       User          @relation("StudentProgressReports", fields: [studentId], references: [id], onDelete: Cascade)
+  supervisor    User?         @relation("SupervisorProgressReports", fields: [supervisorId], references: [id], onDelete: SetNull)
+
+  @@map("progress_reports")
+}
+
+enum ReportStatus {
+  draft
+  submitted
+  reviewed
+  approved
+  rejected
+}
+
+enum EvaluationStatus {
+  pending
+  completed
+  rejected
+}
+
+enum ProgressStatus {
+  draft
+  submitted
+  reviewed
   approved
   rejected
 }

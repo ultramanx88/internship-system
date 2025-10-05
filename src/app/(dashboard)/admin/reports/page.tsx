@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { applications as mockApplications, users as mockUsers, internships as mockInternships } from '@/lib/data';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { AdminGuard } from '@/components/auth/PermissionGuard';
 import {
   Table,
   TableBody,
@@ -16,89 +18,121 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Download, ArrowUp, ArrowDown, Star } from 'lucide-react';
+import { Search, Download, ArrowUp, ArrowDown, Star, Loader2 } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
 
+type ReportData = {
+    id: string;
+    title: string;
+    studentName: string;
+    studentId: string;
+    companyName: string;
+    supervisorName: string;
+    status: string;
+    priority: number;
+    createdAt: string;
+    submittedAt?: string;
+    reviewedAt?: string;
+    feedback?: string;
+};
+
 export default function AdminReportsPage() {
+    const { user } = useAuth();
+    const { toast } = useToast();
+    
+    const [reports, setReports] = useState<ReportData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-    const [sortField, setSortField] = useState<'studentName' | 'companyName' | 'teacherName' | 'reportStatus' | 'priority'>('priority');
+    const [sortField, setSortField] = useState<'studentName' | 'companyName' | 'supervisorName' | 'status' | 'priority'>('priority');
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
     
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalReports, setTotalReports] = useState(0);
+
+    const fetchReports = useCallback(async (search: string, status: string, sort: string, page: number, limit: number) => {
+        setIsLoading(true);
+        try {
+            const url = `/api/reports?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}&sort=${encodeURIComponent(sort)}&page=${page}&limit=${limit}`;
+            
+            const response = await fetch(url, {
+                headers: {
+                    'x-user-id': user?.id || '',
+                },
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch reports');
+            }
+
+            const data = await response.json();
+            
+            // Map API data to frontend format
+            const mappedReports = (data.reports || []).map((report: any) => ({
+                id: report.id,
+                title: report.title,
+                studentName: report.student.name,
+                studentId: report.student.id,
+                companyName: report.application.internship.company.name,
+                supervisorName: report.supervisor?.name || 'ไม่ระบุ',
+                status: report.status,
+                priority: Math.floor(Math.random() * 5) + 1, // Mock priority for now
+                createdAt: report.createdAt,
+                submittedAt: report.submittedAt,
+                reviewedAt: report.reviewedAt,
+                feedback: report.feedback
+            }));
+            
+            setReports(mappedReports);
+            setTotalReports(data.total || 0);
+            setTotalPages(Math.ceil((data.total || 0) / limit));
+            setCurrentPage(page);
+        } catch (error) {
+            console.error('Fetch reports error:', error);
+            toast({
+                variant: 'destructive',
+                title: 'เกิดข้อผิดพลาด',
+                description: 'ไม่สามารถโหลดข้อมูลรายงานได้',
+            });
+            setReports([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [user?.id, toast]);
+
+    useEffect(() => {
+        fetchReports(debouncedSearchTerm, statusFilter, sortOrder, currentPage, pageSize);
+    }, [fetchReports, debouncedSearchTerm, statusFilter, sortOrder, currentPage, pageSize]);
 
     const reportData = useMemo(() => {
-        // Mock data for reports
-        return mockApplications
-            .filter(app => app.status === 'approved')
-            .map((app, index) => {
-                const student = mockUsers.find(u => u.id === app.studentId);
-                const internship = mockInternships.find(i => i.id === app.internshipId);
-                const teacher = mockUsers.find(u => u.roles.includes('visitor'));
-                
-                // Generate priority score (1-5, where 5 is highest priority)
-                const priority = Math.floor(Math.random() * 5) + 1;
-                
-                return {
-                    ...app,
-                    studentName: student?.name || 'N/A',
-                    companyName: internship?.companyId || 'N/A',
-                    teacherName: teacher?.name || 'N/A',
-                    reportStatus: ['มีรายงานแล้ว', 'ยังไม่มีรายงาน'][index % 2],
-                    priority: priority,
-                };
-            });
-    }, []);
+        return reports;
+    }, [reports]);
 
-    const filteredAndSortedData = useMemo(() => {
-        let filtered = reportData.filter(item => {
-            const matchesSearch =
-                item.studentName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                item.companyName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                item.teacherName.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
-            
-            const matchesStatus = statusFilter === 'all' || item.reportStatus === statusFilter;
-
-            return matchesSearch && matchesStatus;
-        });
-
-        // Apply sorting
-        filtered.sort((a, b) => {
-            let aValue: any = a[sortField];
-            let bValue: any = b[sortField];
-            
-            // Handle string comparison
-            if (typeof aValue === 'string' && typeof bValue === 'string') {
-                aValue = aValue.toLowerCase();
-                bValue = bValue.toLowerCase();
-            }
-            
-            if (sortOrder === 'asc') {
-                return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-            } else {
-                return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-            }
-        });
-
-        return filtered;
-    }, [reportData, debouncedSearchTerm, statusFilter, sortField, sortOrder]);
-
-    // Apply pagination
+    // Data is already filtered and sorted by API
     const paginatedData = useMemo(() => {
-        const startIndex = (currentPage - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
-        return filteredAndSortedData.slice(startIndex, endIndex);
-    }, [filteredAndSortedData, currentPage, pageSize]);
+        return reportData;
+    }, [reportData]);
 
-    const totalPages = Math.ceil(filteredAndSortedData.length / pageSize);
-    const totalItems = filteredAndSortedData.length;
+    const totalItems = totalReports;
     
     const statusColors: { [key: string]: string } = {
-        'มีรายงานแล้ว': "bg-success text-white",
-        'ยังไม่มีรายงาน': "bg-amber-500 text-white",
+        'draft': "bg-gray-500 text-white",
+        'submitted': "bg-blue-500 text-white",
+        'reviewed': "bg-yellow-500 text-white",
+        'approved': "bg-green-500 text-white",
+        'rejected': "bg-red-500 text-white",
+    };
+
+    const statusTranslations: { [key: string]: string } = {
+        'draft': "ร่าง",
+        'submitted': "ส่งแล้ว",
+        'reviewed': "ตรวจแล้ว",
+        'approved': "อนุมัติ",
+        'rejected': "ปฏิเสธ",
     };
 
     const handleSort = (field: typeof sortField) => {
@@ -133,13 +167,13 @@ export default function AdminReportsPage() {
             "สถานะรายงาน"
         ];
         
-        const csvRows = filteredAndSortedData.map(item => 
+        const csvRows = paginatedData.map(item => 
             [
                 `"${item.studentName}"`,
                 `"${item.companyName}"`,
-                `"${item.teacherName}"`,
+                `"${item.supervisorName}"`,
                 `"${item.priority}"`,
-                `"${item.reportStatus}"`
+                `"${statusTranslations[item.status] || item.status}"`
             ].join(',')
         );
 
@@ -159,7 +193,8 @@ export default function AdminReportsPage() {
     };
 
     return (
-        <div className="grid gap-8 text-secondary-600">
+        <AdminGuard>
+            <div className="grid gap-8 text-secondary-600">
             <div>
                 <h1 className="text-3xl font-bold gradient-text">รายงานผลการนิเทศ</h1>
                 <p>ดูและดาวน์โหลดรายงานผลการนิเทศทั้งหมด</p>
@@ -186,8 +221,11 @@ export default function AdminReportsPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">สถานะทั้งหมด</SelectItem>
-                                <SelectItem value="มีรายงานแล้ว">มีรายงานแล้ว</SelectItem>
-                                <SelectItem value="ยังไม่มีรายงาน">ยังไม่มีรายงาน</SelectItem>
+                                <SelectItem value="draft">ร่าง</SelectItem>
+                                <SelectItem value="submitted">ส่งแล้ว</SelectItem>
+                                <SelectItem value="reviewed">ตรวจแล้ว</SelectItem>
+                                <SelectItem value="approved">อนุมัติ</SelectItem>
+                                <SelectItem value="rejected">ปฏิเสธ</SelectItem>
                             </SelectContent>
                         </Select>
                         <div className="flex items-center gap-2">
@@ -200,8 +238,8 @@ export default function AdminReportsPage() {
                                     <SelectItem value="priority">ความสำคัญ</SelectItem>
                                     <SelectItem value="studentName">ชื่อนักศึกษา</SelectItem>
                                     <SelectItem value="companyName">บริษัท</SelectItem>
-                                    <SelectItem value="teacherName">อาจารย์</SelectItem>
-                                    <SelectItem value="reportStatus">สถานะ</SelectItem>
+                                    <SelectItem value="supervisorName">อาจารย์นิเทศ</SelectItem>
+                                    <SelectItem value="status">สถานะ</SelectItem>
                                 </SelectContent>
                             </Select>
                             <Button
@@ -253,27 +291,36 @@ export default function AdminReportsPage() {
                                     </TableHead>
                                     <TableHead 
                                         className="text-white cursor-pointer hover:bg-primary-700"
-                                        onClick={() => handleSort('teacherName')}
+                                        onClick={() => handleSort('supervisorName')}
                                     >
                                         <div className="flex items-center gap-1">
                                             อาจารย์นิเทศ
-                                            {getSortIcon('teacherName')}
+                                            {getSortIcon('supervisorName')}
                                         </div>
                                     </TableHead>
                                     <TableHead 
                                         className="text-center text-white cursor-pointer hover:bg-primary-700"
-                                        onClick={() => handleSort('reportStatus')}
+                                        onClick={() => handleSort('status')}
                                     >
                                         <div className="flex items-center justify-center gap-1">
                                             สถานะรายงาน
-                                            {getSortIcon('reportStatus')}
+                                            {getSortIcon('status')}
                                         </div>
                                     </TableHead>
                                     <TableHead className="text-center text-white">ดำเนินการ</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {paginatedData.length > 0 ? (
+                                {isLoading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="h-24 text-center">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                กำลังโหลดข้อมูล...
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : paginatedData.length > 0 ? (
                                     paginatedData.map((item) => (
                                         <TableRow key={item.id}>
                                             <TableCell>
@@ -284,10 +331,10 @@ export default function AdminReportsPage() {
                                             </TableCell>
                                             <TableCell className="font-medium">{item.studentName}</TableCell>
                                             <TableCell>{item.companyName}</TableCell>
-                                            <TableCell>{item.teacherName}</TableCell>
+                                            <TableCell>{item.supervisorName}</TableCell>
                                             <TableCell className="text-center">
-                                                 <Badge className={`capitalize ${statusColors[item.reportStatus]}`}>
-                                                    {item.reportStatus}
+                                                 <Badge className={`capitalize ${statusColors[item.status]}`}>
+                                                    {statusTranslations[item.status] || item.status}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-center">
@@ -295,7 +342,6 @@ export default function AdminReportsPage() {
                                                     asChild
                                                     size="sm" 
                                                     variant="outline" 
-                                                    disabled={item.reportStatus === 'ยังไม่มีรายงาน'}
                                                 >
                                                     <Link href={`/admin/reports/${item.id}`}>ดูรายงาน</Link>
                                                 </Button>
@@ -395,5 +441,6 @@ export default function AdminReportsPage() {
                 </CardContent>
             </Card>
         </div>
+        </AdminGuard>
     );
 }
