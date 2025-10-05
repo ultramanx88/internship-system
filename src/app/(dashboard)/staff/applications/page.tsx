@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,10 +8,75 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Search, Eye, Download, FileText, Calendar } from 'lucide-react';
 
+interface Application {
+    id: string;
+    studentId: string;
+    studentName: string;
+    major: string;
+    companyName: string;
+    position: string;
+    status: string;
+    dateApplied: string;
+    isPrinted: boolean;
+    printRecord?: {
+        id: string;
+        documentNumber: string;
+        documentDate: string;
+    };
+}
+
 export default function ApplicationsPage() {
     const [searchTerm, setSearchTerm] = useState('');
+    const [applications, setApplications] = useState<Application[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const applications = [
+    useEffect(() => {
+        loadApplications();
+    }, []);
+
+    const loadApplications = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/applications/print');
+            const data = await response.json();
+            
+            if (data.applications) {
+                setApplications(data.applications);
+            }
+        } catch (error) {
+            console.error('Error loading applications:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePrintDocument = async (applicationId: string) => {
+        try {
+            const response = await fetch('/api/applications/print', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    applicationIds: [applicationId],
+                    documentNumber: `DOC-${Date.now()}`,
+                    documentDate: new Date().toISOString()
+                })
+            });
+
+            if (response.ok) {
+                alert('พิมพ์เอกสารสำเร็จ');
+                loadApplications(); // รีเฟรชข้อมูล
+            } else {
+                alert('เกิดข้อผิดพลาดในการพิมพ์เอกสาร');
+            }
+        } catch (error) {
+            console.error('Error printing document:', error);
+            alert('เกิดข้อผิดพลาดในการพิมพ์เอกสาร');
+        }
+    };
+
+    const mockApplications = [
         {
             id: 'APP001',
             studentId: '6400112233',
@@ -72,7 +137,7 @@ export default function ApplicationsPage() {
     const filteredApplications = applications.filter(app =>
         app.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         app.studentId.includes(searchTerm) ||
-        app.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         app.id.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -189,8 +254,18 @@ export default function ApplicationsPage() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="overflow-x-auto">
-                            <Table>
+                        {loading ? (
+                            <div className="flex items-center justify-center py-8">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
+                                <span className="ml-2 text-gray-600">กำลังโหลดข้อมูล...</span>
+                            </div>
+                        ) : filteredApplications.length === 0 ? (
+                            <div className="text-center py-8">
+                                <p className="text-gray-500">ไม่พบข้อมูลการสมัคร</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <Table>
                                 <TableHeader>
                                     <TableRow className="bg-amber-50">
                                         <TableHead className="font-semibold text-amber-700">รหัสเอกสาร</TableHead>
@@ -213,31 +288,42 @@ export default function ApplicationsPage() {
                                                     <p className="text-sm text-gray-500">{app.studentId}</p>
                                                 </div>
                                             </TableCell>
-                                            <TableCell>{app.company}</TableCell>
-                                            <TableCell>{app.position}</TableCell>
+                                            <TableCell>{app.companyName}</TableCell>
+                                            <TableCell>{app.position || 'ไม่ระบุ'}</TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-1">
                                                     <Calendar className="h-4 w-4 text-gray-400" />
-                                                    {app.submittedDate}
+                                                    {new Date(app.dateApplied).toLocaleDateString('th-TH')}
                                                 </div>
                                             </TableCell>
                                             <TableCell>{getStatusBadge(app.status)}</TableCell>
                                             <TableCell>
                                                 <div className="flex flex-wrap gap-1">
-                                                    {app.documents.map((doc, index) => (
-                                                        <Badge key={index} variant="outline" className="text-xs">
-                                                            {doc}
+                                                    <Badge variant="outline" className="text-xs">
+                                                        ใบสมัคร
+                                                    </Badge>
+                                                    <Badge variant="outline" className="text-xs">
+                                                        ใบรับรอง
+                                                    </Badge>
+                                                    {app.isPrinted && (
+                                                        <Badge variant="outline" className="text-xs bg-green-100 text-green-700">
+                                                            พิมพ์แล้ว
                                                         </Badge>
-                                                    ))}
+                                                    )}
                                                 </div>
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <Button variant="outline" size="sm">
+                                                    <Button variant="outline" size="sm" title="ดูรายละเอียด">
                                                         <Eye className="h-4 w-4" />
                                                     </Button>
-                                                    <Button variant="outline" size="sm">
-                                                        <Download className="h-4 w-4" />
+                                                    <Button 
+                                                        variant="outline" 
+                                                        size="sm" 
+                                                        title="พิมพ์เอกสาร"
+                                                        onClick={() => handlePrintDocument(app.id)}
+                                                    >
+                                                        <FileText className="h-4 w-4" />
                                                     </Button>
                                                 </div>
                                             </TableCell>
@@ -245,7 +331,8 @@ export default function ApplicationsPage() {
                                     ))}
                                 </TableBody>
                             </Table>
-                        </div>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
