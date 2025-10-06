@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Save, RefreshCw, Eye } from 'lucide-react';
 import { DocumentTemplate, generateLocalizedDocumentNumber, validateDocumentTemplate } from '@/lib/document-number';
-import { toast } from 'sonner';
+// import { toast } from 'sonner'; // Commented out - using alert instead
 
 interface DocumentTemplateConfig {
   thai: DocumentTemplate;
@@ -49,7 +49,7 @@ export function DocumentNumberSettings() {
       }
     } catch (error) {
       console.error('Error loading document template:', error);
-      toast.error('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+      alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export function DocumentNumberSettings() {
 
       if (!thaiValidation.valid || !englishValidation.valid) {
         const errors = [...thaiValidation.errors, ...englishValidation.errors];
-        toast.error(`ข้อมูลไม่ถูกต้อง: ${errors.join(', ')}`);
+        alert(`ข้อมูลไม่ถูกต้อง: ${errors.join(', ')}`);
         return;
       }
 
@@ -80,13 +80,13 @@ export function DocumentNumberSettings() {
       const data = await response.json();
 
       if (data.success) {
-        toast.success('บันทึกการตั้งค่าเลขเอกสารสำเร็จ');
+        alert('บันทึกการตั้งค่าเลขเอกสารสำเร็จ');
       } else {
-        toast.error(data.message || 'เกิดข้อผิดพลาดในการบันทึก');
+        alert(data.message || 'เกิดข้อผิดพลาดในการบันทึก');
       }
     } catch (error) {
       console.error('Error saving document template:', error);
-      toast.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     } finally {
       setSaving(false);
     }
