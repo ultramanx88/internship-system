@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { PrismaClient } from '@prisma/client';
 import { requireAuth, cleanup } from '@/lib/auth-utils';
 import { logger } from '@/lib/logger';
 
+// Use the same pattern as health API
+const prisma = new PrismaClient();
+
 export async function GET(request: NextRequest) {
   try {
+    // Test prisma connection first
+    await prisma.$connect();
+    
     // Check authentication and authorization
     const authResult = await requireAuth(request, ['admin', 'staff', 'visitor', 'courseInstructor']);
     if ('error' in authResult) {
@@ -19,7 +25,15 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    logger.info('Reports API - Fetching reports by:', user.name, 'search:', search, 'status:', status, 'page:', page);
+    logger.info('Reports API - Fetching reports', {
+      byUserId: user.id,
+      byUserName: user.name,
+      search,
+      status,
+      sort,
+      page,
+      limit
+    });
 
     const whereClause: any = {};
     
@@ -69,6 +83,11 @@ export async function GET(request: NextRequest) {
     }
 
     const skip = (page - 1) * limit;
+    
+    // Test if report model exists
+    console.log('Testing report model access...');
+    const reportCount = await prisma.report.count();
+    console.log('Report count:', reportCount);
     
     const [reports, total] = await Promise.all([
       prisma.report.findMany({
@@ -129,7 +148,13 @@ export async function GET(request: NextRequest) {
       prisma.report.count({ where: whereClause })
     ]);
 
-    logger.info('Reports API - Found reports:', reports.length, 'total:', total, 'execution time:', Date.now() - Date.now());
+    logger.info('Reports API - Found reports', {
+      count: reports.length,
+      total,
+      page,
+      limit,
+      sort
+    });
 
     return NextResponse.json({
       success: true,
@@ -150,6 +175,7 @@ export async function GET(request: NextRequest) {
     );
   } finally {
     await cleanup();
+    await prisma.$disconnect();
   }
 }
 
@@ -172,7 +198,7 @@ export async function POST(request: NextRequest) {
       status = 'draft' 
     } = body;
 
-    logger.info('Reports API - Creating report by:', user.name);
+    logger.info('Reports API - Creating report', { byUserId: user.id, byUserName: user.name });
 
     // Validation
     if (!applicationId || !studentId || !title || !content) {
@@ -232,7 +258,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    logger.info('Reports API - Created report:', report.id);
+    logger.info('Reports API - Created report', { reportId: report.id });
 
     return NextResponse.json({
       success: true,

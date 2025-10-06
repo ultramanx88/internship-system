@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CommitteeMenu } from '@/components/committee/CommitteeMenu';
 import { CommitteeGuard } from '@/components/auth/PermissionGuard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +30,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import CommitteeWorkflowStatus from '@/components/committee/CommitteeWorkflowStatus';
+import CommitteeWorkflowActions from '@/components/committee/CommitteeWorkflowActions';
 // import { toast } from 'sonner';
 
 interface ApplicationData {
@@ -75,6 +76,7 @@ export default function CommitteeApplicationDetailsPage({ params }: { params: { 
     rejectedBy: string;
     rejectedAt: string;
   }>>([]);
+  const [workflowStatus, setWorkflowStatus] = useState<any>(null);
 
   // Mock data - ในระบบจริงจะดึงจาก API
   useEffect(() => {
@@ -198,13 +200,10 @@ export default function CommitteeApplicationDetailsPage({ params }: { params: { 
   if (loading) {
     return (
       <CommitteeGuard>
-        <div className="flex h-screen bg-gray-100">
-          <CommitteeMenu />
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">กำลังโหลดข้อมูล...</p>
-            </div>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">กำลังโหลดข้อมูล...</p>
           </div>
         </div>
       </CommitteeGuard>
@@ -214,13 +213,10 @@ export default function CommitteeApplicationDetailsPage({ params }: { params: { 
   if (!application) {
     return (
       <CommitteeGuard>
-        <div className="flex h-screen bg-gray-100">
-          <CommitteeMenu />
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">ไม่พบข้อมูล</h3>
-              <p className="text-gray-600">ไม่พบคำขอที่ระบุ</p>
-            </div>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">ไม่พบข้อมูล</h3>
+            <p className="text-gray-600">ไม่พบคำขอที่ระบุ</p>
           </div>
         </div>
       </CommitteeGuard>
@@ -229,33 +225,45 @@ export default function CommitteeApplicationDetailsPage({ params }: { params: { 
 
   return (
     <CommitteeGuard>
-      <div className="flex h-screen bg-gray-100">
-        <CommitteeMenu />
-        
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="bg-white shadow-sm border-b px-6 py-4">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/committee/applications">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  กลับ
-                </Link>
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">รายละเอียดคำขอสหกิจศึกษา</h1>
-                <p className="text-gray-600">ID: {application.id}</p>
-              </div>
-            </div>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/committee/applications">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              กลับ
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">รายละเอียดคำขอสหกิจศึกษา</h1>
+            <p className="text-gray-600">ID: {application.id}</p>
           </div>
+        </div>
 
-          <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-6">
             <Tabs defaultValue="request" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
+                <TabsTrigger value="workflow">Workflow</TabsTrigger>
                 <TabsTrigger value="request">คำขอ</TabsTrigger>
                 <TabsTrigger value="student">นักศึกษา</TabsTrigger>
                 <TabsTrigger value="company">บริษัท</TabsTrigger>
                 <TabsTrigger value="timeline">ไทม์ไลน์</TabsTrigger>
               </TabsList>
+
+              <TabsContent value="workflow" className="space-y-6">
+                <CommitteeWorkflowStatus 
+                  applicationId={application.id}
+                  onStatusChange={setWorkflowStatus}
+                />
+                
+                <CommitteeWorkflowActions 
+                  applicationId={application.id}
+                  workflowStatus={workflowStatus}
+                  onActionComplete={() => {
+                    // Refresh application data
+                    window.location.reload();
+                  }}
+                />
+              </TabsContent>
 
               <TabsContent value="request" className="space-y-6">
                 <Card>
@@ -544,7 +552,6 @@ export default function CommitteeApplicationDetailsPage({ params }: { params: { 
             )}
           </div>
         </div>
-      </div>
-    </CommitteeGuard>
-  );
-}
+      </CommitteeGuard>
+    );
+  }

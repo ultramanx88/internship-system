@@ -14,7 +14,8 @@ import {
   ClipboardList, 
   Star, 
   Settings,
-  LogOut
+  LogOut,
+  UserCheck
 } from 'lucide-react';
 import Image from 'next/image';
 import { useSystemLogo } from '@/hooks/use-system-logo';
@@ -68,6 +69,12 @@ export function StaffMenu({ className }: StaffMenuProps) {
       label: 'รายงานการประเมินสถานประกอบการ',
       icon: Star,
       href: '/staff/evaluation'
+    },
+    {
+      id: 'educator-roles',
+      label: 'บทบาท Educator',
+      icon: UserCheck,
+      href: '/staff/educator-roles'
     },
     {
       id: 'settings',

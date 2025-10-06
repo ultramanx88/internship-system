@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, cleanup } from '@/lib/auth-utils';
 
 const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
     const authResult = await requireAuth(request, ['admin']);
-    if (!authResult.success) {
-      return NextResponse.json({ success: false, message: authResult.message }, { status: 401 });
+    if ('error' in authResult) {
+      return authResult.error;
     }
 
     // Get document template settings
@@ -43,15 +43,15 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    await cleanup();
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
     const authResult = await requireAuth(request, ['admin']);
-    if (!authResult.success) {
-      return NextResponse.json({ success: false, message: authResult.message }, { status: 401 });
+    if ('error' in authResult) {
+      return authResult.error;
     }
 
     const body = await request.json();
@@ -120,6 +120,6 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    await cleanup();
   }
 }

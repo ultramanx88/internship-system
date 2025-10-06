@@ -12,7 +12,8 @@ import {
   FileText, 
   BarChart2, 
   Settings,
-  LogOut
+  LogOut,
+  UserCheck
 } from 'lucide-react';
 import Image from 'next/image';
 import { useSystemLogo } from '@/hooks/use-system-logo';
@@ -54,6 +55,12 @@ export function AdminMenu({ className }: AdminMenuProps) {
       label: 'รายงาน',
       icon: BarChart2,
       href: '/admin/reports'
+    },
+    {
+      id: 'educator-roles',
+      label: 'บทบาท Educator',
+      icon: UserCheck,
+      href: '/admin/educator-roles'
     },
     {
       id: 'settings',

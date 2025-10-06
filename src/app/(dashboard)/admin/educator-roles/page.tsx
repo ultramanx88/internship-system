@@ -1,0 +1,516 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { AdminGuard } from '@/components/auth/PermissionGuard';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Search, 
+  Filter, 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Users, 
+  Calendar,
+  BookOpen,
+  Eye,
+  CheckCircle,
+  XCircle
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useDebounce } from '@/hooks/use-debounce';
+import { AdminMenu } from '@/components/admin/AdminMenu';
+import { EducatorRoleAssignmentForm } from '@/components/admin/educator-roles/EducatorRoleAssignmentForm';
+
+interface Educator {
+  id: string;
+  name: string;
+  email: string;
+  t_name?: string;
+  t_surname?: string;
+  e_name?: string;
+  e_surname?: string;
+}
+
+interface AcademicYear {
+  id: string;
+  year: number;
+  name: string;
+  isActive: boolean;
+}
+
+interface Semester {
+  id: string;
+  name: string;
+  academicYearId: string;
+  startDate?: string;
+  endDate?: string;
+  isActive: boolean;
+}
+
+interface EducatorRoleAssignment {
+  id: string;
+  educatorId: string;
+  academicYearId: string;
+  semesterId: string;
+  roles: string[];
+  isActive: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  educator: Educator;
+  academicYear: AcademicYear;
+  semester: Semester;
+}
+
+export default function EducatorRolesPage() {
+  const { toast } = useToast();
+  const [assignments, setAssignments] = useState<EducatorRoleAssignment[]>([]);
+  const [educators, setEducators] = useState<Educator[]>([]);
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+  const [semesters, setSemesters] = useState<Semester[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('all');
+  const [selectedSemester, setSelectedSemester] = useState<string>('all');
+  const [selectedRole, setSelectedRole] = useState<string>('all');
+  const [isActiveFilter, setIsActiveFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [showForm, setShowForm] = useState(false);
+  const [editingAssignment, setEditingAssignment] = useState<EducatorRoleAssignment | null>(null);
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const limit = 10;
+
+  // Fetch educators
+  const fetchEducators = useCallback(async () => {
+    try {
+      const response = await fetch('/api/students?role=educators&limit=1000');
+      if (response.ok) {
+        const data = await response.json();
+        setEducators(data.users || []);
+      }
+    } catch (error) {
+      console.error('Error fetching educators:', error);
+    }
+  }, []);
+
+  // Fetch academic years
+  const fetchAcademicYears = useCallback(async () => {
+    try {
+      const response = await fetch('/api/academic-years');
+      if (response.ok) {
+        const data = await response.json();
+        setAcademicYears(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching academic years:', error);
+    }
+  }, []);
+
+  // Fetch semesters
+  const fetchSemesters = useCallback(async () => {
+    try {
+      const response = await fetch('/api/semesters');
+      if (response.ok) {
+        const data = await response.json();
+        setSemesters(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching semesters:', error);
+    }
+  }, []);
+
+  // Fetch assignments
+  const fetchAssignments = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: limit.toString()
+      });
+
+      if (debouncedSearchTerm) params.append('search', debouncedSearchTerm);
+      if (selectedAcademicYear !== 'all') params.append('academicYearId', selectedAcademicYear);
+      if (selectedSemester !== 'all') params.append('semesterId', selectedSemester);
+      if (selectedRole !== 'all') params.append('role', selectedRole);
+      if (isActiveFilter !== 'all') params.append('isActive', isActiveFilter);
+
+      const response = await fetch(`/api/educator-role-assignments?${params}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setAssignments(data.assignments || []);
+        setTotalPages(data.totalPages || 1);
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'เกิดข้อผิดพลาด',
+          description: data.error || 'ไม่สามารถดึงข้อมูลได้'
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching assignments:', error);
+      toast({
+        variant: 'destructive',
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [debouncedSearchTerm, selectedAcademicYear, selectedSemester, selectedRole, isActiveFilter, currentPage, toast]);
+
+  useEffect(() => {
+    fetchEducators();
+    fetchAcademicYears();
+    fetchSemesters();
+  }, [fetchEducators, fetchAcademicYears, fetchSemesters]);
+
+  useEffect(() => {
+    fetchAssignments();
+  }, [fetchAssignments]);
+
+  const handleCreateAssignment = () => {
+    setEditingAssignment(null);
+    setShowForm(true);
+  };
+
+  const handleEditAssignment = (assignment: EducatorRoleAssignment) => {
+    setEditingAssignment(assignment);
+    setShowForm(true);
+  };
+
+  const handleDeleteAssignment = async (assignmentId: string) => {
+    if (!confirm('คุณแน่ใจหรือไม่ที่จะลบการกำหนดบทบาทนี้?')) return;
+
+    try {
+      const response = await fetch(`/api/educator-role-assignments/${assignmentId}`, {
+        method: 'DELETE'
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: 'ลบสำเร็จ',
+          description: data.message
+        });
+        fetchAssignments();
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'เกิดข้อผิดพลาด',
+          description: data.error || 'ไม่สามารถลบได้'
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting assignment:', error);
+      toast({
+        variant: 'destructive',
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'
+      });
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setShowForm(false);
+    setEditingAssignment(null);
+    fetchAssignments();
+  };
+
+  const getRoleBadge = (role: string) => {
+    const roleConfig = {
+      courseInstructor: { label: 'อาจารย์ประจำวิชา', color: 'bg-blue-100 text-blue-800' },
+      supervisor: { label: 'อาจารย์นิเทศ', color: 'bg-green-100 text-green-800' },
+      committee: { label: 'กรรมการ', color: 'bg-purple-100 text-purple-800' },
+      visitor: { label: 'ผู้เยี่ยมชม', color: 'bg-gray-100 text-gray-800' }
+    };
+
+    const config = roleConfig[role as keyof typeof roleConfig] || { label: role, color: 'bg-gray-100 text-gray-800' };
+    
+    return (
+      <Badge className={config.color}>
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const getEducatorName = (educator: Educator) => {
+    if (educator.t_name && educator.t_surname) {
+      return `${educator.t_name} ${educator.t_surname}`;
+    }
+    if (educator.e_name && educator.e_surname) {
+      return `${educator.e_name} ${educator.e_surname}`;
+    }
+    return educator.name;
+  };
+
+  const filteredSemesters = semesters.filter(semester => 
+    selectedAcademicYear === 'all' || semester.academicYearId === selectedAcademicYear
+  );
+
+  return (
+    <AdminGuard>
+      <div className="flex h-screen bg-gray-50">
+        <AdminMenu />
+        
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="bg-white shadow-sm border-b">
+            <div className="px-6 py-4">
+              <h1 className="text-2xl font-bold text-gray-900">จัดการบทบาท Educator</h1>
+              <p className="text-gray-600">กำหนดบทบาทให้ educator ตามเทอมและปีการศึกษา</p>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-auto p-6">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>รายการการกำหนดบทบาท</CardTitle>
+                    <CardDescription>
+                      จัดการบทบาทของ educator ในแต่ละเทอมและปีการศึกษา
+                    </CardDescription>
+                  </div>
+                  <Button onClick={handleCreateAssignment} className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="h-4 w-4 mr-2" />
+                    เพิ่มการกำหนดบทบาท
+                  </Button>
+                </div>
+              </CardHeader>
+
+              <CardContent>
+                {/* Filters */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">ค้นหา</label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        placeholder="ค้นหาตามชื่อ educator..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">ปีการศึกษา</label>
+                    <select
+                      value={selectedAcademicYear}
+                      onChange={(e) => setSelectedAcademicYear(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">ทั้งหมด</option>
+                      {academicYears.map((year) => (
+                        <option key={year.id} value={year.id}>
+                          {year.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">ภาคเรียน</label>
+                    <select
+                      value={selectedSemester}
+                      onChange={(e) => setSelectedSemester(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">ทั้งหมด</option>
+                      {filteredSemesters.map((semester) => (
+                        <option key={semester.id} value={semester.id}>
+                          {semester.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">บทบาท</label>
+                    <select
+                      value={selectedRole}
+                      onChange={(e) => setSelectedRole(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">ทั้งหมด</option>
+                      <option value="courseInstructor">อาจารย์ประจำวิชา</option>
+                      <option value="supervisor">อาจารย์นิเทศ</option>
+                      <option value="committee">กรรมการ</option>
+                      <option value="visitor">ผู้เยี่ยมชม</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">สถานะ</label>
+                    <select
+                      value={isActiveFilter}
+                      onChange={(e) => setIsActiveFilter(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">ทั้งหมด</option>
+                      <option value="true">ใช้งาน</option>
+                      <option value="false">ไม่ใช้งาน</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Assignments Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">Educator</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">ปีการศึกษา</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">ภาคเรียน</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">บทบาท</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">สถานะ</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">วันที่สร้าง</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">การดำเนินการ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {isLoading ? (
+                        <tr>
+                          <td colSpan={7} className="text-center py-8 text-gray-500">
+                            กำลังโหลดข้อมูล...
+                          </td>
+                        </tr>
+                      ) : assignments.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="text-center py-8 text-gray-500">
+                            ไม่พบข้อมูลการกำหนดบทบาท
+                          </td>
+                        </tr>
+                      ) : (
+                        assignments.map((assignment) => (
+                          <tr key={assignment.id} className="border-b hover:bg-gray-50">
+                            <td className="py-3 px-4">
+                              <div>
+                                <div className="font-medium text-gray-900">
+                                  {getEducatorName(assignment.educator)}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {assignment.educator.email}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center">
+                                <Calendar className="h-4 w-4 text-gray-400 mr-2" />
+                                {assignment.academicYear.name}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center">
+                                <BookOpen className="h-4 w-4 text-gray-400 mr-2" />
+                                {assignment.semester.name}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex flex-wrap gap-1">
+                                {assignment.roles.map((role) => (
+                                  <div key={role}>
+                                    {getRoleBadge(role)}
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              {assignment.isActive ? (
+                                <Badge className="bg-green-100 text-green-800">
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  ใช้งาน
+                                </Badge>
+                              ) : (
+                                <Badge className="bg-red-100 text-red-800">
+                                  <XCircle className="h-3 w-3 mr-1" />
+                                  ไม่ใช้งาน
+                                </Badge>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-sm text-gray-500">
+                              {new Date(assignment.createdAt).toLocaleDateString('th-TH')}
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleEditAssignment(assignment)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDeleteAssignment(assignment.id)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center mt-6">
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        ก่อนหน้า
+                      </Button>
+                      <span className="px-3 py-2 text-sm text-gray-700">
+                        หน้า {currentPage} จาก {totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        ถัดไป
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* Assignment Form Modal */}
+      {showForm && (
+        <EducatorRoleAssignmentForm
+          assignment={editingAssignment}
+          educators={educators}
+          academicYears={academicYears}
+          semesters={semesters}
+          onSuccess={handleFormSuccess}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingAssignment(null);
+          }}
+        />
+      )}
+    </AdminGuard>
+  );
+}

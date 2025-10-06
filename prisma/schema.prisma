@@ -57,6 +57,17 @@ model User {
   department    Department?   @relation(fields: [departmentId], references: [id])
   faculty       Faculty?      @relation(fields: [facultyId], references: [id])
   major         Major?        @relation(fields: [majorId], references: [id])
+  roleAssignments EducatorRoleAssignment[] @relation("EducatorRoleAssignments")
+  
+  // Application workflow relations
+  courseInstructorApplications Application[] @relation("CourseInstructorApplications")
+  supervisorApplications      Application[] @relation("SupervisorApplications")
+  committeeApprovals         CommitteeApproval[] @relation("CommitteeApprovals")
+  
+  // Report relations
+  studentReports             Report[] @relation("StudentReports")
+  supervisorReports          Report[] @relation("SupervisorReports")
+  evaluatorEvaluations       Evaluation[] @relation("EvaluatorEvaluations")
 
   @@map("users")
 }
@@ -83,9 +94,78 @@ model Application {
   feedback      String?
   projectTopic  String?
   printRecordId String?
+  
+  // Student Workflow fields
+  studentWorkflowStep   String? // profile_complete, application_submitted, staff_reviewed, completed
+  studentProfileComplete Boolean @default(false)
+  applicationSubmitted  Boolean @default(false)
+  staffReviewed         Boolean @default(false)
+  staffFeedback         String?
+  staffReviewedAt       DateTime?
+  
+  // Staff Workflow fields
+  staffWorkflowStep     String? // document_received, document_reviewed, document_approved, document_sent_to_company, completed
+  documentReceived      Boolean @default(false)
+  documentReviewed      Boolean @default(false)
+  documentApproved      Boolean @default(false)
+  documentSentToCompany Boolean @default(false)
+  staffWorkflowNotes    String?
+  documentReviewedAt    DateTime?
+  documentApprovedAt    DateTime?
+  documentSentAt        DateTime?
+  
+  // Course Instructor Workflow fields
+  courseInstructorId    String?
+  supervisorId          String?
+  courseInstructorStatus String? // pending, approved, rejected
+  supervisorStatus      String? // pending, assigned, completed
+  committeeStatus       String? // pending, approved, rejected
+  courseInstructorFeedback String?
+  supervisorFeedback    String?
+  committeeFeedback     String?
+  courseInstructorApprovedAt DateTime?
+  supervisorAssignedAt  DateTime?
+  committeeApprovedAt   DateTime?
+  
+  // Instructor Workflow fields
+  instructorWorkflowStep String? // application_received, instructor_reviewed, supervisor_assigned, completed
+  instructorReceived     Boolean @default(false)
+  instructorReviewed     Boolean @default(false)
+  supervisorAssigned     Boolean @default(false)
+  instructorWorkflowNotes String?
+  instructorReceivedAt   DateTime?
+  instructorReviewedAt   DateTime?
+  
+  // Supervisor Workflow fields
+  supervisorWorkflowStep String? // assignment_received, supervisor_confirmed, appointment_scheduled, completed
+  supervisorReceived     Boolean @default(false)
+  supervisorConfirmed    Boolean @default(false)
+  appointmentScheduled   Boolean @default(false)
+  supervisorWorkflowNotes String?
+  supervisorReceivedAt   DateTime?
+  supervisorConfirmedAt  DateTime?
+  appointmentScheduledAt DateTime?
+  
+  // Committee Workflow fields
+  committeeWorkflowStep String? // application_received, committee_reviewed, completed
+  committeeReceived     Boolean @default(false)
+  committeeReviewed     Boolean @default(false)
+  committeeWorkflowNotes String?
+  committeeReceivedAt   DateTime?
+  committeeReviewedAt   DateTime?
+  
+  // Relations
   internship    Internship        @relation(fields: [internshipId], references: [id], onDelete: Cascade)
   printRecord   PrintRecord?      @relation(fields: [printRecordId], references: [id])
   student       User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  courseInstructor User?          @relation("CourseInstructorApplications", fields: [courseInstructorId], references: [id])
+  supervisor    User?             @relation("SupervisorApplications", fields: [supervisorId], references: [id])
+  
+  // Committee approvals
+  committeeApprovals CommitteeApproval[]
+  
+  // Reports
+  reports Report[]
 
   @@map("applications")
 }
@@ -248,12 +328,134 @@ enum DocumentStatus {
   rejected
 }
 
+model AcademicYear {
+  id            String   @id @default(cuid())
+  year          Int      @unique
+  name          String
+  isActive      Boolean  @default(false)
+  startDate     DateTime?
+  endDate       DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  semesters     Semester[]
+  roleAssignments EducatorRoleAssignment[] @relation("EducatorRoleAssignments")
+
+  @@map("academic_years")
+}
+
+model Semester {
+  id            String   @id @default(cuid())
+  name          String
+  academicYearId String
+  startDate     DateTime?
+  endDate       DateTime?
+  isActive      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  academicYear  AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  roleAssignments EducatorRoleAssignment[] @relation("EducatorRoleAssignments")
+
+  @@unique([name, academicYearId])
+  @@map("semesters")
+}
+
+model EducatorRoleAssignment {
+  id            String   @id @default(cuid())
+  educatorId    String
+  academicYearId String
+  semesterId    String
+  roles         String   // JSON array of roles
+  isActive      Boolean  @default(true)
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  educator      User         @relation("EducatorRoleAssignments", fields: [educatorId], references: [id], onDelete: Cascade)
+  academicYear  AcademicYear @relation("EducatorRoleAssignments", fields: [academicYearId], references: [id], onDelete: Cascade)
+  semester      Semester     @relation("EducatorRoleAssignments", fields: [semesterId], references: [id], onDelete: Cascade)
+
+  @@unique([educatorId, academicYearId, semesterId])
+  @@map("educator_role_assignments")
+}
+
+model CommitteeApproval {
+  id            String   @id @default(cuid())
+  applicationId String
+  committeeId   String
+  status        String   // approved, rejected, pending
+  feedback      String?
+  approvedAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  committee     User        @relation("CommitteeApprovals", fields: [committeeId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, committeeId])
+  @@map("committee_approvals")
+}
+
 model DocumentTemplate {
   id        String   @id @default(cuid())
   type      String   @unique
-  config    String
+  config    String   // JSON configuration
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("document_templates")
+}
+
+model Report {
+  id            String        @id @default(cuid())
+  applicationId String
+  studentId     String
+  supervisorId  String?
+  title         String
+  content       String
+  status        ReportStatus  @default(draft)
+  priority      Int           @default(1)
+  submittedAt   DateTime?
+  reviewedAt    DateTime?
+  feedback      String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  student       User          @relation("StudentReports", fields: [studentId], references: [id], onDelete: Cascade)
+  supervisor    User?         @relation("SupervisorReports", fields: [supervisorId], references: [id], onDelete: SetNull)
+  evaluations   Evaluation[]
+
+  @@map("reports")
+}
+
+model Evaluation {
+  id          String        @id @default(cuid())
+  reportId    String
+  evaluatorId String
+  score       Int           // 1-5 scale
+  feedback    String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  report      Report        @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  evaluator   User          @relation("EvaluatorEvaluations", fields: [evaluatorId], references: [id], onDelete: Cascade)
+
+  @@unique([reportId, evaluatorId])
+  @@map("evaluations")
+}
+
+enum ReportStatus {
+  draft
+  submitted
+  reviewed
+  approved
+  rejected
 }

@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, cleanup } from '@/lib/auth-utils';
 
 const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
     const authResult = await requireAuth(request, ['admin', 'staff']);
-    if (!authResult.success) {
-      return NextResponse.json({ success: false, message: authResult.message }, { status: 401 });
+    if ('error' in authResult) {
+      return authResult.error;
     }
 
     const body = await request.json();
     const { language = 'thai' } = body;
 
     // Get document template
-    const template = await prisma.documentTemplate.findFirst({
+    const template = await (prisma as any).documentTemplate.findFirst({
       where: { type: 'DOCUMENT_NUMBER' }
     });
 
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       }
     };
 
-    await prisma.documentTemplate.update({
+    await (prisma as any).documentTemplate.update({
       where: { type: 'DOCUMENT_NUMBER' },
       data: { config: JSON.stringify(newConfig) }
     });
@@ -64,6 +64,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    await cleanup();
   }
 }

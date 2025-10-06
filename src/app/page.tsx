@@ -13,8 +13,26 @@ export default function Home() {
     
     if (!loading) {
       if (user) {
-        console.log('User is logged in, redirecting to dashboard...');
-        router.replace('/dashboard');
+        console.log('User is logged in, redirecting based on role...');
+        const userRoles = Array.isArray(user.roles) ? user.roles : JSON.parse(user.roles || '[]');
+        
+        // Redirect based on user role
+        if (userRoles.includes('admin')) {
+          router.replace('/admin');
+        } else if (userRoles.includes('staff')) {
+          router.replace('/staff');
+        } else if (userRoles.includes('student')) {
+          router.replace('/student');
+        } else if (
+          userRoles.includes('courseInstructor') || 
+          userRoles.includes('visitor') || 
+          userRoles.includes('committee')
+        ) {
+          router.replace('/educator');
+        } else {
+          // Default fallback
+          router.replace('/student');
+        }
       } else {
         console.log('User not logged in, redirecting to login...');
         router.replace('/login');
