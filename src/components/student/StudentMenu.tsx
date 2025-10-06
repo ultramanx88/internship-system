@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
+import { useSystemLogo } from '@/hooks/use-system-logo';
 import { 
   Home, 
   FileText, 
@@ -13,6 +14,7 @@ import {
   Settings,
   LogOut
 } from 'lucide-react';
+import Image from 'next/image';
 
 interface StudentMenuProps {
   className?: string;
@@ -21,6 +23,7 @@ interface StudentMenuProps {
 export function StudentMenu({ className }: StudentMenuProps) {
   const pathname = usePathname();
   const { logout } = useAuth();
+  const { systemLogo } = useSystemLogo();
 
   const isActive = (path: string) => {
     return pathname === path || pathname.startsWith(path + '/');
@@ -55,6 +58,15 @@ export function StudentMenu({ className }: StudentMenuProps) {
 
   return (
     <div className={cn("w-64 bg-gray-50 border-r border-gray-200 h-full", className)}>
+      {/* App Logo Header */}
+      <div className="flex items-center gap-3 px-4 py-4 border-b bg-white">
+        {systemLogo ? (
+          <Image src={systemLogo} alt="App Logo" width={28} height={28} className="rounded" />
+        ) : (
+          <Home className="w-5 h-5" />
+        )}
+        <span className="font-semibold text-gray-800">Internship System</span>
+      </div>
       {/* หน้าแรก */}
       <Link
         href="/student"

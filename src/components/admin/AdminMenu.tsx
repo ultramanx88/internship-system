@@ -15,7 +15,7 @@ import {
   LogOut
 } from 'lucide-react';
 import Image from 'next/image';
-import { useAppTheme } from '@/hooks/use-app-theme';
+import { useSystemLogo } from '@/hooks/use-system-logo';
 
 interface AdminMenuProps {
   className?: string;
@@ -24,7 +24,7 @@ interface AdminMenuProps {
 export function AdminMenu({ className }: AdminMenuProps) {
   const pathname = usePathname();
   const { logout } = useAuth();
-  const { logo } = useAppTheme();
+  const { systemLogo } = useSystemLogo();
 
   const isActive = (path: string) => {
     return pathname === path || pathname.startsWith(path + '/');
@@ -67,8 +67,8 @@ export function AdminMenu({ className }: AdminMenuProps) {
     <div className={cn("w-64 bg-gray-50 border-r border-gray-200 h-full", className)}>
       {/* App Logo Header */}
       <div className="flex items-center gap-3 px-4 py-4 border-b bg-white">
-        {logo ? (
-          <Image src={logo} alt="App Logo" width={28} height={28} className="rounded" />
+        {systemLogo ? (
+          <Image src={systemLogo} alt="App Logo" width={28} height={28} className="rounded" />
         ) : (
           <Home className="w-5 h-5" />
         )}

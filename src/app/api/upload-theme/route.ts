@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     
     // Generate file name and path
     const fileName = generateThemeFileName(file.name, type);
-    const relativePath = `/assets/images/${fileName}`;
+    const relativePath = `/assets/images/system/${fileName}`;
     const fullPath = path.join(process.cwd(), 'public', relativePath);
 
     // Create directory if not exists

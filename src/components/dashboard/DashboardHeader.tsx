@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/hooks/use-auth';
 import { useProfileImage } from '@/hooks/use-profile-image';
+import { useSystemLogo } from '@/hooks/use-system-logo';
 import {
   Avatar,
   AvatarFallback,
@@ -26,6 +27,7 @@ import { usePathname } from 'next/navigation';
 export function DashboardHeader() {
   const { user, loading, logout } = useAuth();
   const { profileImage } = useProfileImage();
+  const { systemLogo } = useSystemLogo();
   const pathname = usePathname();
   const resolveSettingsPath = () => {
     const rawRoles: any = user?.roles;
@@ -111,7 +113,18 @@ export function DashboardHeader() {
                       src={profileImage || `https://avatar.vercel.sh/${user.email}.png`} 
                       alt={user.name} 
                     />
-                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                    <AvatarFallback>
+                      <img 
+                        src={systemLogo} 
+                        alt="System Logo" 
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                      <span className="hidden">{getInitials(user.name)}</span>
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>

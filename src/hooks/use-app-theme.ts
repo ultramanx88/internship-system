@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useSystemLogo } from './use-system-logo';
 
 const THEME_STORAGE_KEY = "internship-flow-theme";
-const DEFAULT_LOGO_URL = "/assets/images/garuda-logo.png";
+const DEFAULT_LOGO_URL = "/assets/images/system/garuda-logo.png";
 
 export function useAppTheme() {
-  const [logo, setLogo] = useState<string | null>(DEFAULT_LOGO_URL);
+  const { systemLogo, updateSystemLogo } = useSystemLogo();
+  const [logo, setLogo] = useState<string | null>(systemLogo);
   const [isThemeLoading, setIsThemeLoading] = useState(true);
   const [loginBackground, setLoginBackground] = useState<string | null>(null);
 
@@ -57,8 +59,9 @@ export function useAppTheme() {
         
         if (response.ok) {
           const data = await response.json();
-          const logoPath = data.url || `/assets/images/${file.name}`;
+          const logoPath = data.url || `/assets/images/system/${file.name}`;
           setLogo(logoPath);
+          updateSystemLogo(logoPath);
           alert('อัปโหลดโลโก้สำเร็จ');
         } else {
           const errorData = await response.json();
