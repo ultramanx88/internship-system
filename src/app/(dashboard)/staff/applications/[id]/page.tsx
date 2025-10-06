@@ -145,6 +145,7 @@ export default function StaffApplicationDetailsPage() {
                                     <TabsTrigger value="student" className="flex items-center gap-2"><User className="h-4 w-4" /> คำขอ</TabsTrigger>
                                     <TabsTrigger value="overview" className="flex items-center gap-2"><FileText className="h-4 w-4" /> สหกิจ ข้อมูล</TabsTrigger>
                                     <TabsTrigger value="company" className="flex items-center gap-2"><Building className="h-4 w-4" /> บริษัท</TabsTrigger>
+                                    <TabsTrigger value="internship" className="flex items-center gap-2"><FileText className="h-4 w-4" /> สหกิจ</TabsTrigger>
                                     <TabsTrigger value="timeline" className="flex items-center gap-2"><Calendar className="h-4 w-4" /> ไทม์ไลน์</TabsTrigger>
                                     <TabsTrigger value="documents" className="flex items-center gap-2"><FileText className="h-4 w-4" /> เอกสาร</TabsTrigger>
                                 </TabsList>
@@ -329,6 +330,92 @@ export default function StaffApplicationDetailsPage() {
                                     <div className="space-y-3">
                                         <InfoRow label="ชื่อบริษัท" value={application?.companyName} />
                                         <InfoRow label="ตำแหน่ง" value={application?.position} />
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="internship" className="mt-6">
+                                    <div className="space-y-6">
+                                        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                                            <h3 className="text-lg font-semibold text-green-800 mb-2">ข้อมูลสหกิจศึกษา</h3>
+                                            <p className="text-green-700">คำขอได้รับการอนุมัติจากกรรมการเรียบร้อยแล้ว</p>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <Card>
+                                                <CardHeader>
+                                                    <CardTitle className="text-base">ข้อมูลการอนุมัติ</CardTitle>
+                                                </CardHeader>
+                                                <CardContent className="space-y-3">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">สถานะ:</span>
+                                                        <span className="font-medium text-green-600">อนุมัติแล้ว</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">วันที่อนุมัติ:</span>
+                                                        <span className="font-medium">20 มกราคม 2567</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">กรรมการที่อนุมัติ:</span>
+                                                        <span className="font-medium">2/2 คน</span>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+
+                                            <Card>
+                                                <CardHeader>
+                                                    <CardTitle className="text-base">ข้อมูลการปฏิบัติงาน</CardTitle>
+                                                </CardHeader>
+                                                <CardContent className="space-y-3">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">วันที่เริ่ม:</span>
+                                                        <span className="font-medium">1 มิถุนายน 2567</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">วันที่สิ้นสุด:</span>
+                                                        <span className="font-medium">30 กันยายน 2567</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">ระยะเวลา:</span>
+                                                        <span className="font-medium">4 เดือน</span>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        </div>
+
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle className="text-base">รายชื่อกรรมการที่อนุมัติ</CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                                        <div>
+                                                            <p className="font-medium">กรรมการ 1</p>
+                                                            <p className="text-sm text-gray-600">18 มกราคม 2567</p>
+                                                        </div>
+                                                        <span className="text-green-600 font-medium">อนุมัติ</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                                        <div>
+                                                            <p className="font-medium">กรรมการ 2</p>
+                                                            <p className="text-sm text-gray-600">19 มกราคม 2567</p>
+                                                        </div>
+                                                        <span className="text-green-600 font-medium">อนุมัติ</span>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+
+                                        <div className="flex gap-4">
+                                            <Button className="bg-blue-600 hover:bg-blue-700">
+                                                <Printer className="w-4 h-4 mr-2" />
+                                                พิมพ์เอกสารอนุมัติ
+                                            </Button>
+                                            <Button variant="outline">
+                                                <FileText className="w-4 h-4 mr-2" />
+                                                ดูรายละเอียดเพิ่มเติม
+                                            </Button>
+                                        </div>
                                     </div>
                                 </TabsContent>
 

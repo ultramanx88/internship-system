@@ -18,6 +18,7 @@ import {
     AlertCircle,
     Calendar
 } from 'lucide-react';
+import { ApplicationWorkflow } from '@/components/student/ApplicationWorkflow';
 
 interface DashboardData {
     user: {
