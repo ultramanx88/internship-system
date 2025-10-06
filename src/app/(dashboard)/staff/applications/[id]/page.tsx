@@ -6,7 +6,8 @@ import { StaffGuard } from '@/components/auth/PermissionGuard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText, User, Building, Calendar, Printer } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ArrowLeft, FileText, User, Building, Calendar, Printer, CheckCircle, Eye, Download } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 
 interface CommitteeApproval {
@@ -46,6 +47,8 @@ export default function StaffApplicationDetailsPage() {
     const [application, setApplication] = useState<ApplicationDetails | null>(null);
     const { user: currentUser } = useAuth();
     const [studentProfile, setStudentProfile] = useState<any | null>(null);
+    const [isDocumentReviewed, setIsDocumentReviewed] = useState(false);
+    const [showDocumentPreview, setShowDocumentPreview] = useState(false);
 
     // Mock data for committee approvals - ในระบบจริงจะดึงจาก API
     const mockCommitteeApprovals: CommitteeApproval[] = [
@@ -83,6 +86,25 @@ export default function StaffApplicationDetailsPage() {
         const total = approvals.length;
         
         return { approved, rejected, pending, total };
+    };
+
+    const handleDocumentReview = () => {
+        setIsDocumentReviewed(true);
+        setShowDocumentPreview(true);
+    };
+
+    const handleClosePreview = () => {
+        setShowDocumentPreview(false);
+    };
+
+    const handlePrintDocument = () => {
+        // ฟังก์ชันสำหรับปริ้นเอกสาร
+        window.print();
+    };
+
+    const handleDownloadDocument = () => {
+        // ฟังก์ชันสำหรับดาวน์โหลดเอกสาร
+        alert('กำลังดาวน์โหลดเอกสาร...');
     };
 
     useEffect(() => {
@@ -531,21 +553,199 @@ export default function StaffApplicationDetailsPage() {
                                 </TabsContent>
 
                                 <TabsContent value="documents" className="mt-6">
-                                    {application?.documents?.length ? (
-                                        <ul className="list-disc pl-6 text-gray-900">
-                                            {application.documents.map((d: string, i: number) => (
-                                                <li key={i}>{d}</li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <div className="text-gray-600">ยังไม่มีรายการเอกสาร</div>
-                                    )}
+                                    <div className="space-y-6">
+                                        {/* สถานะการตรวจเอกสาร */}
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle className="flex items-center gap-2">
+                                                    <FileText className="h-5 w-5" />
+                                                    สถานะการตรวจเอกสาร
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-3 h-3 rounded-full ${
+                                                            isDocumentReviewed ? 'bg-green-500' : 'bg-yellow-500'
+                                                        }`}></div>
+                                                        <span className={`font-medium ${
+                                                            isDocumentReviewed ? 'text-green-700' : 'text-yellow-700'
+                                                        }`}>
+                                                            {isDocumentReviewed ? 'ตรวจเอกสารแล้ว' : 'รอตรวจเอกสาร'}
+                                                        </span>
+                                                    </div>
+                                                    <Button 
+                                                        onClick={handleDocumentReview}
+                                                        className={`${
+                                                            isDocumentReviewed 
+                                                                ? 'bg-green-600 hover:bg-green-700' 
+                                                                : 'bg-blue-600 hover:bg-blue-700'
+                                                        }`}
+                                                    >
+                                                        {isDocumentReviewed ? (
+                                                            <>
+                                                                <CheckCircle className="h-4 w-4 mr-2" />
+                                                                ตรวจเอกสารแล้ว
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Eye className="h-4 w-4 mr-2" />
+                                                                ตรวจเอกสาร
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+
+                                        {/* รายการเอกสาร */}
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle>รายการเอกสาร</CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                {application?.documents?.length ? (
+                                                    <div className="space-y-3">
+                                                        {application.documents.map((doc: string, i: number) => (
+                                                            <div key={i} className="flex items-center justify-between p-3 border rounded-lg">
+                                                                <div className="flex items-center gap-3">
+                                                                    <FileText className="h-5 w-5 text-gray-500" />
+                                                                    <span className="text-gray-900">{doc}</span>
+                                                                </div>
+                                                                <div className="flex gap-2">
+                                                                    <Button 
+                                                                        variant="outline" 
+                                                                        size="sm"
+                                                                        onClick={() => setShowDocumentPreview(true)}
+                                                                    >
+                                                                        <Eye className="h-4 w-4 mr-1" />
+                                                                        ดู
+                                                                    </Button>
+                                                                    <Button 
+                                                                        variant="outline" 
+                                                                        size="sm"
+                                                                        onClick={handleDownloadDocument}
+                                                                    >
+                                                                        <Download className="h-4 w-4 mr-1" />
+                                                                        ดาวน์โหลด
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-gray-600 text-center py-8">
+                                                        ยังไม่มีรายการเอกสาร
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </div>
                                 </TabsContent>
                             </Tabs>
                         </CardContent>
                     </Card>
                 </div>
             </div>
+
+            {/* Document Preview Dialog */}
+            <Dialog open={showDocumentPreview} onOpenChange={setShowDocumentPreview}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <FileText className="h-5 w-5" />
+                            พรีวิวเอกสาร
+                        </DialogTitle>
+                        <DialogDescription>
+                            ตรวจสอบเอกสารก่อนการอนุมัติและพิมพ์
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4">
+                        {/* ข้อมูลเอกสาร */}
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <h4 className="font-medium text-gray-900 mb-2">ข้อมูลเอกสาร</h4>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span className="text-gray-600">เลขที่เอกสาร:</span>
+                                    <span className="ml-2 font-medium">DOC-000001/2024</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-600">วันที่ออกเอกสาร:</span>
+                                    <span className="ml-2 font-medium">{new Date().toLocaleDateString('th-TH')}</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-600">ชื่อนักศึกษา:</span>
+                                    <span className="ml-2 font-medium">{application?.studentName || studentProfile?.name}</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-600">สถานประกอบการ:</span>
+                                    <span className="ml-2 font-medium">{application?.companyName}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* เนื้อหาเอกสาร (Mock) */}
+                        <div className="border rounded-lg p-6 bg-white">
+                            <div className="text-center mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900">หนังสืออนุมัติการฝึกงาน</h2>
+                                <p className="text-gray-600 mt-2">Letter of Approval for Internship</p>
+                            </div>
+                            
+                            <div className="space-y-4 text-sm leading-relaxed">
+                                <p>
+                                    เรื่อง <strong>อนุมัติการฝึกงานของนักศึกษา</strong>
+                                </p>
+                                
+                                <p>
+                                    เรียน <strong>ผู้จัดการฝ่ายทรัพยากรบุคคล</strong><br/>
+                                    <strong>{application?.companyName}</strong>
+                                </p>
+                                
+                                <p>
+                                    ด้วยมหาวิทยาลัยได้พิจารณาคำขอฝึกงานของนักศึกษา <strong>{application?.studentName || studentProfile?.name}</strong> 
+                                    รหัสนักศึกษา <strong>{application?.studentId || studentProfile?.id}</strong> 
+                                    สาขาวิชา <strong>{studentProfile?.major?.nameTh || studentProfile?.major}</strong> 
+                                    ในการฝึกงานที่บริษัท <strong>{application?.companyName}</strong> 
+                                    ระหว่างวันที่ <strong>1 มิถุนายน 2567</strong> ถึง <strong>31 สิงหาคม 2567</strong>
+                                </p>
+                                
+                                <p>
+                                    ทางมหาวิทยาลัยขออนุมัติให้นักศึกษาดังกล่าวสามารถฝึกงานที่บริษัทของท่านได้ 
+                                    และขอความร่วมมือในการดูแลและให้คำแนะนำแก่นักศึกษาในระหว่างการฝึกงาน
+                                </p>
+                                
+                                <p>
+                                    หากมีข้อสงสัยหรือต้องการข้อมูลเพิ่มเติม กรุณาติดต่อได้ที่หมายเลขโทรศัพท์ 02-xxx-xxxx 
+                                    หรืออีเมล internship@university.ac.th
+                                </p>
+                                
+                                <div className="mt-8">
+                                    <p className="text-center">
+                                        ขอแสดงความนับถือ<br/>
+                                        <strong>คณะกรรมการฝึกงาน</strong><br/>
+                                        <strong>มหาวิทยาลัยเทคโนโลยี</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <DialogFooter className="flex gap-2">
+                        <Button variant="outline" onClick={handleClosePreview}>
+                            ปิด
+                        </Button>
+                        <Button onClick={handlePrintDocument} className="bg-blue-600 hover:bg-blue-700">
+                            <Printer className="h-4 w-4 mr-2" />
+                            พิมพ์เอกสาร
+                        </Button>
+                        <Button onClick={handleDownloadDocument} className="bg-green-600 hover:bg-green-700">
+                            <Download className="h-4 w-4 mr-2" />
+                            ดาวน์โหลด
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </StaffGuard>
     );
 }
