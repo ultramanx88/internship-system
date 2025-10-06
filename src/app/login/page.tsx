@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { Icons } from '@/components/icons';
 import { GradientBackground } from '@/components/ui/gradient-background';
@@ -34,12 +33,6 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <LoginForm />
-          <div className="mt-4 text-center text-sm">
-            ยังไม่มีบัญชี?{' '}
-            <Link href="/register" className="font-medium text-primary underline-offset-4 hover:underline">
-              สมัครสมาชิก
-            </Link>
-          </div>
         </CardContent>
       </Card>
     </GradientBackground>
