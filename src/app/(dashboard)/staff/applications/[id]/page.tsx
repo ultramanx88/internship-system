@@ -9,6 +9,14 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, FileText, User, Building, Calendar, Printer } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 
+interface CommitteeApproval {
+    committeeId: string;
+    committeeName: string;
+    approvedAt: string;
+    status: 'approved' | 'rejected' | 'pending';
+    reason?: string;
+}
+
 interface ApplicationDetails {
     id: string;
     studentId?: string;
@@ -23,6 +31,9 @@ interface ApplicationDetails {
         documentNumber?: string;
         documentDate?: string;
     };
+    committeeApprovals?: CommitteeApproval[];
+    requiredApprovals?: number;
+    totalCommittees?: number;
     // Allow arbitrary shape for future expansion
     [key: string]: any;
 }
@@ -35,6 +46,44 @@ export default function StaffApplicationDetailsPage() {
     const [application, setApplication] = useState<ApplicationDetails | null>(null);
     const { user: currentUser } = useAuth();
     const [studentProfile, setStudentProfile] = useState<any | null>(null);
+
+    // Mock data for committee approvals - ในระบบจริงจะดึงจาก API
+    const mockCommitteeApprovals: CommitteeApproval[] = [
+        {
+            committeeId: 'committee_001',
+            committeeName: 'กรรมการ 1',
+            approvedAt: '2024-01-18',
+            status: 'approved'
+        },
+        {
+            committeeId: 'committee_002',
+            committeeName: 'กรรมการ 2',
+            approvedAt: '2024-01-19',
+            status: 'rejected',
+            reason: 'ข้อมูลบริษัทไม่ครบถ้วน'
+        },
+        {
+            committeeId: 'committee_003',
+            committeeName: 'กรรมการ 3',
+            approvedAt: '',
+            status: 'pending'
+        },
+        {
+            committeeId: 'committee_004',
+            committeeName: 'กรรมการ 4',
+            approvedAt: '2024-01-20',
+            status: 'approved'
+        }
+    ];
+
+    const getCommitteeStatusSummary = (approvals: CommitteeApproval[]) => {
+        const approved = approvals.filter(a => a.status === 'approved').length;
+        const rejected = approvals.filter(a => a.status === 'rejected').length;
+        const pending = approvals.filter(a => a.status === 'pending').length;
+        const total = approvals.length;
+        
+        return { approved, rejected, pending, total };
+    };
 
     useEffect(() => {
         let mounted = true;
@@ -356,7 +405,19 @@ export default function StaffApplicationDetailsPage() {
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-600">กรรมการที่อนุมัติ:</span>
-                                                        <span className="font-medium">2/2 คน</span>
+                                                        <span className="font-medium text-green-600">
+                                                            {getCommitteeStatusSummary(mockCommitteeApprovals).approved}/{getCommitteeStatusSummary(mockCommitteeApprovals).total} คน
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">สถานะการพิจารณา:</span>
+                                                        <span className={`font-medium ${
+                                                            getCommitteeStatusSummary(mockCommitteeApprovals).approved >= 2 
+                                                                ? 'text-green-600' 
+                                                                : 'text-yellow-600'
+                                                        }`}>
+                                                            {getCommitteeStatusSummary(mockCommitteeApprovals).approved >= 2 ? 'ผ่านเกณฑ์' : 'รอการอนุมัติเพิ่ม'}
+                                                        </span>
                                                     </div>
                                                 </CardContent>
                                             </Card>
@@ -384,23 +445,69 @@ export default function StaffApplicationDetailsPage() {
 
                                         <Card>
                                             <CardHeader>
-                                                <CardTitle className="text-base">รายชื่อกรรมการที่อนุมัติ</CardTitle>
+                                                <CardTitle className="text-base">สถานะการพิจารณาของกรรมการ</CardTitle>
+                                                <p className="text-sm text-gray-600">แสดงสถานะการอนุมัติของกรรมการแต่ละคน (ไม่ระบุชื่อจริง)</p>
                                             </CardHeader>
                                             <CardContent>
                                                 <div className="space-y-3">
-                                                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                                                        <div>
-                                                            <p className="font-medium">กรรมการ 1</p>
-                                                            <p className="text-sm text-gray-600">18 มกราคม 2567</p>
+                                                    {mockCommitteeApprovals.map((approval, index) => (
+                                                        <div key={approval.committeeId} className={`flex items-center justify-between p-3 rounded-lg ${
+                                                            approval.status === 'approved' ? 'bg-green-50' :
+                                                            approval.status === 'rejected' ? 'bg-red-50' :
+                                                            'bg-yellow-50'
+                                                        }`}>
+                                                            <div>
+                                                                <p className="font-medium">{approval.committeeName}</p>
+                                                                <p className="text-sm text-gray-600">
+                                                                    {approval.approvedAt 
+                                                                        ? new Date(approval.approvedAt).toLocaleDateString('th-TH')
+                                                                        : 'รอการพิจารณา'
+                                                                    }
+                                                                </p>
+                                                                {approval.reason && (
+                                                                    <p className="text-xs text-red-600 mt-1">เหตุผล: {approval.reason}</p>
+                                                                )}
+                                                            </div>
+                                                            <span className={`font-medium ${
+                                                                approval.status === 'approved' ? 'text-green-600' :
+                                                                approval.status === 'rejected' ? 'text-red-600' :
+                                                                'text-yellow-600'
+                                                            }`}>
+                                                                {approval.status === 'approved' ? 'อนุมัติ' :
+                                                                 approval.status === 'rejected' ? 'ไม่อนุมัติ' :
+                                                                 'รอพิจารณา'}
+                                                            </span>
                                                         </div>
-                                                        <span className="text-green-600 font-medium">อนุมัติ</span>
+                                                    ))}
+                                                </div>
+                                                
+                                                {/* สรุปผลการพิจารณา */}
+                                                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                                                    <h4 className="font-medium text-gray-900 mb-2">สรุปผลการพิจารณา</h4>
+                                                    <div className="grid grid-cols-3 gap-4 text-sm">
+                                                        <div className="text-center">
+                                                            <div className="text-2xl font-bold text-green-600">
+                                                                {getCommitteeStatusSummary(mockCommitteeApprovals).approved}
+                                                            </div>
+                                                            <div className="text-gray-600">อนุมัติ</div>
+                                                        </div>
+                                                        <div className="text-center">
+                                                            <div className="text-2xl font-bold text-red-600">
+                                                                {getCommitteeStatusSummary(mockCommitteeApprovals).rejected}
+                                                            </div>
+                                                            <div className="text-gray-600">ไม่อนุมัติ</div>
+                                                        </div>
+                                                        <div className="text-center">
+                                                            <div className="text-2xl font-bold text-yellow-600">
+                                                                {getCommitteeStatusSummary(mockCommitteeApprovals).pending}
+                                                            </div>
+                                                            <div className="text-gray-600">รอพิจารณา</div>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                                                        <div>
-                                                            <p className="font-medium">กรรมการ 2</p>
-                                                            <p className="text-sm text-gray-600">19 มกราคม 2567</p>
-                                                        </div>
-                                                        <span className="text-green-600 font-medium">อนุมัติ</span>
+                                                    <div className="mt-3 text-center">
+                                                        <span className="text-sm text-gray-600">
+                                                            ต้องมีกรรมการอนุมัติอย่างน้อย <strong>2 คน</strong> จากทั้งหมด {getCommitteeStatusSummary(mockCommitteeApprovals).total} คน
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </CardContent>
