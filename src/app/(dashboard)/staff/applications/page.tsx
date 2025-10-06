@@ -25,6 +25,17 @@ interface Application {
         documentNumber: string;
         documentDate: string;
     };
+    // Committee approval fields
+    committeeApprovals?: Array<{
+        committeeId: string;
+        committeeName: string;
+        approvedAt: string;
+        status: 'approved' | 'rejected';
+        reason?: string;
+    }>;
+    requiredApprovals: number;
+    currentApprovals: number;
+    pendingCommitteeReview: boolean;
 }
 
 export default function ApplicationsPage() {
@@ -42,12 +53,80 @@ export default function ApplicationsPage() {
     const loadApplications = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/applications/print');
-            const data = await response.json();
+            // Mock data for testing committee approval
+            const mockApplications: Application[] = [
+                {
+                    id: 'app_001',
+                    studentId: 's6800001',
+                    studentName: 'นาย สมชาย ใจดี',
+                    major: 'วิศวกรรมคอมพิวเตอร์',
+                    companyName: 'บริษัท ABC จำกัด',
+                    position: 'นักพัฒนาซอฟต์แวร์',
+                    status: 'รอตรวจสอบ',
+                    dateApplied: '2024-01-15',
+                    isPrinted: false,
+                    requiredApprovals: 2,
+                    currentApprovals: 0,
+                    pendingCommitteeReview: false
+                },
+                {
+                    id: 'app_002',
+                    studentId: 's6800002',
+                    studentName: 'นางสาว สุดา ใจงาม',
+                    major: 'วิศวกรรมคอมพิวเตอร์',
+                    companyName: 'บริษัท XYZ จำกัด',
+                    position: 'นักวิเคราะห์ข้อมูล',
+                    status: 'อนุมัติแล้ว',
+                    dateApplied: '2024-01-16',
+                    isPrinted: true,
+                    printRecord: {
+                        id: 'print_001',
+                        documentNumber: 'DOC000001',
+                        documentDate: '2024-01-20'
+                    },
+                    requiredApprovals: 2,
+                    currentApprovals: 2,
+                    pendingCommitteeReview: true,
+                    committeeApprovals: [
+                        {
+                            committeeId: 'committee_001',
+                            committeeName: 'กรรมการ 1',
+                            approvedAt: '2024-01-18',
+                            status: 'approved'
+                        },
+                        {
+                            committeeId: 'committee_002',
+                            committeeName: 'กรรมการ 2',
+                            approvedAt: '2024-01-19',
+                            status: 'approved'
+                        }
+                    ]
+                },
+                {
+                    id: 'app_003',
+                    studentId: 's6800003',
+                    studentName: 'นาย วิชัย เก่งมาก',
+                    major: 'วิศวกรรมคอมพิวเตอร์',
+                    companyName: 'บริษัท DEF จำกัด',
+                    position: 'นักออกแบบ UX/UI',
+                    status: 'อนุมัติแล้ว',
+                    dateApplied: '2024-01-10',
+                    isPrinted: false,
+                    requiredApprovals: 2,
+                    currentApprovals: 1,
+                    pendingCommitteeReview: true,
+                    committeeApprovals: [
+                        {
+                            committeeId: 'committee_001',
+                            committeeName: 'กรรมการ 1',
+                            approvedAt: '2024-01-12',
+                            status: 'approved'
+                        }
+                    ]
+                }
+            ];
             
-            if (data.applications) {
-                setApplications(data.applications);
-            }
+            setApplications(mockApplications);
         } catch (error) {
             console.error('Error loading applications:', error);
         } finally {
@@ -145,7 +224,18 @@ export default function ApplicationsPage() {
         }
     ];
 
-    const getStatusBadge = (status: string) => {
+    const getStatusBadge = (status: string, app: Application) => {
+        // Check committee approval status
+        if (app.pendingCommitteeReview) {
+            if (app.currentApprovals >= app.requiredApprovals) {
+                return <Badge className="bg-green-100 text-green-700">กรรมการอนุมัติแล้ว</Badge>;
+            } else {
+                return <Badge className="bg-orange-100 text-orange-700">
+                    รอกรรมการ ({app.currentApprovals}/{app.requiredApprovals})
+                </Badge>;
+            }
+        }
+
         switch (status) {
             case 'รอตรวจสอบ':
                 return <Badge className="bg-yellow-100 text-yellow-700">รอตรวจสอบ</Badge>;
@@ -157,6 +247,28 @@ export default function ApplicationsPage() {
                 return <Badge className="bg-blue-100 text-blue-700">เสร็จสิ้น</Badge>;
             default:
                 return <Badge variant="secondary">{status}</Badge>;
+        }
+    };
+
+    const getCommitteeStatus = (app: Application) => {
+        if (!app.pendingCommitteeReview) return null;
+        
+        const approvedCount = app.currentApprovals;
+        const requiredCount = app.requiredApprovals;
+        const remaining = requiredCount - approvedCount;
+        
+        if (approvedCount >= requiredCount) {
+            return (
+                <div className="text-sm text-green-600">
+                    ✓ กรรมการอนุมัติครบแล้ว ({approvedCount}/{requiredCount})
+                </div>
+            );
+        } else {
+            return (
+                <div className="text-sm text-orange-600">
+                    ⏳ รอกรรมการอีก {remaining} คน ({approvedCount}/{requiredCount})
+                </div>
+            );
         }
     };
 
@@ -307,6 +419,7 @@ export default function ApplicationsPage() {
                                         <TableHead className="font-semibold text-amber-700">ตำแหน่ง</TableHead>
                                         <TableHead className="font-semibold text-amber-700">วันที่ยื่น</TableHead>
                                         <TableHead className="font-semibold text-amber-700">สถานะ</TableHead>
+                                        <TableHead className="font-semibold text-amber-700">กรรมการ</TableHead>
                                         <TableHead className="font-semibold text-amber-700">เอกสาร</TableHead>
                                         <TableHead className="font-semibold text-amber-700 text-center">จัดการ</TableHead>
                                     </TableRow>
@@ -329,7 +442,12 @@ export default function ApplicationsPage() {
                                                     {new Date(app.dateApplied).toLocaleDateString('th-TH')}
                                                 </div>
                                             </TableCell>
-                                            <TableCell>{getStatusBadge(app.status)}</TableCell>
+                                            <TableCell>
+                                                {getStatusBadge(app.status, app)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {getCommitteeStatus(app)}
+                                            </TableCell>
                                             <TableCell>
                                                 <div className="flex flex-wrap gap-1">
                                                     <Badge variant="outline" className="text-xs">
