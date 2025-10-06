@@ -20,6 +20,17 @@ import {
   MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 // import { toast } from 'sonner';
 
 interface ApplicationData {
@@ -57,6 +68,13 @@ export default function CommitteeApplicationDetailsPage({ params }: { params: { 
   const [application, setApplication] = useState<ApplicationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectionHistory, setRejectionHistory] = useState<Array<{
+    reason: string;
+    rejectedBy: string;
+    rejectedAt: string;
+  }>>([]);
 
   // Mock data - ในระบบจริงจะดึงจาก API
   useEffect(() => {
@@ -125,20 +143,37 @@ export default function CommitteeApplicationDetailsPage({ params }: { params: { 
   };
 
   const handleReject = async () => {
+    if (!rejectReason.trim()) {
+      alert('กรุณาใส่เหตุผลในการปฏิเสธ');
+      return;
+    }
+
     setActionLoading(true);
     try {
-      // API call to reject application
+      // API call to reject application with reason
       await new Promise(resolve => setTimeout(resolve, 1000));
       alert('ปฏิเสธคำขอเรียบร้อยแล้ว');
       // Update status
       if (application) {
         setApplication({ ...application, status: 'rejected' });
+        // Add to rejection history
+        setRejectionHistory(prev => [...prev, {
+          reason: rejectReason,
+          rejectedBy: 'กรรมการ (Mock)',
+          rejectedAt: new Date().toISOString()
+        }]);
       }
+      setRejectDialogOpen(false);
+      setRejectReason('');
     } catch (error) {
       alert('เกิดข้อผิดพลาดในการปฏิเสธ');
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const handleRejectClick = () => {
+    setRejectDialogOpen(true);
   };
 
   const getStatusBadge = (status: string) => {
@@ -394,6 +429,23 @@ export default function CommitteeApplicationDetailsPage({ params }: { params: { 
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
+                      {/* Rejection History */}
+                      {rejectionHistory.map((rejection, index) => (
+                        <div key={index} className="flex items-start gap-3 p-4 bg-red-50 rounded-lg">
+                          <XCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                          <div>
+                            <p className="font-medium text-red-900">ปฏิเสธคำขอ</p>
+                            <p className="text-sm text-red-700">{rejection.rejectedBy}</p>
+                            <p className="text-xs text-red-600">{new Date(rejection.rejectedAt).toLocaleDateString('th-TH')}</p>
+                            <div className="mt-2 p-2 bg-red-100 rounded text-sm">
+                              <p className="font-medium text-red-800">เหตุผล:</p>
+                              <p className="text-red-700">{rejection.reason}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Instructor Approval */}
                       <div className="flex items-start gap-3 p-4 bg-green-50 rounded-lg">
                         <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
                         <div>
@@ -402,6 +454,8 @@ export default function CommitteeApplicationDetailsPage({ params }: { params: { 
                           <p className="text-xs text-green-600">{new Date(application.instructorApprovedAt).toLocaleDateString('th-TH')}</p>
                         </div>
                       </div>
+
+                      {/* Application Submitted */}
                       <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg">
                         <FileText className="w-5 h-5 text-blue-600 mt-0.5" />
                         <div>
@@ -419,15 +473,65 @@ export default function CommitteeApplicationDetailsPage({ params }: { params: { 
             {/* Action Buttons */}
             {application.status === 'pending' && (
               <div className="mt-6 flex justify-end gap-4">
-                <Button
-                  variant="outline"
-                  onClick={handleReject}
-                  disabled={actionLoading}
-                  className="text-red-600 border-red-200 hover:bg-red-50"
-                >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  ปฏิเสธ
-                </Button>
+                <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      onClick={handleRejectClick}
+                      disabled={actionLoading}
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      ปฏิเสธ
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>ปฏิเสธคำขอสหกิจศึกษา</DialogTitle>
+                      <DialogDescription>
+                        กรุณาใส่เหตุผลในการปฏิเสธคำขอของ {application.studentName}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="reject-reason" className="text-sm font-medium">
+                          เหตุผลในการปฏิเสธ *
+                        </Label>
+                        <Textarea
+                          id="reject-reason"
+                          placeholder="กรุณาใส่เหตุผลในการปฏิเสธคำขอ..."
+                          value={rejectReason}
+                          onChange={(e) => setRejectReason(e.target.value)}
+                          className="min-h-[100px]"
+                          required
+                        />
+                        <p className="text-xs text-gray-500">
+                          หมายเหตุ: การปฏิเสธจะส่งการแจ้งเตือนไปยังนักศึกษาและอาจารย์ประจำวิชา
+                        </p>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setRejectDialogOpen(false);
+                          setRejectReason('');
+                        }}
+                        disabled={actionLoading}
+                      >
+                        ยกเลิก
+                      </Button>
+                      <Button
+                        onClick={handleReject}
+                        disabled={actionLoading || !rejectReason.trim()}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        {actionLoading ? 'กำลังดำเนินการ...' : 'ยืนยันการปฏิเสธ'}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
                 <Button
                   onClick={handleApprove}
                   disabled={actionLoading}
