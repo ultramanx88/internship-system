@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { SupervisorGuard } from '@/components/auth/PermissionGuard';
-import { SupervisorMenu } from '@/components/supervisor/SupervisorMenu';
+import { EducatorGuard } from '@/components/auth/PermissionGuard';
+import { EducatorMenu } from '@/components/educator/EducatorMenu';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,7 @@ import {
   Calendar
 } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/use-auth';
 
 interface Application {
   id: string;
@@ -35,7 +36,8 @@ interface Application {
   responseDate?: string;
 }
 
-export default function SupervisorApplicationsPage() {
+export default function EducatorSupervisorApplicationsPage() {
+  const { user } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -160,9 +162,9 @@ export default function SupervisorApplicationsPage() {
 
   if (loading) {
     return (
-      <SupervisorGuard>
+      <EducatorGuard>
         <div className="flex h-screen bg-gray-50">
-          <SupervisorMenu />
+          <EducatorMenu userRole={user?.currentRole || 'supervisor'} educatorRole="supervisor" />
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -170,14 +172,14 @@ export default function SupervisorApplicationsPage() {
             </div>
           </div>
         </div>
-      </SupervisorGuard>
+      </EducatorGuard>
     );
   }
 
   return (
-    <SupervisorGuard>
+    <EducatorGuard>
       <div className="flex h-screen bg-gray-50">
-        <SupervisorMenu />
+        <EducatorMenu userRole={user?.currentRole || 'supervisor'} educatorRole="supervisor" />
         
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
@@ -271,7 +273,7 @@ export default function SupervisorApplicationsPage() {
                         </div>
 
                         <div className="flex flex-col gap-2 ml-4">
-                          <Link href={`/supervisor/applications/${application.id}`}>
+                          <Link href={`/educator/supervisor/applications/${application.id}`}>
                             <Button variant="outline" size="sm">
                               <Eye className="h-4 w-4 mr-2" />
                               ดูรายละเอียด
@@ -311,6 +313,6 @@ export default function SupervisorApplicationsPage() {
           </div>
         </div>
       </div>
-    </SupervisorGuard>
+    </EducatorGuard>
   );
 }

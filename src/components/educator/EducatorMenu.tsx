@@ -15,7 +15,11 @@ import {
   Clock,
   CheckSquare,
   Settings,
-  LogOut
+  LogOut,
+  Users,
+  Calendar,
+  Eye,
+  CheckCircle
 } from 'lucide-react';
 import Image from 'next/image';
 import { useSystemLogo } from '@/hooks/use-system-logo';
@@ -71,19 +75,37 @@ export function EducatorMenu({ userRole, educatorRole, className }: EducatorMenu
       ];
     }
     
-    if (currentRole === 'อาจารย์นิเทศ' || currentRole === 'academicAdvisor') {
+    if (currentRole === 'อาจารย์นิเทศ' || currentRole === 'academicAdvisor' || currentRole === 'supervisor') {
       return [
+        {
+          id: 'supervisor-dashboard',
+          label: 'แดชบอร์ดอาจารย์นิเทศ',
+          icon: Home,
+          href: '/educator/supervisor'
+        },
+        {
+          id: 'supervisor-applications',
+          label: 'รายการเอกสาร',
+          icon: FileText,
+          href: '/educator/supervisor/applications'
+        },
+        {
+          id: 'supervisor-students',
+          label: 'นักศึกษาที่รับผิดชอบ',
+          icon: Users,
+          href: '/educator/supervisor/students'
+        },
+        {
+          id: 'supervision-appointment',
+          label: 'นัดหมายนิเทศ',
+          icon: Calendar,
+          href: '/educator/supervisor/schedule'
+        },
         {
           id: 'internship-letter',
           label: 'หนังสือฝึกงาน',
           icon: FileText,
           href: '/educator/internship-letter'
-        },
-        {
-          id: 'supervision-appointment',
-          label: 'นัดหมายนิเทศ',
-          icon: Clock,
-          href: '/educator/supervision-appointment'
         },
         {
           id: 'supervision-report-advisor',
@@ -195,7 +217,7 @@ export function EducatorMenu({ userRole, educatorRole, className }: EducatorMenu
           <div className="px-4 py-3 bg-orange-100">
             <span className="font-medium text-orange-800">
               {currentRole === 'อาจารย์ประจำวิชา' || currentRole === 'courseInstructor' ? 'อาจารย์ประจำวิชา' :
-               currentRole === 'อาจารย์นิเทศ' || currentRole === 'academicAdvisor' ? 'อาจารย์นิเทศ' :
+               currentRole === 'อาจารย์นิเทศ' || currentRole === 'academicAdvisor' || currentRole === 'supervisor' ? 'อาจารย์นิเทศ' :
                currentRole === 'กรรมการ' || currentRole === 'committee' ? 'กรรมการ' : 'เมนู'}
             </span>
           </div>

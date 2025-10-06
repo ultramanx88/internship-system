@@ -1,7 +1,7 @@
 'use client';
 
-import { SupervisorGuard } from '@/components/auth/PermissionGuard';
-import { SupervisorMenu } from '@/components/supervisor/SupervisorMenu';
+import { EducatorGuard } from '@/components/auth/PermissionGuard';
+import { EducatorMenu } from '@/components/educator/EducatorMenu';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -14,8 +14,11 @@ import {
   TrendingUp,
   UserCheck
 } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 
-export default function SupervisorDashboard() {
+export default function EducatorSupervisorDashboard() {
+  const { user } = useAuth();
+  
   // Mock data - ในระบบจริงจะดึงจาก API
   const stats = {
     totalStudents: 12,
@@ -68,9 +71,9 @@ export default function SupervisorDashboard() {
   ];
 
   return (
-    <SupervisorGuard>
+    <EducatorGuard>
       <div className="flex h-screen bg-gray-50">
-        <SupervisorMenu />
+        <EducatorMenu userRole={user?.currentRole || 'supervisor'} educatorRole="supervisor" />
         
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
@@ -237,6 +240,6 @@ export default function SupervisorDashboard() {
           </div>
         </div>
       </div>
-    </SupervisorGuard>
+    </EducatorGuard>
   );
 }

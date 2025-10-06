@@ -41,10 +41,8 @@ export function PermissionGuard({
           router.replace('/staff');
         } else if (userRoles.includes('student')) {
           router.replace('/student');
-        } else if (userRoles.includes('courseInstructor') || userRoles.includes('visitor') || userRoles.includes('committee')) {
+        } else if (userRoles.includes('courseInstructor') || userRoles.includes('visitor') || userRoles.includes('committee') || userRoles.includes('supervisor')) {
           router.replace('/educator');
-        } else if (userRoles.includes('supervisor')) {
-          router.replace('/supervisor');
         } else {
           router.replace(fallbackPath);
         }
@@ -140,10 +138,4 @@ export function VisitorGuard({ children, fallbackPath = '/login' }: { children: 
   );
 }
 
-export function SupervisorGuard({ children, fallbackPath = '/login' }: { children: ReactNode; fallbackPath?: string }) {
-  return (
-    <PermissionGuard requiredRoles={['supervisor']} fallbackPath={fallbackPath}>
-      {children}
-    </PermissionGuard>
-  );
-}
+// SupervisorGuard removed - supervisor is now part of educator role
