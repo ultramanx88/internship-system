@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, ReactNode } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-type Role = 'admin' | 'staff' | 'courseInstructor' | 'committee' | 'visitor' | 'student';
+type Role = 'admin' | 'staff' | 'courseInstructor' | 'committee' | 'visitor' | 'student' | 'supervisor';
 
 interface PermissionGuardProps {
   children: ReactNode;
@@ -43,6 +43,8 @@ export function PermissionGuard({
           router.replace('/student');
         } else if (userRoles.includes('courseInstructor') || userRoles.includes('visitor') || userRoles.includes('committee')) {
           router.replace('/educator');
+        } else if (userRoles.includes('supervisor')) {
+          router.replace('/supervisor');
         } else {
           router.replace(fallbackPath);
         }
@@ -133,6 +135,14 @@ export function CommitteeGuard({ children, fallbackPath = '/login' }: { children
 export function VisitorGuard({ children, fallbackPath = '/login' }: { children: ReactNode; fallbackPath?: string }) {
   return (
     <PermissionGuard requiredRoles={['visitor']} fallbackPath={fallbackPath}>
+      {children}
+    </PermissionGuard>
+  );
+}
+
+export function SupervisorGuard({ children, fallbackPath = '/login' }: { children: ReactNode; fallbackPath?: string }) {
+  return (
+    <PermissionGuard requiredRoles={['supervisor']} fallbackPath={fallbackPath}>
       {children}
     </PermissionGuard>
   );
