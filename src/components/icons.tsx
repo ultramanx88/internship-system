@@ -10,7 +10,11 @@ type IconProps = SVGProps<SVGSVGElement> & {
 export const Icons = {
   logo: ({ logoUrl, width = 32, height = 32, ...props }: IconProps) => {
     if (logoUrl) {
-      return <Image src={logoUrl} alt="Logo" width={width} height={height} />;
+      // If logo is a local asset path, use native <img> to avoid Next/Image optimization errors
+      if (logoUrl.startsWith('/')) {
+        return <img src={logoUrl} alt="Logo" width={width} height={height} />;
+      }
+      return <Image src={logoUrl} alt="Logo" width={width} height={height} unoptimized />;
     }
     return (
       <svg

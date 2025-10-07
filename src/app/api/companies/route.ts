@@ -58,7 +58,27 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: sort === 'desc' ? 'desc' : 'asc' },
         skip,
         take: limit,
-        include: {
+        select: {
+          id: true,
+          name: true,
+          nameEn: true,
+          address: true,
+          addressEn: true,
+          province: true,
+          district: true,
+          subdistrict: true,
+          postalCode: true,
+          phone: true,
+          email: true,
+          website: true,
+          description: true,
+          descriptionEn: true,
+          industry: true,
+          industryEn: true,
+          size: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
           _count: {
             select: {
               internships: true,

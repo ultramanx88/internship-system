@@ -7,6 +7,27 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  
+  // Fix ChunkLoadError in production
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    return config;
+  },
+  
+  // Optimize chunks for production
+  experimental: {
+    // optimizeCss: true, // Disabled due to critters module issue
+  },
+  
+  // Output configuration for better chunk loading
+  // output: 'standalone', // Temporarily disabled due to webpack chunk issues
 
   images: {
     domains: [

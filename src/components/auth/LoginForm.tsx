@@ -125,11 +125,11 @@ export function LoginForm() {
   };
   
   const handleUserSelect = (email: string) => {
-      const user = demoUsers.find(u => u.email === email);
-      if (user) {
-          setIdentifier(user.email);
-          setPassword(user.password || '123456');
-      }
+    const user = demoUsers.find(u => u.email === email);
+    if (user) {
+      setIdentifier(user.email);
+      setPassword(user.password || '123456');
+    }
   }
 
   if (showRoleSelector && userRoles.length > 0) {
@@ -174,21 +174,22 @@ export function LoginForm() {
         <LogIn />
       </Button>
     </form>
-     <div className="mt-4">
-        <Label htmlFor="user-select">หรือเลือกผู้ใช้สาธิต:</Label>
-        <Select onValueChange={handleUserSelect} disabled={isLoading}>
-          <SelectTrigger id="user-select">
-            <SelectValue placeholder="เลือกผู้ใช้สาิธิต" />
-          </SelectTrigger>
-          <SelectContent>
-            {demoUsers?.filter(user => user?.id && user?.email && user?.name).map(user => (
-              <SelectItem key={user.id} value={user.email}>
-                {user.name} ({Array.isArray(user.roles) ? user.roles.join(', ') : user.roles})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+    
+    <div className="mt-4">
+      <Label htmlFor="user-select">หรือเลือกผู้ใช้สาธิต:</Label>
+      <Select onValueChange={handleUserSelect} disabled={isLoading}>
+        <SelectTrigger id="user-select">
+          <SelectValue placeholder="เลือกผู้ใช้สาธิต" />
+        </SelectTrigger>
+        <SelectContent>
+          {demoUsers?.filter(user => user?.id && user?.email && user?.name).map(user => (
+            <SelectItem key={user.id} value={user.email}>
+              {user.name} ({Array.isArray(user.roles) ? user.roles.join(', ') : user.roles})
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
     </>
   );
 }

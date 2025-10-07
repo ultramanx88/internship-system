@@ -17,7 +17,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { parseThaiDate, isThaiDateInPast } from '@/lib/date-utils';
 import { DocumentPreview } from '@/components/student/DocumentPreview';
 import { sanitizeString, sanitizeHtml } from '@/lib/security';
-import { generateCsrfToken } from '@/lib/csrf';
+import { generateCsrfToken } from '@/lib/security';
 import Link from 'next/link';
 
 interface ApplicationFormData {

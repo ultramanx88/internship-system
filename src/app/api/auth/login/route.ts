@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { demoUsers } from '@/lib/demo-users';
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'กรุณาระบุ ID หรืออีเมล'),
@@ -28,12 +29,43 @@ export async function POST(request: Request) {
 
     const { identifier, password, role } = result.data;
 
-    // Test database connection
+    // 1) Demo users shortcut: allow login without database (useful when DB is down)
+    const demo = demoUsers.find(
+      (u) => u.id === identifier || u.email === identifier
+    );
+    if (demo) {
+      const demoPassword = (demo as any).password || '123456';
+      if (password === demoPassword) {
+        const roles = Array.isArray(demo.roles) ? demo.roles : [demo.roles].filter(Boolean);
+        
+        // Check if demo user has the requested role
+        if (!roles.includes(role)) {
+          return NextResponse.json(
+            { message: 'คุณไม่มีสิทธิ์เข้าใช้งานในบทบาทนี้' },
+            { status: 403 }
+          );
+        }
+        
+        const authUser = {
+          id: demo.id,
+          email: demo.email,
+          name: demo.name,
+          roles,
+        };
+        return NextResponse.json({ message: 'เข้าสู่ระบบสำเร็จ (demo)', user: authUser });
+      }
+      return NextResponse.json(
+        { message: 'รหัสผ่านไม่ถูกต้อง' },
+        { status: 401 }
+      );
+    }
+
+    // 2) Database verification path
     try {
       await prisma.$connect();
-      console.log('Database connected');
+      console.log('✅ Database connected');
     } catch (dbError) {
-      console.error('Database connection failed:', dbError);
+      console.error('❌ Database connection failed:', dbError);
       return NextResponse.json(
         { message: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้' },
         { status: 500 }

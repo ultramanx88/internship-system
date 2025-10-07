@@ -125,7 +125,25 @@ export function DashboardSidebar() {
     if (!user || !user.roles) return [];
     const uniqueNavs = new Map();
 
-    const userRoles = Array.isArray(user.roles) ? user.roles : JSON.parse(user.roles || '[]');
+    // Robust roles parsing: supports array, JSON string, CSV, or single role
+    let userRoles: string[] = [];
+    if (Array.isArray(user.roles)) {
+      userRoles = user.roles as string[];
+    } else if (typeof user.roles === 'string') {
+      const raw = user.roles.trim();
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          userRoles = parsed as string[];
+        } else if (typeof parsed === 'string') {
+          userRoles = [parsed];
+        }
+      } catch {
+        // Not JSON: accept CSV or single token like "student"
+        userRoles = raw.includes(',') ? raw.split(',').map(r => r.trim()).filter(Boolean) : [raw];
+      }
+    }
+
     userRoles.forEach((role: any) => {
       const navs = navConfig[role as keyof typeof navConfig];
       if (navs) {

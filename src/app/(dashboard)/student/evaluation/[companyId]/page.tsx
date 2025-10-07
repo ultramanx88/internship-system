@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Save, ArrowLeft, MapPin, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import OpenStreetMap from '@/components/map/OpenStreetMap';
+import dynamic from 'next/dynamic';
+const OpenStreetMap = dynamic(() => import('@/components/map/OpenStreetMap'), { ssr: false });
 
 interface EvaluationData {
   id: string;

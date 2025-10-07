@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { demoUsers } from '@/lib/demo-users';
 
 const verifySchema = z.object({
   identifier: z.string().min(1, 'กรุณาระบุ ID หรืออีเมล'),
@@ -27,7 +28,29 @@ export async function POST(request: Request) {
 
     const { identifier, password } = result.data;
 
-    // Test database connection
+    // 1) Demo users shortcut: allow login without database (useful when DB is down)
+    const demo = demoUsers.find(
+      (u) => u.id === identifier || u.email === identifier
+    );
+    if (demo) {
+      const demoPassword = (demo as any).password || '123456';
+      if (password === demoPassword) {
+        const roles = Array.isArray(demo.roles) ? demo.roles : [demo.roles].filter(Boolean);
+        const authUser = {
+          id: demo.id,
+          email: demo.email,
+          name: demo.name,
+          roles,
+        };
+        return NextResponse.json({ message: 'ตรวจสอบข้อมูลสำเร็จ (demo)', user: authUser });
+      }
+      return NextResponse.json(
+        { message: 'รหัสผ่านไม่ถูกต้อง' },
+        { status: 401 }
+      );
+    }
+
+    // 2) Database verification path
     try {
       await prisma.$connect();
       console.log('✅ Database connected');
