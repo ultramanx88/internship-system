@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Companies API called by:', user.name);
     
     const { searchParams } = new URL(request.url);
+    const lang = (searchParams.get('lang') || 'th').toLowerCase();
     const search = searchParams.get('search') || '';
     const industry = searchParams.get('industry') || 'all';
     const size = searchParams.get('size') || 'all';
@@ -68,8 +69,16 @@ export async function GET(request: NextRequest) {
       prisma.company.count({ where }),
     ]);
 
+    const items = companies.map((c) => ({
+      ...c,
+      label: lang === 'en' ? (c.nameEn || c.name) : c.name,
+      description: lang === 'en' ? (c.descriptionEn || c.description) : c.description,
+      industry: lang === 'en' ? (c.industryEn || c.industry) : c.industry,
+      address: lang === 'en' ? (c.addressEn || c.address) : c.address,
+    }));
+
     return NextResponse.json({
-      companies,
+      companies: items,
       total,
       page,
       totalPages: Math.ceil(total / limit),

@@ -209,3 +209,79 @@ prisma:query SELECT `main`.`academic_years`.`id`, `main`.`academic_years`.`year`
  ✓ Compiled in 3.4s (791 modules)
  ✓ Compiled in 1069ms (791 modules)
  ✓ Compiled in 1058ms (791 modules)
+👤 Client connected: 5TkGDQvJBDXywL7LAAA1
+👤 User adminPick joined their room
+👑 Admin joined admin room
+👋 Client disconnected: 5TkGDQvJBDXywL7LAAA1
+👤 Client connected: EVvA5wi_i6J_EHxZAAA3
+👋 Client disconnected: EVvA5wi_i6J_EHxZAAA3
+ ○ Compiling /login ...
+👤 Client connected: YlZnWNKxP5jUTBu8AAA5
+👋 Client disconnected: YlZnWNKxP5jUTBu8AAA5
+👤 Client connected: 712iUbsA55VUm4UEAAA7
+👋 Client disconnected: 712iUbsA55VUm4UEAAA7
+👤 Client connected: n7y7fDVkVLmlZo2TAAA9
+ ✓ Compiled / in 81.4s (1495 modules)
+ GET /login 200 in 85938ms
+👋 Client disconnected: n7y7fDVkVLmlZo2TAAA9
+ GET /login 200 in 65485ms
+ GET / 200 in 66191ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 8.8s (1499 modules)
+ GET /_next/static/chunks/app/layout.js 404 in 11100ms
+ GET /_next/static/chunks/app/error.js 404 in 11164ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 11240ms
+ GET /_next/static/chunks/main-app.js?v=1759813337552 404 in 11244ms
+ GET /_next/static/css/app/layout.css?v=1759813337552 404 in 11358ms
+ ⨯ Error: Cannot find module './4447.js'
+Require stack:
+- /Users/macbookpro/Documents/internship-system/.next/server/webpack-runtime.js
+- /Users/macbookpro/Documents/internship-system/.next/server/app/_not-found/page.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/server/require.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/server/load-components.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/build/utils.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/build/swc/options.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/build/swc/index.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/server/config.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/server/next.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:203:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/page.js:1:5111)
+    at Object.<anonymous> (.next/server/app/page.js:1:5174) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/'
+}
+ ○ Compiling /_error ...
+ GET / 500 in 7740ms
+ ✓ Compiled /_error in 16.7s (1435 modules)
+ ⨯ Error: Cannot find module './8548.js'
+Require stack:
+- /Users/macbookpro/Documents/internship-system/.next/server/webpack-runtime.js
+- /Users/macbookpro/Documents/internship-system/.next/server/pages/_document.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/server/require.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/server/load-components.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/build/utils.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/build/swc/options.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/build/swc/index.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/server/config.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/server/next.js
+- /Users/macbookpro/Documents/internship-system/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/pages/_document.js:1:392)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:435) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}

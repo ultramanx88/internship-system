@@ -1,0 +1,464 @@
+{
+  "timestamp": "2025-10-07T12:22:14.862Z",
+  "checks": {
+    "usersMissingCoreFields": {
+      "count": 40,
+      "sample": [
+        {
+          "id": "000444",
+          "name": "นาย โลจิค ฟอซ",
+          "email": "000444@student.university.ac.th",
+          "phone": null
+        },
+        {
+          "id": "65010001",
+          "name": "Student User",
+          "email": "student@test.com",
+          "phone": null
+        },
+        {
+          "id": "admin001",
+          "name": "ผู้ดูแลระบบ",
+          "email": "admin@university.ac.th",
+          "phone": null
+        },
+        {
+          "id": "adminPick",
+          "name": "ธเนศ บุญทัพ",
+          "email": "ultramanx88@gmail.com",
+          "phone": null
+        },
+        {
+          "id": "instructor_002",
+          "name": "อาจารย์สมศักดิ์ วิชาการ",
+          "email": "somsak.instructor@university.ac.th",
+          "phone": null
+        },
+        {
+          "id": "instructor_003",
+          "name": "อาจารย์สมพร ใจดี",
+          "email": "somporn.instructor@university.ac.th",
+          "phone": null
+        },
+        {
+          "id": "instructor_004",
+          "name": "อาจารย์สมชาย เก่งมาก",
+          "email": "somchai.expert@university.ac.th",
+          "phone": null
+        },
+        {
+          "id": "test001",
+          "name": "Test User",
+          "email": "test@test.com",
+          "phone": null
+        },
+        {
+          "id": "test_instructor_001",
+          "name": "อาจารย์ทดสอบ ใจดี",
+          "email": "test.instructor.flow@university.ac.th",
+          "phone": null
+        },
+        {
+          "id": "u6800001",
+          "name": "Student 001",
+          "email": "u6800001@smart-solutions.com",
+          "phone": ""
+        },
+        {
+          "id": "u6800002",
+          "name": "Student 002",
+          "email": "u6800002@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800003",
+          "name": "Student 003",
+          "email": "u6800003@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800004",
+          "name": "Student 004",
+          "email": "u6800004@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800005",
+          "name": "Student 005",
+          "email": "u6800005@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800006",
+          "name": "Student 006",
+          "email": "u6800006@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800007",
+          "name": "Student 007",
+          "email": "u6800007@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800008",
+          "name": "Student 008",
+          "email": "u6800008@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800009",
+          "name": "Student 009",
+          "email": "u6800009@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800010",
+          "name": "Student 010",
+          "email": "u6800010@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800011",
+          "name": "Student 011",
+          "email": "u6800011@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800012",
+          "name": "Student 012",
+          "email": "u6800012@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800013",
+          "name": "Student 013",
+          "email": "u6800013@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800014",
+          "name": "Student 014",
+          "email": "u6800014@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800016",
+          "name": "Student 016",
+          "email": "u6800016@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800017",
+          "name": "Student 017",
+          "email": "u6800017@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800018",
+          "name": "Student 018",
+          "email": "u6800018@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800019",
+          "name": "Student 019",
+          "email": "u6800019@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800020",
+          "name": "Student 020",
+          "email": "u6800020@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "u6800021",
+          "name": "นาย ไพฑูรย์ นิคม",
+          "email": "u6800021@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "user_admin",
+          "name": "System Administrator",
+          "email": "admin@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "user_s6800001",
+          "name": "Staff 001",
+          "email": "s6800001@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "user_s6800002",
+          "name": "Staff 002",
+          "email": "s6800002@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "user_t6800001",
+          "name": "Instructor 001",
+          "email": "t6800001@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "user_t6800002",
+          "name": "อาจารย์สมชาย ใจดี",
+          "email": "t6800002@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "user_t6800003",
+          "name": "อาจารย์สมศักดิ์ วิชาการ",
+          "email": "t6800003@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "user_t6800004",
+          "name": "อาจารย์สมพร ใจดี",
+          "email": "t6800004@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "user_t6800005",
+          "name": "อาจารย์สมชาย เก่งมาก",
+          "email": "t6800005@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "user_t6800006",
+          "name": "อาจารย์สมชาย ใจดี",
+          "email": "t6800006@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "user_t6800007",
+          "name": "อาจารย์สมศักดิ์ วิชาการ",
+          "email": "t6800007@smart-solutions.com",
+          "phone": null
+        },
+        {
+          "id": "user_t6800008",
+          "name": "อาจารย์สมพร ใจดี",
+          "email": "t6800008@smart-solutions.com",
+          "phone": null
+        }
+      ]
+    },
+    "companiesMissingName": {
+      "count": 0,
+      "sample": []
+    },
+    "internshipsMissingCompany": {
+      "count": 0,
+      "sample": []
+    },
+    "orphanApplications": {
+      "count": 0
+    },
+    "usersMissingFacultyOrMajor": {
+      "count": 33,
+      "sample": [
+        {
+          "id": "000444",
+          "name": "นาย โลจิค ฟอซ",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "admin001",
+          "name": "ผู้ดูแลระบบ",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "adminPick",
+          "name": "ธเนศ บุญทัพ",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "cmgbu1q6r000dxpzmd3u3gxg4",
+          "name": "อาจารย์สมชาย ใจดี",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "cmgd1u5b20000xp7d1tye046i",
+          "name": "กรรมการ 1",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "cmgd1u5ob0001xp7dcl71wd25",
+          "name": "กรรมการ 2",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "cmgd1u61o0002xp7dfmwcmpwy",
+          "name": "กรรมการ 3",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "cmgd1u6f70003xp7d3477s6b8",
+          "name": "กรรมการ 4",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "cmgd1u6si0004xp7dm7km4b4q",
+          "name": "กรรมการ 5",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "cmgd1u75r0005xp7d6jq4cany",
+          "name": "กรรมการ 6",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "instructor_002",
+          "name": "อาจารย์สมศักดิ์ วิชาการ",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "instructor_003",
+          "name": "อาจารย์สมพร ใจดี",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "instructor_004",
+          "name": "อาจารย์สมชาย เก่งมาก",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "instructor_test_001",
+          "name": "อาจารย์ทดสอบ 001",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "settings_test_1759742964784",
+          "name": "Settings Test User",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "staff_suda",
+          "name": "นางสาวสุดา ธุรการ",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "student_for_instructor_001",
+          "name": "นางสาวสมใจ เรียนดี",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "supervisor_test_001",
+          "name": "อาจารย์นิเทศ ใจดี",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "supervisor_test_002",
+          "name": "อาจารย์นิเทศ เก่งมาก",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "teacher_somsak",
+          "name": "นายสมศักดิ์ วิชาการ",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "test_instructor_001",
+          "name": "อาจารย์ทดสอบ ใจดี",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "test_student_001",
+          "name": "นายทดสอบ ใจดี",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "user_admin",
+          "name": "System Administrator",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "user_s6800001",
+          "name": "Staff 001",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "user_s6800002",
+          "name": "Staff 002",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "user_t6800001",
+          "name": "Instructor 001",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "user_t6800002",
+          "name": "อาจารย์สมชาย ใจดี",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "user_t6800003",
+          "name": "อาจารย์สมศักดิ์ วิชาการ",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "user_t6800004",
+          "name": "อาจารย์สมพร ใจดี",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "user_t6800005",
+          "name": "อาจารย์สมชาย เก่งมาก",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "user_t6800006",
+          "name": "อาจารย์สมชาย ใจดี",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "user_t6800007",
+          "name": "อาจารย์สมศักดิ์ วิชาการ",
+          "facultyId": null,
+          "majorId": null
+        },
+        {
+          "id": "user_t6800008",
+          "name": "อาจารย์สมพร ใจดี",
+          "facultyId": null,
+          "majorId": null
+        }
+      ]
+    }
+  }
+}

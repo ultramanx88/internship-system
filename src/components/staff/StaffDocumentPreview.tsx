@@ -44,13 +44,17 @@ interface StaffDocumentPreviewProps {
   onClose: () => void;
   application: ApplicationData;
   type: 'internship' | 'co_op';
+  onApprove?: (applicationId: string) => void;
+  onReject?: (applicationId: string) => void;
 }
 
 export function StaffDocumentPreview({ 
   isOpen, 
   onClose, 
   application, 
-  type 
+  type,
+  onApprove,
+  onReject,
 }: StaffDocumentPreviewProps) {
   const [selectedDocument, setSelectedDocument] = useState<'application' | 'request' | 'introduction'>(
     type === 'co_op' ? 'application' : 'request'
@@ -853,12 +857,14 @@ ${type === 'co_op' ? `       อาจารย์ที่รับผิดช
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose}>
-              ปิด
-            </Button>
-            <Button onClick={onClose}>
-              ตกลง พิมพ์เอกสาร
-            </Button>
+            <Button variant="outline" onClick={onClose}>ปิด</Button>
+            <Button variant="outline" onClick={handlePrint}>พิมพ์</Button>
+            {onReject && (
+              <Button variant="destructive" onClick={() => onReject(application.id)}>ไม่อนุมัติ</Button>
+            )}
+            {onApprove && (
+              <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={() => onApprove(application.id)}>อนุมัติ</Button>
+            )}
           </div>
         </div>
       </DialogContent>

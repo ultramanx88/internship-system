@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,10 +12,52 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Camera } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
+import 'leaflet/dist/leaflet.css';
+import { useRef } from 'react';
+
+function OSMMap({ lat, lng, onPick }: { lat?: number; lng?: number; onPick: (lat: number, lng: number) => void }) {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        let mapInstance: any;
+        (async () => {
+            const leaflet: any = (await import('leaflet')).default;
+            const el = containerRef.current as any;
+            if (!el || el._leaflet_id) return; // guard double init
+            mapInstance = leaflet.map(el).setView([lat || 13.736717, lng || 100.523186], 6);
+            leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
+            let marker: any;
+            if (lat && lng) {
+                marker = leaflet.marker([lat, lng]).addTo(mapInstance);
+            }
+            mapInstance.on('click', (e: any) => {
+                const { lat, lng } = e.latlng || {};
+                if (!lat || !lng) return;
+                if (marker) marker.setLatLng([lat, lng]);
+                else marker = leaflet.marker([lat, lng]).addTo(mapInstance);
+                onPick(lat, lng);
+            });
+        })();
+        return () => {
+            try {
+                if ((containerRef.current as any)?._leaflet_id && (mapInstance as any)?.remove) {
+                    (mapInstance as any).remove();
+                }
+            } catch {}
+        };
+    }, [lat, lng, onPick]);
+    return <div ref={containerRef} style={{ height: '100%', width: '100%' }} />;
+}
 
 export default function InternshipFormPage() {
     const router = useRouter();
+    const { toast } = useToast();
+    const { user } = useAuth();
+    const [isMapMounted, setIsMapMounted] = useState(false);
+    useEffect(() => { setIsMapMounted(true); }, []);
     const [isLoading, setIsLoading] = useState(false);
+    const [errorFields, setErrorFields] = useState<Set<string>>(new Set());
     const [provinces, setProvinces] = useState<any[]>([]);
     const [districts, setDistricts] = useState<any[]>([]);
     const [subdistricts, setSubdistricts] = useState<any[]>([]);
@@ -49,6 +92,11 @@ export default function InternshipFormPage() {
         supervisorName: '',
         supervisorTel: '',
         supervisorEmail: '',
+        // เหตุผลและหัวข้อโครงการสำหรับคำร้อง
+        studentReason: '',
+        projectProposal: '',
+        latitude: '',
+        longitude: '',
         
         // เอกสารและประเภท
         selectedLanguage: 'thai', // 'thai' หรือ 'english'
@@ -128,11 +176,25 @@ export default function InternshipFormPage() {
 
     const currentLabels = isEnglish ? labels.english : labels.thai;
 
-    // โหลดข้อมูลจังหวัด
+    // handleSaver: บันทึกอัตโนมัติลง localStorage แบบ debounce เมื่อมีการแก้ไข
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            try {
+                localStorage.setItem('internship-form-draft', JSON.stringify(formData));
+            } catch (e) {
+                // noop
+            }
+        }, 800);
+        return () => clearTimeout(timer);
+        // เก็บร่างเมื่อมีการเปลี่ยนแปลงข้อมูลหลัก ๆ
+    }, [formData]);
+
+    // โหลดข้อมูลจังหวัด (ตามภาษา)
     useEffect(() => {
         const loadProvinces = async () => {
             try {
-                const response = await fetch('/api/address/provinces');
+                const lang = isEnglish ? 'en' : 'th';
+                const response = await fetch(`/api/address/provinces?lang=${lang}`);
                 const data = await response.json();
                 if (data.success) {
                     setProvinces(data.provinces);
@@ -142,7 +204,11 @@ export default function InternshipFormPage() {
             }
         };
         loadProvinces();
-    }, []);
+        // เมื่อเปลี่ยนภาษา ให้รีเซ็ตเขต/แขวงเพื่อป้องกัน label ไม่ตรงภาษา
+        setDistricts([]);
+        setSubdistricts([]);
+        setFormData(prev => ({ ...prev, districtId: '', subdistrictId: '' }));
+    }, [isEnglish]);
 
     // โหลดข้อมูลแบบร่างจาก localStorage
     useEffect(() => {
@@ -172,7 +238,8 @@ export default function InternshipFormPage() {
         if (formData.provinceId) {
             const loadDistricts = async () => {
                 try {
-                    const response = await fetch(`/api/address/districts?provinceId=${formData.provinceId}`);
+                    const lang = isEnglish ? 'en' : 'th';
+                    const response = await fetch(`/api/address/districts?provinceId=${formData.provinceId}&lang=${lang}`);
                     const data = await response.json();
                     if (data.success) {
                         setDistricts(data.districts);
@@ -188,14 +255,15 @@ export default function InternshipFormPage() {
             setDistricts([]);
             setSubdistricts([]);
         }
-    }, [formData.provinceId]);
+    }, [formData.provinceId, isEnglish]);
 
     // โหลดข้อมูลตำบลเมื่อเลือกอำเภอ
     useEffect(() => {
         if (formData.districtId) {
             const loadSubdistricts = async () => {
                 try {
-                    const response = await fetch(`/api/address/subdistricts?districtId=${formData.districtId}`);
+                    const lang = isEnglish ? 'en' : 'th';
+                    const response = await fetch(`/api/address/subdistricts?districtId=${formData.districtId}&lang=${lang}`);
                     const data = await response.json();
                     if (data.success) {
                         setSubdistricts(data.subdistricts);
@@ -209,7 +277,7 @@ export default function InternshipFormPage() {
         } else {
             setSubdistricts([]);
         }
-    }, [formData.districtId]);
+    }, [formData.districtId, isEnglish]);
 
     const handleSave = async () => {
         // บันทึกแบบร่าง - ไม่ต้องตรวจสอบ validation
@@ -233,15 +301,25 @@ export default function InternshipFormPage() {
             
             if (response.ok) {
                 setHasDraftData(true);
-                alert(isEnglish ? 'Draft saved successfully!' : 'บันทึกแบบร่างเรียบร้อยแล้ว!');
+                toast({
+                    title: isEnglish ? 'Draft saved' : 'บันทึกแบบร่างแล้ว',
+                    description: isEnglish ? 'Your draft has been saved.' : 'บันทึกแบบร่างเรียบร้อย',
+                });
             } else {
                 console.warn('Failed to save draft to database, but saved to localStorage');
                 setHasDraftData(true);
+                toast({
+                    title: isEnglish ? 'Draft saved locally' : 'บันทึกแบบร่างในเครื่อง',
+                    description: isEnglish ? 'Saved to your browser storage.' : 'บันทึกลงในเบราว์เซอร์เรียบร้อย',
+                });
             }
         } catch (error) {
             console.error('Error saving draft:', error);
             // ยังคงบันทึกใน localStorage แม้ว่าจะมีข้อผิดพลาด
-            alert(isEnglish ? 'Draft saved locally!' : 'บันทึกแบบร่างในเครื่องเรียบร้อยแล้ว!');
+            toast({
+                title: isEnglish ? 'Draft saved locally' : 'บันทึกแบบร่างในเครื่อง',
+                description: isEnglish ? 'Saved to your browser storage.' : 'บันทึกลงในเบราว์เซอร์เรียบร้อย',
+            });
         }
         
         setIsLoading(false);
@@ -249,59 +327,82 @@ export default function InternshipFormPage() {
     };
 
     const handleSaveAndSubmit = async () => {
-        // ตรวจสอบ validation สำหรับการส่ง
-        if (!formData.companyRegNumber.trim()) {
-            alert(isEnglish ? 'Please fill in company registration number' : 'กรุณากรอกเลขทะเบียนบริษัท');
-            return;
-        }
-        
-        // ตรวจสอบว่าเป็นตัวเลขเท่านั้น
-        if (!/^\d+$/.test(formData.companyRegNumber)) {
-            alert(isEnglish ? 'Company registration number must contain only numbers' : 'เลขทะเบียนบริษัทต้องเป็นตัวเลขเท่านั้น');
-            return;
-        }
-        
-        setIsLoading(true);
-        
-        try {
-            // สร้างข้อมูลสำหรับส่งไปยัง API
-            const applicationData = {
-                studentId: formData.studentId,
-                internshipId: formData.internshipId || 'default_internship', // ใช้ default ถ้าไม่มี
-                studentReason: formData.studentReason,
-                expectedSkills: formData.expectedSkills,
-                preferredStartDate: formData.preferredStartDate,
-                availableDuration: formData.availableDuration,
-                projectProposal: formData.projectProposal,
-                status: 'submitted' // ส่งไปยังอาจารย์ประจำวิชา
-            };
-            
-            // ส่งข้อมูลแบบสมบูรณ์
-            const response = await fetch('/api/applications', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(applicationData)
+        // ตรวจสอบค่า minimum ที่จำเป็น (ไม่บังคับเลือก internshipId ในหน้านี้)
+        if (!formData.projectProposal || !formData.projectProposal.trim() || !formData.studentReason || !formData.studentReason.trim()) {
+            const missing: string[] = [];
+            if (!formData.projectProposal?.trim()) missing.push('projectProposal');
+            if (!formData.studentReason?.trim()) missing.push('studentReason');
+            setErrorFields(new Set(missing));
+            toast({
+                variant: 'destructive',
+                title: isEnglish ? 'Missing required fields' : 'กรอกข้อมูลไม่ครบ',
+                description: isEnglish ? 'Please provide project proposal and reason.' : 'กรุณากรอกหัวข้อโครงการและเหตุผลของคำร้อง',
             });
-            
-            if (response.ok) {
-                const result = await response.json();
-                // ลบข้อมูลแบบร่างเมื่อส่งสำเร็จ
-                localStorage.removeItem('internship-form-draft');
-                setHasDraftData(false);
-                alert(isEnglish ? 'Application submitted successfully! Your application has been sent to the course instructor.' : 'ส่งใบสมัครเรียบร้อยแล้ว! ใบสมัครของคุณถูกส่งไปยังอาจารย์ประจำวิชาแล้ว');
-            } else {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to submit application');
-            }
-        } catch (error) {
-            console.error('Error submitting application:', error);
-            alert(isEnglish ? 'Failed to submit application. Please try again.' : 'ส่งใบสมัครไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+            return;
         }
-        
-        setIsLoading(false);
-        router.push('/student/application-form');
+
+        setIsLoading(true);
+
+        try {
+            // เรียก API จริง: สร้างคำขอฝึกงาน
+            const lang = isEnglish ? 'en' : 'th';
+            const resp = await fetch('/api/applications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...(user?.id ? { 'x-user-id': user.id } : {}) },
+                body: JSON.stringify({
+                    internshipId: formData.internshipId || undefined,
+                    projectProposal: formData.projectProposal || '',
+                    studentReason: formData.studentReason || '',
+                    position: formData.position || undefined,
+                    jobDescription: formData.jobDescription || undefined,
+                    company: {
+                        name: formData.companyName || undefined,
+                        phone: formData.companyPhone || undefined,
+                        address: [formData.addressNumber, formData.building, formData.floor, formData.soi, formData.road].filter(Boolean).join(' ') || undefined,
+                        provinceId: formData.provinceId || undefined,
+                        districtId: formData.districtId || undefined,
+                        subdistrictId: formData.subdistrictId || undefined,
+                        postalCode: formData.postalCode || undefined,
+                        latitude: formData.latitude || undefined,
+                        longitude: formData.longitude || undefined,
+                    }
+                })
+            });
+
+            const data = await resp.json();
+            if (!resp.ok || !data.success) {
+                const msg = data?.error || (isEnglish ? 'Cannot create application' : 'ไม่สามารถสร้างคำขอได้');
+                if (data?.details?.required) {
+                    setErrorFields(new Set(data.details.required as string[]));
+                }
+                toast({ variant: 'destructive', title: isEnglish ? 'Submit failed' : 'ส่งคำขอไม่สำเร็จ', description: msg });
+                // กรณีโปรไฟล์ไม่ครบ ให้พาไปหน้า settings
+                if (msg === 'PROFILE_INCOMPLETE') {
+                    const q = data?.details?.missing ? `?highlight=${encodeURIComponent((data.details.missing as string[]).join(','))}` : '';
+                    router.push('/student/settings' + q);
+                }
+                setIsLoading(false);
+                return;
+            }
+
+            // ล้าง draft และไป Step 3 (ยื่นเอกสาร)
+            localStorage.removeItem('internship-form-draft');
+            setHasDraftData(false);
+            toast({
+                title: isEnglish ? 'Submitted' : 'ส่งคำขอแล้ว',
+                description: isEnglish ? 'Your application has been submitted.' : 'ระบบได้บันทึกและส่งคำขอของคุณแล้ว',
+            });
+            router.push('/student/application-form');
+        } catch (e) {
+            console.error(e);
+            toast({
+                variant: 'destructive',
+                title: isEnglish ? 'Submit failed' : 'ส่งคำขอไม่สำเร็จ',
+                description: isEnglish ? 'Please try again.' : 'กรุณาลองใหม่อีกครั้ง',
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleInputChange = (field: string, value: string) => {
@@ -365,7 +466,10 @@ export default function InternshipFormPage() {
                 selectedInternshipType: 'internship'
             });
             setHasDraftData(false);
-            alert(isEnglish ? 'Draft data cleared!' : 'ลบข้อมูลแบบร่างเรียบร้อยแล้ว!');
+            toast({
+                title: isEnglish ? 'Draft cleared' : 'ลบแบบร่างแล้ว',
+                description: isEnglish ? 'Your draft data has been removed.' : 'ลบข้อมูลแบบร่างเรียบร้อย',
+            });
         }
     };
 
@@ -629,7 +733,7 @@ export default function InternshipFormPage() {
                                             <SelectContent>
                                                 {provinces.map((province) => (
                                                     <SelectItem key={province.id} value={province.id}>
-                                                        {province.nameTh}
+                                                        {province.label || province.nameTh}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -648,7 +752,7 @@ export default function InternshipFormPage() {
                                             <SelectContent>
                                                 {districts.map((district) => (
                                                     <SelectItem key={district.id} value={district.id}>
-                                                        {district.nameTh}
+                                                        {district.label || district.nameTh}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -667,7 +771,7 @@ export default function InternshipFormPage() {
                                             <SelectContent>
                                                 {subdistricts.map((subdistrict) => (
                                                     <SelectItem key={subdistrict.id} value={subdistrict.id}>
-                                                        {subdistrict.nameTh}
+                                                        {subdistrict.label || subdistrict.nameTh}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -696,6 +800,33 @@ export default function InternshipFormPage() {
                                     value={formData.mapUrl}
                                     onChange={(e) => handleInputChange('mapUrl', e.target.value)}
                                 />
+                                <div className="mt-3 rounded-md overflow-hidden border">
+                                    <div className="h-72">
+                                        {isMapMounted && (
+                                            <OSMMap
+                                                lat={formData.latitude ? Number(formData.latitude) : undefined}
+                                                lng={formData.longitude ? Number(formData.longitude) : undefined}
+                                                onPick={(lat, lng) => {
+                                                    handleInputChange('latitude', String(lat));
+                                                    handleInputChange('longitude', String(lng));
+                                                    handleInputChange('mapUrl', `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`);
+                                                }}
+                                            />
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 p-2 bg-gray-50 border-t">
+                                        <Input
+                                            placeholder="lat"
+                                            value={formData.latitude}
+                                            onChange={(e) => handleInputChange('latitude', e.target.value)}
+                                        />
+                                        <Input
+                                            placeholder="lng"
+                                            value={formData.longitude}
+                                            onChange={(e) => handleInputChange('longitude', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
                             <div>
@@ -842,6 +973,40 @@ export default function InternshipFormPage() {
                                         placeholder={isEnglish ? 'Supervisor email' : 'อีเมล (Supervisor email)'}
                                         value={formData.supervisorEmail}
                                         onChange={(e) => handleInputChange('supervisorEmail', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ส่วนที่ 4: รายละเอียดคำร้อง (จำเป็นตาม business logic) */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="w-8 h-8 bg-amber-600 text-white rounded-full flex items-center justify-center font-bold">
+                                    4
+                                </div>
+                                <h3 className="text-lg font-medium text-amber-700">{isEnglish ? 'Application Details' : 'รายละเอียดคำร้อง'}</h3>
+                            </div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <Label htmlFor="projectProposal">{isEnglish ? 'Project Proposal' : 'หัวข้อโครงการ'}</Label>
+                                    <Textarea
+                                        id="projectProposal"
+                                        placeholder={isEnglish ? 'Proposed project/topic' : 'หัวข้อหรือรายละเอียดโครงการที่จะทำ'}
+                                        value={formData.projectProposal}
+                                        onChange={(e) => handleInputChange('projectProposal', e.target.value)}
+                                        rows={4}
+                                        className={errorFields.has('projectProposal') ? 'border border-red-500' : ''}
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="studentReason">{isEnglish ? 'Reason' : 'เหตุผลการยื่น'}</Label>
+                                    <Textarea
+                                        id="studentReason"
+                                        placeholder={isEnglish ? 'Why do you apply for this position?' : 'เหตุผลที่ต้องการฝึกงานตำแหน่งนี้'}
+                                        value={formData.studentReason}
+                                        onChange={(e) => handleInputChange('studentReason', e.target.value)}
+                                        rows={4}
+                                        className={errorFields.has('studentReason') ? 'border border-red-500' : ''}
                                     />
                                 </div>
                             </div>

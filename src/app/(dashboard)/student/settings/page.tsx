@@ -59,7 +59,7 @@ export default function SettingsPage() {
     visaType: (user as any)?.visaType || 'none',
     // ข้อมูลอื่นๆ
     email: user?.email || 'somchai.jaidee@student.university.ac.th',
-    phone: (user as any)?.phone || '081-234-5678',
+    phone: (user as any)?.phone || '',
     studentId: user?.id || '65010999',
     faculty: 'คณะวิทยาศาสตร์และเทคโนโลยี',
     department: 'สาขาวิชาเทคโนโลยีสารสนเทศ',
@@ -83,6 +83,14 @@ export default function SettingsPage() {
     theme: 'light',
     dateFormat: 'thai'
   });
+
+  // Highlight fields from query (?highlight=name,email,phone,facultyId,majorId)
+  const [highlighted, setHighlighted] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const h = searchParams?.get('highlight');
+    setHighlighted(h ? new Set(h.split(',').map((s) => s.trim())) : new Set());
+  }, [searchParams]);
+  const mark = (key: string) => (highlighted.has(key) ? 'border-red-500' : '');
 
   // Academic data for dropdowns
   const [academicData, setAcademicData] = useState({
@@ -267,7 +275,8 @@ export default function SettingsPage() {
 
     const loadAcademicData = async () => {
       try {
-        const response = await fetch('/api/academic/faculties');
+        const lang = (preferences.language || 'th').toLowerCase();
+        const response = await fetch(`/api/academic/faculties?lang=${lang}`);
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.faculties) {
@@ -294,7 +303,7 @@ export default function SettingsPage() {
     
     loadUserSettings();
     loadAcademicData();
-  }, [user?.id, retryCount]);
+  }, [user?.id, retryCount, preferences.language]);
 
   // Update userData เมื่อ user object เปลี่ยน
   useEffect(() => {
@@ -406,14 +415,15 @@ export default function SettingsPage() {
         const result = await settingsResponse.json();
         
         if (result.success) {
-          alert('บันทึกข้อมูลสำเร็จ!');
-          
           // Check if came from application-form timeline
           const fromTimeline = searchParams?.get('from') === 'timeline';
           
           if (fromTimeline) {
-            // Redirect back to application-form to continue timeline
-            router.push('/student/application-form');
+            // Redirect back to application-form to continue timeline with refresh parameter immediately
+            router.push('/student/application-form?refresh=true');
+          } else {
+            // Show success message only if not from timeline
+            alert('บันทึกข้อมูลสำเร็จ!');
           }
         } else {
           throw new Error(result.error || 'API returned unsuccessful response');
@@ -818,7 +828,7 @@ export default function SettingsPage() {
                       setUserData(newData);
                       autoSave(newData);
                     }}>
-                      <SelectTrigger>
+                      <SelectTrigger className={mark('facultyId')}>
                         <SelectValue placeholder="คณะ (Faculty)" />
                       </SelectTrigger>
                       <SelectContent>
@@ -878,7 +888,7 @@ export default function SettingsPage() {
                       setUserData(newData);
                       autoSave(newData);
                     }}>
-                      <SelectTrigger>
+                      <SelectTrigger className={mark('majorId')}>
                         <SelectValue placeholder="วิชาเอก (Major)" />
                       </SelectTrigger>
                       <SelectContent>
@@ -940,6 +950,7 @@ export default function SettingsPage() {
                         setUserData(newData);
                         autoSave(newData);
                       }}
+                      className={mark('phone')}
                     />
                   </div>
                   <div>
@@ -955,6 +966,7 @@ export default function SettingsPage() {
                         setUserData(newData);
                         autoSave(newData);
                       }}
+                      className={mark('email')}
                     />
                   </div>
                 </div>

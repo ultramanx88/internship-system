@@ -1,3 +1,6 @@
+id,name,email,phone,roles
+u6800001,Student 001,u6800001@smart-solutions.com,0812345678,["student"]
+user_admin,System Administrator,admin@smart-solutions.com,0200000000,["admin"]
 คำอธิบาย,สำหรับนักศึกษาไทย: กรอกคำนำหน้า ชื่อ นามสกุลไทย (กรอกอังกฤษเพิ่มได้) | สำหรับนักศึกษาต่างชาติ: กรอกคำนำหน้า ชื่อ นามสกุลอังกฤษ,,,,,,,,,
 Login_id,password,role_id,t_title,t_name,t_middle_name,t_surname,e_title,e_name,e_middle_name,e_surname
 65010001,123456,student,นาย,สมชาย,,ใจดี,Mr.,Somchai,,Jaidee

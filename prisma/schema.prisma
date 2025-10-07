@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -57,16 +57,18 @@ model User {
   department    Department?   @relation(fields: [departmentId], references: [id])
   faculty       Faculty?      @relation(fields: [facultyId], references: [id])
   major         Major?        @relation(fields: [majorId], references: [id])
-
+  educatorRoleAssignments EducatorRoleAssignment[]
   @@map("users")
 }
 
 model Internship {
   id           String         @id @default(cuid())
   title        String
+  titleEn      String?
   companyId    String
   location     String
   description  String
+  descriptionEn String?
   type         InternshipType
   applications Application[]
   company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
@@ -82,6 +84,7 @@ model Application {
   dateApplied   DateTime
   feedback      String?
   projectTopic  String?
+  projectTopicEn String?
   printRecordId String?
   internship    Internship        @relation(fields: [internshipId], references: [id], onDelete: Cascade)
   printRecord   PrintRecord?      @relation(fields: [printRecordId], references: [id])
@@ -94,6 +97,7 @@ model Document {
   id         String         @id @default(cuid())
   studentId  String
   name       String
+  nameEn     String?
   type       DocumentType
   status     DocumentStatus @default(pending)
   size       Int
@@ -185,6 +189,7 @@ model Company {
   name        String
   nameEn      String?
   address     String?
+  addressEn   String?
   province    String?
   district    String?
   subdistrict String?
@@ -193,14 +198,64 @@ model Company {
   email       String?
   website     String?
   description String?
+  descriptionEn String?
   industry    String?
+  industryEn  String?
+  // Geo & address linkage
+  latitude    Float?
+  longitude   Float?
+  provinceIdRef   String?
+  districtIdRef   String?
+  subdistrictIdRef String?
   size        CompanySize?
   isActive    Boolean      @default(true)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   internships Internship[]
 
+  provinceRef   Province?   @relation(fields: [provinceIdRef], references: [id])
+  districtRef   District?   @relation(fields: [districtIdRef], references: [id])
+  subdistrictRef Subdistrict? @relation(fields: [subdistrictIdRef], references: [id])
+
   @@map("companies")
+}
+
+// Address Models (for real API)
+model Province {
+  id        String   @id @default(cuid())
+  nameTh    String
+  nameEn    String?
+  code      String?  @unique
+  isActive  Boolean  @default(true)
+  districts District[]
+
+  @@map("provinces")
+}
+
+model District {
+  id         String     @id @default(cuid())
+  nameTh     String
+  nameEn     String?
+  code       String?    @unique
+  isActive   Boolean    @default(true)
+  provinceId String
+  province   Province   @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  subdistricts Subdistrict[]
+
+  @@map("districts")
+}
+
+model Subdistrict {
+  id          String   @id @default(cuid())
+  nameTh      String
+  nameEn      String?
+  code        String?  @unique
+  postalCode  String?
+  isActive    Boolean  @default(true)
+  districtId  String
+  district    District @relation(fields: [districtId], references: [id], onDelete: Cascade)
+
+  @@map("subdistricts")
 }
 
 enum Role {
@@ -229,6 +284,63 @@ enum CompanySize {
   medium
   large
   enterprise
+}
+
+model AcademicYear {
+  id            String   @id @default(cuid())
+  year          Int      @unique
+  name          String
+  nameEn        String?
+  isActive      Boolean  @default(false)
+  startDate     DateTime?
+  endDate       DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  semesters     Semester[]
+  roleAssignments EducatorRoleAssignment[]
+
+  @@map("academic_years")
+}
+
+model Semester {
+  id             String   @id @default(cuid())
+  name           String
+  nameEn         String?
+  academicYearId String
+  startDate      DateTime?
+  endDate        DateTime?
+  isActive       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  roleAssignments EducatorRoleAssignment[]
+
+  @@unique([name, academicYearId])
+  @@map("semesters")
+}
+
+model EducatorRoleAssignment {
+  id             String   @id @default(cuid())
+  educatorId     String
+  academicYearId String
+  semesterId     String
+  roles          String   // JSON array of roles stored as string
+  isActive       Boolean  @default(true)
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  educator       User         @relation(fields: [educatorId], references: [id], onDelete: Cascade)
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  semester       Semester     @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+
+  @@unique([educatorId, academicYearId, semesterId])
+  @@map("educator_role_assignments")
 }
 
 enum DocumentType {

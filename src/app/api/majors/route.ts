@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const { user } = authResult;
 
     const { searchParams } = new URL(request.url);
+    const lang = (searchParams.get('lang') || 'th').toLowerCase();
     const curriculumId = searchParams.get('curriculumId');
 
     const where: any = {
@@ -46,8 +47,13 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    const items = majors.map((m) => ({
+      ...m,
+      label: lang === 'en' ? (m.nameEn || m.nameTh) : m.nameTh,
+    }));
+
     return NextResponse.json({
-      majors,
+      majors: items,
     });
   } catch (error) {
     console.error('Error fetching majors:', error);

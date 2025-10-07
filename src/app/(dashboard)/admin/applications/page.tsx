@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
-import { applications as mockApplications, users as mockUsers, internships as mockInternships } from '@/lib/data';
 import {
   Table,
   TableBody,
@@ -71,7 +70,8 @@ export default function AdminApplicationsPage() {
                 id: app.id,
                 studentName: app.student.name,
                 studentId: app.student.id,
-                major: "วิศวกรรมคอมพิวเตอร์", // Mock data - should come from student profile
+                // Map real major from API if available
+                major: app.student.major?.nameTh || app.student.major?.nameEn || '-',
                 companyName: app.internship.company.name,
                 status: app.status,
                 dateApplied: app.dateApplied,

@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
+    const lang = (searchParams.get('lang') || 'th').toLowerCase();
     const isActive = searchParams.get('isActive');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -70,9 +71,18 @@ export async function GET(request: NextRequest) {
 
     console.log('Found academic years:', academicYears.length);
 
+    const items = academicYears.map((y) => ({
+      ...y,
+      name: lang === 'en' ? (y.nameEn || y.name) : y.name,
+      semesters: y.semesters.map((s: any) => ({
+        ...s,
+        name: lang === 'en' ? (s.nameEn || s.name) : s.name,
+      })),
+    }));
+
     return NextResponse.json({
       success: true,
-      academicYears,
+      academicYears: items,
       total,
       page,
       limit,

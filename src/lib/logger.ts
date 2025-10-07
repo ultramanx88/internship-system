@@ -59,18 +59,27 @@ class Logger {
     const levelName = LogLevel[level];
     const logMessage = `[${entry.timestamp}] ${levelName}: ${message}`;
     
+    // Safely stringify context to avoid circular reference errors
+    const contextString = entry.context ? (() => {
+      try {
+        return JSON.stringify(entry.context, null, 2);
+      } catch (error) {
+        return '[Circular reference or invalid context]';
+      }
+    })() : '';
+    
     switch (level) {
       case LogLevel.ERROR:
-        console.error(logMessage, entry.context);
+        console.error(logMessage, contextString);
         break;
       case LogLevel.WARN:
-        console.warn(logMessage, entry.context);
+        console.warn(logMessage, contextString);
         break;
       case LogLevel.INFO:
-        console.info(logMessage, entry.context);
+        console.info(logMessage, contextString);
         break;
       case LogLevel.DEBUG:
-        console.debug(logMessage, entry.context);
+        console.debug(logMessage, contextString);
         break;
     }
 

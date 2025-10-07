@@ -20,6 +20,7 @@ type AuthContextType = {
   login: (identifier: string, password: string, role: Role) => Promise<AuthUser | null>;
   logout: () => void;
   switchRole: (role: Role) => void;
+  refreshUser: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -123,6 +124,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/login');
   }, [router]);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      if (!user?.id) return;
+      
+      // Use the complete user API to get all necessary data with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
+      const response = await fetch('/api/user/complete', {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.user) {
+          const updatedUser: AuthUser = {
+            ...data.user,
+            currentRole: user.currentRole
+          };
+          setUser(updatedUser);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedUser));
+          }
+        }
+      }
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.error('Refresh user data timed out');
+      } else {
+        console.error('Failed to refresh user data:', error);
+      }
+    }
+  }, [user]);
+
   const switchRole = useCallback((role: Role) => {
     if (user && user.roles.includes(role)) {
       const updatedUser = { ...user, currentRole: role };
@@ -147,8 +184,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, router]);
 
   const value = useMemo(
-    () => ({ user, loading, login, logout, switchRole }),
-    [user, loading, login, logout, switchRole]
+    () => ({ user, loading, login, logout, switchRole, refreshUser }),
+    [user, loading, login, logout, switchRole, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

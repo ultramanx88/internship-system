@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { notFound, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { internships as mockInternships, applications as mockApplications } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,28 +16,56 @@ export default function InternshipDetailsPage() {
   const internshipId = params?.internshipId as string;
   const { toast } = useToast();
   const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [internship, setInternship] = useState<any | null>(null);
   const [hasApplied, setHasApplied] = useState(false);
   const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
 
-  const internship = mockInternships.find(i => i.id === internshipId);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // ดึงประกาศฝึกงานจริง
+        const res = await fetch(`/api/internships/${encodeURIComponent(internshipId)}`);
+        const js = await res.json();
+        if (!res.ok || !js.success) {
+          notFound();
+          return;
+        }
+        setInternship(js.internship);
+
+        // ดึงคำขอของนักศึกษาคนนี้เพื่อเช็คสถานะ
+        if (user?.id) {
+          const appsRes = await fetch(`/api/applications?studentId=${encodeURIComponent(user.id)}`);
+          const apps = await appsRes.json();
+          if (apps.success && Array.isArray(apps.applications)) {
+            const existing = apps.applications.find((app: any) => app.internshipId === internshipId);
+            if (existing) {
+              setHasApplied(true);
+              setApplicationStatus(existing.status || 'pending');
+            }
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        notFound();
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [internshipId, user?.id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
 
   if (!internship) {
     notFound();
   }
-
-  // ตรวจสอบสถานะการสมัคร
-  useEffect(() => {
-    if (user) {
-      const existingApplication = mockApplications.find(
-        app => app.studentId === user.id && app.internshipId === internshipId
-      );
-      
-      if (existingApplication) {
-        setHasApplied(true);
-        setApplicationStatus(existingApplication.status);
-      }
-    }
-  }, [user, internshipId]);
 
   const handleApply = () => {
     if (!user) {
@@ -50,7 +77,7 @@ export default function InternshipDetailsPage() {
       return;
     }
 
-    // Navigate to application form with pre-selected internship
+    // ไปยังฟอร์มจริง และส่ง internshipId ที่เลือกไปด้วย
     router.push(`/student/application-form/${internship.type}?internshipId=${internshipId}`);
   };
   

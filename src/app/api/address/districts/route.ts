@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const provinceId = searchParams.get('provinceId');
+    const lang = (searchParams.get('lang') || 'th').toLowerCase();
 
     if (!provinceId) {
       return NextResponse.json(
@@ -30,9 +31,18 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    const items = districts.map((d) => ({
+      id: d.id,
+      nameTh: d.nameTh,
+      nameEn: d.nameEn,
+      code: d.code,
+      provinceId: d.provinceId,
+      label: lang === 'en' ? (d.nameEn || d.nameTh) : d.nameTh,
+    }));
+
     return NextResponse.json({
       success: true,
-      districts
+      districts: items
     });
   } catch (error) {
     console.error('Error fetching districts:', error);

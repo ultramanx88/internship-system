@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type'); // 'internship' หรือ 'co_op'
+    const lang = (searchParams.get('lang') || 'th').toLowerCase();
     
     console.log('Internships API - Fetching internships, type:', type);
     
@@ -24,9 +25,22 @@ export async function GET(request: NextRequest) {
     
     console.log('Internships API - Found internships:', internships.length);
     
+    const items = internships.map((i: any) => ({
+      ...i,
+      title: lang === 'en' ? (i.titleEn || i.title) : i.title,
+      description: lang === 'en' ? (i.descriptionEn || i.description) : i.description,
+      company: i.company ? {
+        ...i.company,
+        name: lang === 'en' ? (i.company.nameEn || i.company.name) : i.company.name,
+        description: lang === 'en' ? (i.company.descriptionEn || i.company.description) : i.company.description,
+        industry: lang === 'en' ? (i.company.industryEn || i.company.industry) : i.company.industry,
+        address: lang === 'en' ? (i.company.addressEn || i.company.address) : i.company.address,
+      } : null,
+    }));
+
     return NextResponse.json({
       success: true,
-      internships
+      internships: items
     });
   } catch (error) {
     console.error('Internships API - Error fetching internships:', error);

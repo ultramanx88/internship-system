@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { applications as mockApplications, users as mockUsers, internships as mockInternships } from '@/lib/data';
+
 import {
   Table,
   TableBody,
@@ -58,7 +58,18 @@ export default function AdminPendingApplicationsPage() {
             }
 
             const data = await response.json();
-            setApplications(data.applications || []);
+            const mapped: PendingApplicationData[] = (data.applications || []).map((app: any) => ({
+                id: app.id,
+                studentName: app.student?.name ?? '-',
+                studentId: app.student?.id ?? '-',
+                major: app.student?.major?.nameTh ?? app.student?.major?.nameEn ?? '-',
+                companyName: app.internship?.company?.name ?? '-',
+                status: app.status ?? 'pending',
+                dateApplied: app.dateApplied,
+                feedback: app.feedback,
+                projectTopic: app.projectTopic,
+            }));
+            setApplications(mapped);
             setTotalApplications(data.total || 0);
             setTotalPages(Math.ceil((data.total || 0) / limit));
             setCurrentPage(page);

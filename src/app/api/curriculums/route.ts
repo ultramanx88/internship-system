@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const departmentId = searchParams.get('departmentId');
+    const lang = (searchParams.get('lang') || 'th').toLowerCase();
     const includeRelations = searchParams.get('include') === 'true';
 
     const where: any = {
@@ -40,8 +41,17 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    const items = curriculums.map((c) => ({
+      ...c,
+      label: lang === 'en' ? (c.nameEn || c.nameTh) : c.nameTh,
+      majors: c.majors?.map((m: any) => ({
+        ...m,
+        label: lang === 'en' ? (m.nameEn || m.nameTh) : m.nameTh,
+      })),
+    }));
+
     return NextResponse.json({
-      curriculums,
+      curriculums: items,
     });
   } catch (error) {
     console.error('Error fetching curriculums:', error);

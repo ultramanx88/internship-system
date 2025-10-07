@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Eye, Download, FileText, Calendar, Printer } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { StaffDocumentPreview } from '@/components/staff/StaffDocumentPreview';
+import { useAuth } from '@/hooks/use-auth';
 
 interface Application {
     id: string;
@@ -24,6 +25,7 @@ interface Application {
         id: string;
         documentNumber: string;
         documentDate: string;
+        printedAt: string;
     };
     // Committee approval fields
     committeeApprovals?: Array<{
@@ -39,6 +41,7 @@ interface Application {
 }
 
 export default function ApplicationsPage() {
+    const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
@@ -50,83 +53,84 @@ export default function ApplicationsPage() {
         loadApplications();
     }, []);
 
+    // Translate backend status to Thai labels used in UI
+    const translateStatusToThai = (status: string): string => {
+        const map: Record<string, string> = {
+            pending: 'รอตรวจสอบ',
+            approved: 'อนุมัติแล้ว',
+            rejected: 'ปฏิเสธ',
+            needs_changes: 'ต้องแก้ไข',
+            completed: 'เสร็จสิ้น',
+        };
+        return map[status] || status;
+    };
+
     const loadApplications = async () => {
         try {
             setLoading(true);
-            // Mock data for testing committee approval
-            const mockApplications: Application[] = [
-                {
-                    id: 'app_001',
-                    studentId: 's6800001',
-                    studentName: 'นาย สมชาย ใจดี',
-                    major: 'วิศวกรรมคอมพิวเตอร์',
-                    companyName: 'บริษัท ABC จำกัด',
-                    position: 'นักพัฒนาซอฟต์แวร์',
-                    status: 'รอตรวจสอบ',
-                    dateApplied: '2024-01-15',
-                    isPrinted: false,
-                    requiredApprovals: 2,
-                    currentApprovals: 0,
-                    pendingCommitteeReview: false
-                },
-                {
-                    id: 'app_002',
-                    studentId: 's6800002',
-                    studentName: 'นางสาว สุดา ใจงาม',
-                    major: 'วิศวกรรมคอมพิวเตอร์',
-                    companyName: 'บริษัท XYZ จำกัด',
-                    position: 'นักวิเคราะห์ข้อมูล',
-                    status: 'อนุมัติแล้ว',
-                    dateApplied: '2024-01-16',
-                    isPrinted: true,
-                    printRecord: {
-                        id: 'print_001',
-                        documentNumber: 'DOC000001',
-                        documentDate: '2024-01-20'
-                    },
-                    requiredApprovals: 2,
-                    currentApprovals: 2,
-                    pendingCommitteeReview: true,
-                    committeeApprovals: [
-                        {
-                            committeeId: 'committee_001',
-                            committeeName: 'กรรมการ 1',
-                            approvedAt: '2024-01-18',
-                            status: 'approved'
-                        },
-                        {
-                            committeeId: 'committee_002',
-                            committeeName: 'กรรมการ 2',
-                            approvedAt: '2024-01-19',
-                            status: 'approved'
-                        }
-                    ]
-                },
-                {
-                    id: 'app_003',
-                    studentId: 's6800003',
-                    studentName: 'นาย วิชัย เก่งมาก',
-                    major: 'วิศวกรรมคอมพิวเตอร์',
-                    companyName: 'บริษัท DEF จำกัด',
-                    position: 'นักออกแบบ UX/UI',
-                    status: 'อนุมัติแล้ว',
-                    dateApplied: '2024-01-10',
-                    isPrinted: false,
-                    requiredApprovals: 2,
-                    currentApprovals: 1,
-                    pendingCommitteeReview: true,
-                    committeeApprovals: [
-                        {
-                            committeeId: 'committee_001',
-                            committeeName: 'กรรมการ 1',
-                            approvedAt: '2024-01-12',
-                            status: 'approved'
-                        }
-                    ]
+            // Fetch applications and print statuses from APIs
+            const headers = user?.id ? { 'x-user-id': user.id } as HeadersInit : {};
+            const [appsRes, printRes] = await Promise.all([
+                fetch('/api/applications?limit=100&sort=desc', { headers }),
+                fetch('/api/applications/print', { headers })
+            ]);
+
+            const appsJson = await appsRes.json();
+            const printJson = await printRes.json().catch(() => ({ applications: [] }));
+
+            // Build a map of print records keyed by application id
+            const printMap = new Map<string, { id: string; documentNumber: string; documentDate: string; printedAt: string }>();
+            if (printJson && Array.isArray(printJson.applications)) {
+                for (const p of printJson.applications) {
+                    if (p.printRecord) {
+                        printMap.set(p.id, {
+                            id: p.printRecord.id,
+                            documentNumber: p.printRecord.documentNumber,
+                            documentDate: p.printRecord.documentDate,
+                            printedAt: p.printRecord.printedAt,
+                        });
+                    }
                 }
-            ];
-            
-            setApplications(mockApplications);
+            }
+
+            const mapped: Application[] = (appsJson.applications || []).map((app: any) => {
+                const studentId = app?.student?.id || app?.studentId || '';
+                const studentName = app?.student?.name
+                    || [app?.student?.t_name, app?.student?.t_surname].filter(Boolean).join(' ')
+                    || [app?.student?.e_name, app?.student?.e_surname].filter(Boolean).join(' ')
+                    || '-';
+                const major = app?.student?.major?.nameTh || app?.student?.major?.nameEn || '-';
+                const companyName = app?.internship?.company?.name || '-';
+                const position = app?.internship?.position || app?.internship?.title || '-';
+                const status = translateStatusToThai(app?.status);
+                const dateApplied = typeof app?.dateApplied === 'string' ? app.dateApplied : new Date(app?.dateApplied).toISOString();
+
+                const pr = printMap.get(app.id);
+
+                return {
+                    id: app.id,
+                    studentId,
+                    studentName,
+                    major,
+                    companyName,
+                    position,
+                    status,
+                    dateApplied,
+                    isPrinted: !!pr,
+                    printRecord: pr ? {
+                        id: pr.id,
+                        documentNumber: pr.documentNumber,
+                        documentDate: pr.documentDate,
+                        printedAt: pr.printedAt,
+                    } : undefined,
+                    requiredApprovals: app.requiredApprovals ?? 2,
+                    currentApprovals: app.currentApprovals ?? 0,
+                    pendingCommitteeReview: app.pendingCommitteeReview ?? false,
+                    committeeApprovals: app.committeeApprovals ?? [],
+                };
+            });
+
+            setApplications(mapped);
         } catch (error) {
             console.error('Error loading applications:', error);
         } finally {
@@ -140,6 +144,7 @@ export default function ApplicationsPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(user?.id ? { 'x-user-id': user.id } : {}),
                 },
                 body: JSON.stringify({
                     applicationIds: [applicationId],
@@ -157,6 +162,24 @@ export default function ApplicationsPage() {
         } catch (error) {
             console.error('Error printing document:', error);
             alert('เกิดข้อผิดพลาดในการพิมพ์เอกสาร');
+        }
+    };
+
+    const handleUpdateStatus = async (applicationId: string, status: 'approved' | 'rejected') => {
+        try {
+            const response = await fetch('/api/applications', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(user?.id ? { 'x-user-id': user.id } : {}),
+                },
+                body: JSON.stringify({ id: applicationId, status }),
+            });
+            if (!response.ok) throw new Error('update failed');
+            await loadApplications();
+            alert(status === 'approved' ? 'อนุมัติเรียบร้อย' : 'ปฏิเสธเรียบร้อย');
+        } catch (e) {
+            alert('อัปเดตสถานะไม่สำเร็จ');
         }
     };
 
@@ -181,48 +204,8 @@ export default function ApplicationsPage() {
         router.push(`/staff/applications/${encodeURIComponent(application.id)}`);
     };
 
-    const mockApplications = [
-        {
-            id: 'APP001',
-            studentId: '6400112233',
-            studentName: 'นายรักดี จิตดี',
-            company: 'บริษัท ABC จำกัด',
-            position: 'นักพัฒนาซอฟต์แวร์',
-            submittedDate: '15 ม.ค. 2568',
-            status: 'รอตรวจสอบ',
-            documents: ['ใบสมัคร', 'ใบรับรอง', 'ประวัติส่วนตัว']
-        },
-        {
-            id: 'APP002',
-            studentId: '6400112234',
-            studentName: 'นางสาวมาลี สวยงาม',
-            company: 'บริษัท XYZ จำกัด',
-            position: 'นักวิเคราะห์ระบบ',
-            submittedDate: '14 ม.ค. 2568',
-            status: 'อนุมัติแล้ว',
-            documents: ['ใบสมัคร', 'ใบรับรอง', 'ประวัติส่วนตัว', 'หนังสือรับรอง']
-        },
-        {
-            id: 'APP003',
-            studentId: '6400112235',
-            studentName: 'นายสมชาย ใจดี',
-            company: 'บริษัท DEF จำกัด',
-            position: 'นักออกแบบ UI/UX',
-            submittedDate: '13 ม.ค. 2568',
-            status: 'ต้องแก้ไข',
-            documents: ['ใบสมัคร', 'ใบรับรอง']
-        },
-        {
-            id: 'APP004',
-            studentId: '6400112236',
-            studentName: 'นางสาวสุดา ขยัน',
-            company: 'บริษัท GHI จำกัด',
-            position: 'นักทดสอบซอฟต์แวร์',
-            submittedDate: '12 ม.ค. 2568',
-            status: 'เสร็จสิ้น',
-            documents: ['ใบสมัคร', 'ใบรับรอง', 'ประวัติส่วนตัว', 'หนังสือรับรอง', 'รายงานผล']
-        }
-    ];
+    // Remove legacy mockApplications list
+    // const mockApplications = [ ... ];
 
     const getStatusBadge = (status: string, app: Application) => {
         // Check committee approval status
@@ -422,6 +405,7 @@ export default function ApplicationsPage() {
                                         <TableHead className="font-semibold text-amber-700">กรรมการ</TableHead>
                                         <TableHead className="font-semibold text-amber-700">เอกสาร</TableHead>
                                         <TableHead className="font-semibold text-amber-700 text-center">จัดการ</TableHead>
+                                        <TableHead className="font-semibold text-amber-700 text-center">อนุมัติ</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -476,6 +460,20 @@ export default function ApplicationsPage() {
                                                     >
                                                         <FileText className="h-4 w-4" />
                                                     </Button>
+                                                    <Button 
+                                                        variant="outline" 
+                                                        size="sm" 
+                                                        title="พิมพ์เอกสาร"
+                                                        onClick={() => handlePrintDocument(app.id)}
+                                                    >
+                                                        <Printer className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleUpdateStatus(app.id, 'approved')}>อนุมัติ</Button>
+                                                    <Button size="sm" variant="destructive" onClick={() => handleUpdateStatus(app.id, 'rejected')}>ไม่อนุมัติ</Button>
                                                 </div>
                                             </TableCell>
                                         </TableRow>
@@ -498,6 +496,8 @@ export default function ApplicationsPage() {
                     }}
                     application={selectedApplication}
                     type="co_op" // Default to co_op, can be made dynamic based on application data
+                    onApprove={async (id) => { await handleUpdateStatus(id, 'approved'); setIsPreviewOpen(false); }}
+                    onReject={async (id) => { await handleUpdateStatus(id, 'rejected'); setIsPreviewOpen(false); }}
                 />
             )}
         </div>

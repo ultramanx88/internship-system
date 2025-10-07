@@ -33,42 +33,10 @@ export async function GET(request: NextRequest) {
 
     // Get approved application
     const approvedApplication = applications.find(app => app.status === 'approved');
-    
-    // Get upcoming deadlines (mock data for now)
-    const upcomingDeadlines = [
-      {
-        id: '1',
-        title: 'ส่งรายงานความคืบหน้า',
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-        type: 'report',
-        priority: 'high',
-      },
-      {
-        id: '2',
-        title: 'ส่งแบบประเมินสถานประกอบการ',
-        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
-        type: 'evaluation',
-        priority: 'medium',
-      },
-    ];
 
-    // Get recent activities (mock data for now)
-    const recentActivities = [
-      {
-        id: '1',
-        type: 'application',
-        message: 'ส่งใบสมัครฝึกงานเรียบร้อยแล้ว',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        status: 'success',
-      },
-      {
-        id: '2',
-        type: 'approval',
-        message: 'ใบสมัครได้รับการอนุมัติ',
-        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        status: 'success',
-      },
-    ];
+    // Upcoming deadlines and recent activities will be fetched from real tables in future; return empty arrays for now
+    const upcomingDeadlines: any[] = [];
+    const recentActivities: any[] = [];
 
     // Get statistics
     const stats = {
@@ -100,7 +68,7 @@ export async function GET(request: NextRequest) {
       { 
         success: false, 
         error: 'Internal server error',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        details: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
       },
       { status: 500 }
     );

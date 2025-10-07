@@ -43,7 +43,8 @@ export default function ApplicationForm({ studentId, onApplicationSubmitted }: A
 
   const fetchInternships = async () => {
     try {
-      const response = await fetch('/api/internships');
+      const lang = (navigator.language || 'th').toLowerCase().startsWith('en') ? 'en' : 'th';
+      const response = await fetch(`/api/internships?lang=${lang}`);
       const data = await response.json();
       
       if (data.success) {
@@ -70,15 +71,15 @@ export default function ApplicationForm({ studentId, onApplicationSubmitted }: A
     setSuccess(null);
 
     try {
-      const response = await fetch('/api/student/workflow', {
+      const response = await fetch('/api/applications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           internshipId: selectedInternshipId,
-          projectTopic: projectTopic.trim() || undefined,
-          feedback: feedback.trim() || undefined
+          projectProposal: projectTopic.trim() || undefined,
+          studentReason: feedback.trim() || undefined
         })
       });
 

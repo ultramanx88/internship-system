@@ -58,44 +58,15 @@ export default function SetupPage() {
   };
 
   const handleSeed = async () => {
-    if (!secretKey) {
-      toast({
-        variant: 'destructive',
-        title: 'ข้อผิดพลาด',
-        description: 'กรุณาใส่ Secret Key',
-      });
-      return;
-    }
-
-    setIsSeeding(true);
-    try {
-      const response = await fetch(`/api/seed?secret=${secretKey}`, {
-        method: 'POST',
-      });
-      const data = await response.json();
-      setSeedResult(data);
-      
-      if (response.ok) {
-        toast({
-          title: 'Seed ข้อมูลสำเร็จ',
-          description: 'ข้อมูลทดสอบถูกเพิ่มเข้าระบบเรียบร้อยแล้ว',
-        });
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'เกิดข้อผิดพลาด',
-          description: data.error || 'ไม่สามารถ seed ข้อมูลได้',
-        });
-      }
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถ seed ข้อมูลได้',
-      });
-    } finally {
-      setIsSeeding(false);
-    }
+    // Seed functionality disabled per system policy
+    toast({
+      variant: 'destructive',
+      title: 'ปิดการใช้งาน Seed',
+      description: 'ระบบไม่ใช้ Seed/Mock อีกต่อไป',
+    });
+    setSeedResult(null);
+    setIsSeeding(false);
+    return;
   };
 
   return (
@@ -184,39 +155,20 @@ export default function SetupPage() {
               เพิ่มข้อมูลทดสอบ
             </CardTitle>
             <CardDescription>
-              เพิ่มข้อมูลผู้ใช้และข้อมูลทดสอบเข้าระบบ
+              ฟีเจอร์นี้ถูกปิดการใช้งานแล้ว
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button 
               onClick={handleSeed} 
-              disabled={isSeeding || !secretKey}
+              disabled={true}
               className="w-full"
             >
-              {isSeeding ? 'กำลังเพิ่มข้อมูล...' : 'เพิ่มข้อมูลทดสอบ'}
+              ปิดการใช้งานแล้ว
             </Button>
-            
             {seedResult && (
               <div className="p-4 bg-muted rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  {seedResult.message?.includes('success') ? (
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 text-red-600" />
-                  )}
-                  <span className="font-medium">{seedResult.message}</span>
-                </div>
-                {seedResult.data && (
-                  <div className="text-sm space-y-1">
-                    <p>ผู้ใช้: {seedResult.data.users} คน</p>
-                    <p>บริษัท: {seedResult.data.companies} แห่ง</p>
-                    <p>ตำแหน่งฝึกงาน: {seedResult.data.internships} ตำแหน่ง</p>
-                    <p>ใบสมัคร: {seedResult.data.applications} ใบ</p>
-                  </div>
-                )}
-                {seedResult.error && (
-                  <p className="text-sm text-red-600">{seedResult.details}</p>
-                )}
+                {/* Seed result will not be shown as feature is disabled */}
               </div>
             )}
           </CardContent>

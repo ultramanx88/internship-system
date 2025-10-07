@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const districtId = searchParams.get('districtId');
+    const lang = (searchParams.get('lang') || 'th').toLowerCase();
 
     if (!districtId) {
       return NextResponse.json(
@@ -32,9 +33,19 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    const items = subdistricts.map((s) => ({
+      id: s.id,
+      nameTh: s.nameTh,
+      nameEn: s.nameEn,
+      code: s.code,
+      districtId: s.districtId,
+      postalCode: s.postalCode,
+      label: lang === 'en' ? (s.nameEn || s.nameTh) : s.nameTh,
+    }));
+
     return NextResponse.json({
       success: true,
-      subdistricts
+      subdistricts: items
     });
   } catch (error) {
     console.error('Error fetching subdistricts:', error);

@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createId } from '@paralleldrive/cuid2';
 import * as xlsx from 'xlsx';
-import { users } from '@/lib/data';
+// removed: import { users } from '@/lib/data';
 import { roles as validRolesData } from '@/lib/permissions';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';

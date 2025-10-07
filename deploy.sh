@@ -147,11 +147,12 @@ if [ "$BACKUP_DB" = true ]; then
     log "Backing up database..."
     mkdir -p "$BACKUP_DIR"
     
-    # Backup SQLite database
-    if [ -f "prisma/prisma/dev.db" ]; then
-        cp "prisma/prisma/dev.db" "$BACKUP_DIR/dev.db"
-        success "Database backed up to $BACKUP_DIR/dev.db"
-    fi
+    # Optional: Add Postgres backup here if desired using pg_dump and DATABASE_URL
+    # Example (uncomment and adjust if you want local backup before deploy):
+    # if command -v pg_dump >/dev/null 2>&1 && grep -q "^DATABASE_URL=postgres" .env* 2>/dev/null; then
+    #   info "Backing up Postgres via pg_dump"
+    #   pg_dump "$DATABASE_URL" > "$BACKUP_DIR/local-backup.sql" || warning "pg_dump failed; continuing without DB backup"
+    # fi
     
     # Backup environment files
     if [ -f ".env" ]; then
@@ -241,20 +242,12 @@ else
     error "Failed to generate Prisma client"
 fi
 
-# Run database migrations
+# Run database migrations (server-side will also run)
 log "Running database migrations..."
-if [ "$ENVIRONMENT" = "production" ]; then
-    if npx prisma migrate deploy; then
-        success "Database migrations applied"
-    else
-        error "Database migration failed"
-    fi
+if npx prisma migrate deploy; then
+    success "Database migrations applied"
 else
-    if npx prisma migrate dev --name "deploy-$(date +%Y%m%d-%H%M%S)"; then
-        success "Database migrations applied"
-    else
-        error "Database migration failed"
-    fi
+    warning "Local migration failed or not needed; proceeding with server-side migration"
 fi
 
 # =============================================================================
@@ -293,7 +286,14 @@ log "Step 7/8: Deploying to VPS"
 
 # Deploy to VPS via SSH
 log "Deploying to VPS server..."
-if ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "cd $VPS_PATH && git pull origin main && npm run build && pm2 restart internship-system || pm2 start npm --name 'internship-system' -- start"; then
+if ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "cd $VPS_PATH && \
+  git pull origin main && \
+  cp .env.production .env 2>/dev/null || true && \
+  npx prisma generate && \
+  npx prisma migrate deploy && \
+  npm ci --production && \
+  npm run build && \
+  pm2 restart internship-system || pm2 start npm --name 'internship-system' -- start"; then
     success "Deployed to VPS successfully"
 else
     error "VPS deployment failed"
@@ -312,12 +312,12 @@ log "Verifying deployment..."
 
 # Test VPS deployment
 log "Testing VPS deployment..."
-if curl -f -s "http://$VPS_HOST:3000/api/health" > /dev/null; then
+if curl -f -s "http://$VPS_HOST:8080/api/health" > /dev/null; then
     success "VPS health check passed"
-    info "Application URL: http://$VPS_HOST:3000"
+    info "Application URL: http://$VPS_HOST:8080"
 else
     warning "VPS health check failed - application may still be starting"
-    info "Application URL: http://$VPS_HOST:3000"
+    info "Application URL: http://$VPS_HOST:8080"
 fi
 
 # =============================================================================
@@ -334,7 +334,7 @@ info "Environment: $ENVIRONMENT"
 info "Backup location: $BACKUP_DIR"
 info "Log file: $LOG_FILE"
 
-info "Application URL: http://$VPS_HOST:3000"
+info "Application URL: http://$VPS_HOST:8080"
 
 # Show next steps
 echo -e "${CYAN}"

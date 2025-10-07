@@ -94,7 +94,8 @@ export function CompaniesTable() {
         console.log('fetchCompanies called with:', { search, industry, size, status, sort, page, limit });
         setIsLoading(true);
         try {
-            const url = `/api/companies?search=${encodeURIComponent(search)}&industry=${encodeURIComponent(industry)}&size=${encodeURIComponent(size)}&isActive=${encodeURIComponent(status)}&sort=${encodeURIComponent(sort)}&page=${page}&limit=${limit}`;
+            const lang = (navigator.language || 'th').toLowerCase().startsWith('en') ? 'en' : 'th';
+            const url = `/api/companies?search=${encodeURIComponent(search)}&industry=${encodeURIComponent(industry)}&size=${encodeURIComponent(size)}&isActive=${encodeURIComponent(status)}&sort=${encodeURIComponent(sort)}&page=${page}&limit=${limit}&lang=${lang}`;
             
             const response = await fetch(url, {
                 headers: {

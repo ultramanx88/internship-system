@@ -9,7 +9,15 @@ export async function GET() {
         status: "approved",
       },
       include: {
-        student: true,
+        student: {
+          select: {
+            id: true,
+            name: true,
+            major: {
+              select: { nameTh: true, nameEn: true }
+            }
+          }
+        },
         internship: {
           include: {
             company: true,
@@ -26,7 +34,7 @@ export async function GET() {
       id: app.id,
       studentId: app.student.id,
       studentName: app.student.name,
-      major: "วิศวกรรมคอมพิวเตอร์", // Mock data
+      major: app.student.major?.nameTh || app.student.major?.nameEn || "-",
       companyName: app.internship.company.name,
       status: app.status,
       dateApplied: app.dateApplied.toISOString(),

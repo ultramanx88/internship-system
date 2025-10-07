@@ -48,13 +48,12 @@ show_menu() {
 compare_data() {
     log_info "Comparing Local ↔ VPS databases..."
     
-    # Ensure local schema is correct
-    log_info "Ensuring local SQLite schema..."
-    cp prisma/schema.local.prisma prisma/schema.prisma
+    # Ensure local Prisma client
+    log_info "Ensuring local Prisma client..."
     npx prisma generate > /dev/null 2>&1
     
     # Get local data info
-    log_info "Analyzing local SQLite database..."
+    log_info "Analyzing local PostgreSQL database..."
     LOCAL_INFO=$(npx tsx -e "
     import { PrismaClient } from '@prisma/client';
     const prisma = new PrismaClient();
@@ -166,9 +165,8 @@ EOF
 deploy_local_to_vps() {
     log_info "Deploying Local → VPS with backup..."
     
-    # Ensure local schema is up to date
-    log_info "Updating local schema..."
-    npx prisma db push
+    # Ensure local Prisma client is up to date
+    log_info "Updating local Prisma client..."
     npx prisma generate
     
     # Create VPS backup first
@@ -341,16 +339,13 @@ full_deploy() {
     sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no -T "$VPS_USER@$VPS_HOST" << 'EOF'
 cd /var/www/internship-system
 git pull origin main
-
-# Switch to production schema
-cp prisma/schema.production.prisma prisma/schema.prisma
 npx prisma generate
 
 npm install
 npm run build
 
 # Run database migrations if needed
-npx prisma db push --accept-data-loss
+npx prisma migrate deploy
 
 # Ensure PM2 app runs on port 8080 (Next.js production)
 echo "-- Ensuring PM2 process on port 8080 --"
