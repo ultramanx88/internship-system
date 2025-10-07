@@ -1,0 +1,3 @@
+[0;34m[2025-10-07 07:31:08][0m Starting deployment for environment: production
+[0;34m[2025-10-07 07:31:08][0m Step 1/8: Pre-deployment checks
+[0;31m[ERROR][0m Working directory has uncommitted changes. Commit or stash them first.

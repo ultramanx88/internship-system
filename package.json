@@ -59,7 +59,13 @@
     "schema:prod": "cp prisma/schema.production.prisma prisma/schema.prisma",
     "schema:local": "cp prisma/schema.local.prisma prisma/schema.prisma",
     "db:switch:local": "./scripts/db-switch.sh local",
-    "db:switch:prod": "./scripts/db-switch.sh production"
+    "db:switch:prod": "./scripts/db-switch.sh production",
+    "deploy": "./deploy.sh",
+    "deploy:quick": "./quick-deploy.sh",
+    "deploy:prod": "./deploy.sh --env production",
+    "deploy:staging": "./deploy.sh --env staging",
+    "deploy:force": "./deploy.sh --force",
+    "deploy:no-test": "./deploy.sh --skip-tests"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
