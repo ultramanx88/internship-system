@@ -19,7 +19,12 @@ export async function GET(request: NextRequest) {
     const role = (searchParams.get('role') || 'students+educators').toLowerCase();
 
     const roleFilters: any[] = [];
-    const addRoleContains = (r: string) => roleFilters.push({ roles: { contains: `"${r}"` } });
+    const addRoleContains = (r: string) => {
+      // Match roles stored as JSON array strings (e.g., "courseInstructor")
+      roleFilters.push({ roles: { contains: `"${r}"` } });
+      // Also match roles stored as plain text without quotes (fallback for legacy data)
+      roleFilters.push({ roles: { contains: r } });
+    };
 
     if (role === 'student' || role === 'students' || role === 'students+educators') {
       addRoleContains('student');

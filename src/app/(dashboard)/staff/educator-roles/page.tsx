@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/use-debounce';
-import { StaffMenu } from '@/components/staff/StaffMenu';
 import { EducatorRoleAssignmentForm } from '@/components/admin/educator-roles/EducatorRoleAssignmentForm';
 
 interface Educator {
@@ -258,8 +257,6 @@ export default function EducatorRolesPage() {
   return (
     <StaffGuard>
       <div className="flex h-screen bg-gray-50">
-        <StaffMenu />
-        
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="bg-white shadow-sm border-b">
             <div className="px-6 py-4">

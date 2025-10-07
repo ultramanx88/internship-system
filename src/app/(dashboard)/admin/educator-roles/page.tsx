@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { AdminGuard } from '@/components/auth/PermissionGuard';
+import { PermissionGuard } from '@/components/auth/PermissionGuard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,8 +22,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/use-debounce';
-import { AdminMenu } from '@/components/admin/AdminMenu';
 import { EducatorRoleAssignmentForm } from '@/components/admin/educator-roles/EducatorRoleAssignmentForm';
+import { useAuth } from '@/hooks/use-auth';
 
 interface Educator {
   id: string;
@@ -68,6 +68,7 @@ interface EducatorRoleAssignment {
 
 export default function EducatorRolesPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [assignments, setAssignments] = useState<EducatorRoleAssignment[]>([]);
   const [educators, setEducators] = useState<Educator[]>([]);
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
@@ -88,8 +89,11 @@ export default function EducatorRolesPage() {
 
   // Fetch educators
   const fetchEducators = useCallback(async () => {
+    if (!user?.id) return;
     try {
-      const response = await fetch('/api/students?role=educators&limit=1000');
+      const response = await fetch('/api/students?role=educators&limit=1000', {
+        headers: { 'x-user-id': user.id }
+      });
       if (response.ok) {
         const data = await response.json();
         setEducators(data.users || []);
@@ -97,12 +101,15 @@ export default function EducatorRolesPage() {
     } catch (error) {
       console.error('Error fetching educators:', error);
     }
-  }, []);
+  }, [user?.id]);
 
   // Fetch academic years
   const fetchAcademicYears = useCallback(async () => {
+    if (!user?.id) return;
     try {
-      const response = await fetch('/api/academic-years');
+      const response = await fetch('/api/academic-years', {
+        headers: { 'x-user-id': user.id }
+      });
       if (response.ok) {
         const data = await response.json();
         setAcademicYears(data || []);
@@ -110,12 +117,15 @@ export default function EducatorRolesPage() {
     } catch (error) {
       console.error('Error fetching academic years:', error);
     }
-  }, []);
+  }, [user?.id]);
 
   // Fetch semesters
   const fetchSemesters = useCallback(async () => {
+    if (!user?.id) return;
     try {
-      const response = await fetch('/api/semesters');
+      const response = await fetch('/api/semesters', {
+        headers: { 'x-user-id': user.id }
+      });
       if (response.ok) {
         const data = await response.json();
         setSemesters(data || []);
@@ -123,10 +133,11 @@ export default function EducatorRolesPage() {
     } catch (error) {
       console.error('Error fetching semesters:', error);
     }
-  }, []);
+  }, [user?.id]);
 
   // Fetch assignments
   const fetchAssignments = useCallback(async () => {
+    if (!user?.id) return;
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
@@ -140,7 +151,9 @@ export default function EducatorRolesPage() {
       if (selectedRole !== 'all') params.append('role', selectedRole);
       if (isActiveFilter !== 'all') params.append('isActive', isActiveFilter);
 
-      const response = await fetch(`/api/educator-role-assignments?${params}`);
+      const response = await fetch(`/api/educator-role-assignments?${params}`, {
+        headers: { 'x-user-id': user.id }
+      });
       const data = await response.json();
 
       if (data.success) {
@@ -163,7 +176,7 @@ export default function EducatorRolesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearchTerm, selectedAcademicYear, selectedSemester, selectedRole, isActiveFilter, currentPage, toast]);
+  }, [debouncedSearchTerm, selectedAcademicYear, selectedSemester, selectedRole, isActiveFilter, currentPage, toast, user?.id]);
 
   useEffect(() => {
     fetchEducators();
@@ -256,10 +269,8 @@ export default function EducatorRolesPage() {
   );
 
   return (
-    <AdminGuard>
+    <PermissionGuard requiredRoles={['admin', 'staff']}>
       <div className="flex h-screen bg-gray-50">
-        <AdminMenu />
-        
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="bg-white shadow-sm border-b">
             <div className="px-6 py-4">
@@ -511,6 +522,6 @@ export default function EducatorRolesPage() {
           }}
         />
       )}
-    </AdminGuard>
+    </PermissionGuard>
   );
 }

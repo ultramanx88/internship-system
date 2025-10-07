@@ -31,7 +31,18 @@ export function PermissionGuard({
 
     if (!loading && user && requiredRoles.length > 0) {
       const userRoles = Array.isArray(user.roles) ? user.roles : JSON.parse(user.roles || '[]');
-      const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));
+      // Normalize localized role names to canonical keys
+      const aliasToCanonical: Record<string, Role> = {
+        'ธุรการ': 'staff',
+        'อาจารย์ประจำวิชา': 'courseInstructor',
+        'อาจารย์นิเทศ': 'visitor',
+        'กรรมการ': 'committee',
+      } as const;
+      const normalizedRoles = new Set<string>([
+        ...userRoles,
+        ...userRoles.map((r: string) => aliasToCanonical[r as keyof typeof aliasToCanonical] || r),
+      ]);
+      const hasRequiredRole = requiredRoles.some(role => normalizedRoles.has(role));
       
       if (!hasRequiredRole) {
         // Redirect to appropriate dashboard based on user's actual roles
@@ -71,7 +82,17 @@ export function PermissionGuard({
 
   if (requiredRoles.length > 0) {
     const userRoles = Array.isArray(user.roles) ? user.roles : JSON.parse(user.roles || '[]');
-    const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));
+    const aliasToCanonical: Record<string, Role> = {
+      'ธุรการ': 'staff',
+      'อาจารย์ประจำวิชา': 'courseInstructor',
+      'อาจารย์นิเทศ': 'visitor',
+      'กรรมการ': 'committee',
+    } as const;
+    const normalizedRoles = new Set<string>([
+      ...userRoles,
+      ...userRoles.map((r: string) => aliasToCanonical[r as keyof typeof aliasToCanonical] || r),
+    ]);
+    const hasRequiredRole = requiredRoles.some(role => normalizedRoles.has(role));
     
     if (!hasRequiredRole) {
       return null;
