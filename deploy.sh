@@ -20,6 +20,11 @@ PROJECT_NAME="internship-system"
 BACKUP_DIR="backups/deploy-$(date +%Y%m%d-%H%M%S)"
 LOG_FILE="logs/deploy-$(date +%Y%m%d-%H%M%S).log"
 
+# VPS Configuration
+VPS_HOST="203.170.129.199"
+VPS_USER="root"
+VPS_PATH="/var/www/internship-system"
+
 # Create necessary directories
 mkdir -p logs backups
 
@@ -282,34 +287,16 @@ else
 fi
 
 # =============================================================================
-# STEP 7: Deploy to platform
+# STEP 7: Deploy to VPS
 # =============================================================================
-log "Step 7/8: Deploying to platform"
+log "Step 7/8: Deploying to VPS"
 
-# Check if Vercel CLI is available
-if command -v vercel &> /dev/null; then
-    log "Deploying to Vercel..."
-    
-    if [ "$ENVIRONMENT" = "production" ]; then
-        if vercel --prod --yes; then
-            success "Deployed to Vercel production"
-        else
-            error "Vercel deployment failed"
-        fi
-    else
-        if vercel --yes; then
-            success "Deployed to Vercel preview"
-        else
-            error "Vercel deployment failed"
-        fi
-    fi
+# Deploy to VPS via SSH
+log "Deploying to VPS server..."
+if ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "cd $VPS_PATH && git pull origin main && npm run build && pm2 restart internship-system || pm2 start npm --name 'internship-system' -- start"; then
+    success "Deployed to VPS successfully"
 else
-    # Fallback: manual deployment instructions
-    warning "Vercel CLI not found. Manual deployment required."
-    info "Please deploy manually using your preferred method:"
-    info "1. Push to your git repository"
-    info "2. Trigger deployment on your hosting platform"
-    info "3. Or use your hosting platform's CLI"
+    error "VPS deployment failed"
 fi
 
 # =============================================================================
@@ -323,20 +310,14 @@ sleep 5
 # Check if the application is running
 log "Verifying deployment..."
 
-# Get deployment URL (if using Vercel)
-if command -v vercel &> /dev/null; then
-    DEPLOYMENT_URL=$(vercel ls --json | jq -r '.[0].url' 2>/dev/null || echo "")
-    if [ -n "$DEPLOYMENT_URL" ]; then
-        info "Deployment URL: https://$DEPLOYMENT_URL"
-        
-        # Test health endpoint
-        log "Testing health endpoint..."
-        if curl -f -s "https://$DEPLOYMENT_URL/api/health" > /dev/null; then
-            success "Health check passed"
-        else
-            warning "Health check failed - application may still be starting"
-        fi
-    fi
+# Test VPS deployment
+log "Testing VPS deployment..."
+if curl -f -s "http://$VPS_HOST:3000/api/health" > /dev/null; then
+    success "VPS health check passed"
+    info "Application URL: http://$VPS_HOST:3000"
+else
+    warning "VPS health check failed - application may still be starting"
+    info "Application URL: http://$VPS_HOST:3000"
 fi
 
 # =============================================================================
@@ -353,9 +334,7 @@ info "Environment: $ENVIRONMENT"
 info "Backup location: $BACKUP_DIR"
 info "Log file: $LOG_FILE"
 
-if [ -n "$DEPLOYMENT_URL" ]; then
-    info "Application URL: https://$DEPLOYMENT_URL"
-fi
+info "Application URL: http://$VPS_HOST:3000"
 
 # Show next steps
 echo -e "${CYAN}"

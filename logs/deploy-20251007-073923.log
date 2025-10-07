@@ -1,0 +1,18 @@
+[0;34m[2025-10-07 07:39:23][0m Starting deployment for environment: production
+[0;34m[2025-10-07 07:39:23][0m Step 1/8: Pre-deployment checks
+[0;32m[SUCCESS][0m Pre-deployment checks passed
+[0;34m[2025-10-07 07:39:23][0m Step 2/8: Creating backup
+[0;34m[2025-10-07 07:39:23][0m Backing up database...
+[0;32m[SUCCESS][0m Database backed up to backups/deploy-20251007-073923/dev.db
+[0;32m[SUCCESS][0m Backup created in backups/deploy-20251007-073923
+[0;34m[2025-10-07 07:39:24][0m Step 3/8: Updating dependencies
+[0;34m[2025-10-07 07:39:24][0m Checking for security vulnerabilities...
+[1;33m[WARNING][0m Security vulnerabilities found. Consider running 'npm audit fix'
+[0;34m[2025-10-07 07:39:34][0m Installing dependencies...
+[0;32m[SUCCESS][0m Dependencies updated
+[0;34m[2025-10-07 07:46:44][0m Step 4/8: Skipping tests
+[0;34m[2025-10-07 07:46:44][0m Step 5/8: Database migration
+[0;34m[2025-10-07 07:46:44][0m Generating Prisma client...
+[0;32m[SUCCESS][0m Prisma client generated
+[0;34m[2025-10-07 07:47:05][0m Running database migrations...
+[0;31m[ERROR][0m Database migration failed

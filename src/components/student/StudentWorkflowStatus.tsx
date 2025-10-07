@@ -44,11 +44,11 @@ const steps = [
   {
     id: 'profile_complete',
     title: 'ข้อมูลครบถ้วน',
-    description: 'ข้อมูลส่วนตัวครบถ้วน สามารถขอฝึกงานได้',
+    description: 'ข้อมูลส่วนตัวครบถ้วน และส่งคำขอฝึกงานเรียบร้อย',
     icon: CheckCircle,
     color: 'bg-green-500',
-    actionText: 'ขอฝึกงาน',
-    actionLink: '/student/application-form'
+    actionText: 'ดูคำขอ',
+    actionLink: '/student/applications'
   },
   {
     id: 'application_submitted',
@@ -155,7 +155,10 @@ export default function StudentWorkflowStatus({
       if (workflowStatus.profileComplete && !workflowStatus.applicationSubmitted) {
         return 'current';
       }
-      if (workflowStatus.applicationSubmitted) {
+      if (workflowStatus.applicationSubmitted && !workflowStatus.staffReviewed) {
+        return 'current'; // แสดงขั้นตอนที่ 2 เป็น active เมื่อส่งคำขอแล้ว
+      }
+      if (workflowStatus.staffReviewed) {
         return 'completed';
       }
       return 'pending';
@@ -163,7 +166,7 @@ export default function StudentWorkflowStatus({
 
     if (stepId === 'application_submitted') {
       if (workflowStatus.applicationSubmitted && !workflowStatus.staffReviewed) {
-        return 'current';
+        return 'completed'; // แสดงขั้นตอนที่ 3 เป็น completed เมื่อส่งคำขอแล้ว
       }
       if (workflowStatus.staffReviewed) {
         return 'completed';

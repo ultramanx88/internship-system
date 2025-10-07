@@ -8,11 +8,11 @@ For more information, see: https://pris.ly/prisma-config
 Environment variables loaded from .env
 Prisma schema loaded from prisma/schema.prisma
 
-✔ Generated Prisma Client (v6.16.3) to ./node_modules/@prisma/client in 447ms
+✔ Generated Prisma Client (v6.16.3) to ./node_modules/@prisma/client in 1.47s
 
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+Tip: Interested in query caching in just a few lines of code? Try Accelerate today! https://pris.ly/tip-3-accelerate
 
 
 > nextn@0.1.0 dev
@@ -20,167 +20,135 @@ Tip: Need your database queries to be 1000x faster? Accelerate offers you that a
 
    ▲ Next.js 15.3.3
    - Local:        http://localhost:8080
-   - Network:      http://192.168.0.2:8080
+   - Network:      http://192.168.0.3:8080
    - Environments: .env.local, .env
 
  ✓ Starting...
- ✓ Ready in 4.5s
- ○ Compiling /login ...
- ✓ Compiled /login in 6.3s (1116 modules)
- GET /login 200 in 8301ms
- ⚠ The "images.domains" configuration is deprecated. Please use "images.remotePatterns" configuration instead.
+ ✓ Ready in 13.2s
  ○ Compiling /api/socket ...
- ✓ Compiled /api/socket in 1224ms (710 modules)
+ ✓ Compiled /api/socket in 5.7s (72 modules)
 🔌 Setting up Socket.io server...
 🔌 Initializing Socket.io server...
-✅ Socket.io server already running
- GET /api/socket?EIO=4&transport=polling&t=xjf1jues 200 in 1464ms
- GET /api/socket?EIO=4&transport=polling&t=xjez0tlc 200 in 1583ms
-👤 Client connected: yVKXty7rM57W7nKDAAAB
-👤 User user_admin joined their room
-👋 Client disconnected: yVKXty7rM57W7nKDAAAB
- ○ Compiling /api/auth/verify ...
- ✓ Compiled /api/auth/verify in 2.8s (1461 modules)
-🔍 Auth verify API called
-📝 Request body: { identifier: 'admin@smart-solutions.com', password: '***' }
+ GET /api/socket?EIO=4&transport=polling&t=vzo12vyw 200 in 6989ms
+👤 Client connected: C9f4iIVPaDDNuM9_AAAB
+👤 User adminPick joined their room
+👑 Admin joined admin room
+👋 Client disconnected: C9f4iIVPaDDNuM9_AAAB
+ ○ Compiling /api/academic-years ...
+👤 Client connected: smN3OdvJjdqXUNwXAAAD
+👤 User adminPick joined their room
+👑 Admin joined admin room
+ ✓ Compiled /api/academic-years in 14.5s (735 modules)
+Fetching academic years with whereClause: {}
 prisma:info Starting a sqlite pool with 5 connections.
-✅ Database connected
-🔍 Searching for user: admin@smart-solutions.com
-prisma:query SELECT `main`.`users`.`id`, `main`.`users`.`email`, `main`.`users`.`name`, `main`.`users`.`password`, `main`.`users`.`roles` FROM `main`.`users` WHERE (`main`.`users`.`id` = ? OR `main`.`users`.`email` = ?) LIMIT ? OFFSET ?
-✅ User found: System Administrator admin@smart-solutions.com
-🔐 Password valid: true
-👤 User roles: [ 'admin' ]
-✅ Authentication successful for: System Administrator
- POST /api/auth/verify 200 in 4694ms
- GET /login 200 in 1978ms
- ○ Compiling /api/auth/login ...
- ✓ Compiled /api/auth/login in 792ms (1463 modules)
- Login API called
- Request body: {
-  identifier: 'admin@smart-solutions.com',
-  role: 'admin',
-  password: '***'
-}
-Database connected
-User found: System Administrator admin@smart-solutions.com
-prisma:query SELECT `main`.`users`.`id`, `main`.`users`.`email`, `main`.`users`.`name`, `main`.`users`.`password`, `main`.`users`.`roles` FROM `main`.`users` WHERE (`main`.`users`.`id` = ? OR `main`.`users`.`email` = ?) LIMIT ? OFFSET ?
-Password valid: true
-User roles: [ 'admin' ]
-Checking role access: admin in [ 'admin' ]
-Login successful for: System Administrator
- POST /api/auth/login 200 in 2150ms
- GET /login 200 in 1996ms
-👤 Client connected: aYaj1-_y7sNMaYIYAAAD
-👤 User user_admin joined their room
- ○ Compiling /admin ...
- ✓ Compiled /admin in 2.6s (1637 modules)
- GET /admin 200 in 2928ms
- ○ Compiling /api/user/profile ...
- ✓ Compiled /api/user/profile in 1104ms (1639 modules)
- GET /api/user/profile 200 in 1245ms
- GET /api/user/profile 200 in 19ms
- ○ Compiling /admin/settings ...
- ✓ Compiled /admin/settings in 4.9s (3344 modules)
- GET /admin/settings 200 in 5202ms
- ○ Compiling /api/document-template ...
- ✓ Compiled /api/document-template in 2s (3350 modules)
+prisma:query SELECT `main`.`academic_years`.`id`, `main`.`academic_years`.`year`, `main`.`academic_years`.`name`, `main`.`academic_years`.`startDate`, `main`.`academic_years`.`endDate`, `main`.`academic_years`.`isActive`, `main`.`academic_years`.`createdAt`, `main`.`academic_years`.`updatedAt`, COALESCE(`aggr_selection_0_Semester`.`_aggr_count_semesters`, 0) AS `_aggr_count_semesters`, COALESCE(`aggr_selection_1_EducatorRoleAssignment`.`_aggr_count_roleAssignments`, 0) AS `_aggr_count_roleAssignments` FROM `main`.`academic_years` LEFT JOIN (SELECT `main`.`semesters`.`academicYearId`, COUNT(*) AS `_aggr_count_semesters` FROM `main`.`semesters` WHERE 1=1 GROUP BY `main`.`semesters`.`academicYearId`) AS `aggr_selection_0_Semester` ON (`main`.`academic_years`.`id` = `aggr_selection_0_Semester`.`academicYearId`) LEFT JOIN (SELECT `main`.`educator_role_assignments`.`academicYearId`, COUNT(*) AS `_aggr_count_roleAssignments` FROM `main`.`educator_role_assignments` WHERE 1=1 GROUP BY `main`.`educator_role_assignments`.`academicYearId`) AS `aggr_selection_1_EducatorRoleAssignment` ON (`main`.`academic_years`.`id` = `aggr_selection_1_EducatorRoleAssignment`.`academicYearId`) WHERE 1=1 ORDER BY `main`.`academic_years`.`year` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`semesters`.`id`, `main`.`semesters`.`name`, `main`.`semesters`.`startDate`, `main`.`semesters`.`endDate`, `main`.`semesters`.`isActive`, `main`.`semesters`.`academicYearId` FROM `main`.`semesters` WHERE `main`.`semesters`.`academicYearId` IN (?,?) LIMIT ? OFFSET ?
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`academic_years`.`id` FROM `main`.`academic_years` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+Found academic years: 2
+ GET /api/academic-years 200 in 24388ms
+👋 Client disconnected: smN3OdvJjdqXUNwXAAAD
+ ✓ Compiled in 862ms (191 modules)
+👤 Client connected: AtmDP5lijcMndMWEAAAF
+👤 User adminPick joined their room
+👋 Client disconnected: AtmDP5lijcMndMWEAAAF
+👤 Client connected: w9-0eJjUpKMHxrVXAAAH
+👤 User adminPick joined their room
+👑 Admin joined admin room
+👋 Client disconnected: w9-0eJjUpKMHxrVXAAAH
+👤 Client connected: uha819TbYS0fZfPmAAAJ
+👤 User adminPick joined their room
+👋 Client disconnected: uha819TbYS0fZfPmAAAJ
+👤 Client connected: 15MmGKnj-bPzOW-9AAAL
+👤 User adminPick joined their room
+👑 Admin joined admin room
+👋 Client disconnected: 15MmGKnj-bPzOW-9AAAL
+👤 Client connected: 2mYjz7Q-22TElDS9AAAN
+👤 User adminPick joined their room
+👑 Admin joined admin room
+👋 Client disconnected: 2mYjz7Q-22TElDS9AAAN
+👤 Client connected: 1hJRThxMsE-U0rQ-AAAP
+👤 User adminPick joined their room
+ ○ Compiling /api/students ...
+ ✓ Compiled /api/students in 7.1s (708 modules)
 prisma:query SELECT 1
-prisma:query SELECT `main`.`faculties`.`id`, `main`.`faculties`.`nameTh`, `main`.`faculties`.`nameEn`, `main`.`faculties`.`code`, `main`.`faculties`.`isActive`, `main`.`faculties`.`createdAt`, `main`.`faculties`.`updatedAt`, COALESCE(`aggr_selection_0_Department`.`_aggr_count_departments`, 0) AS `_aggr_count_departments`, COALESCE(`aggr_selection_1_User`.`_aggr_count_users`, 0) AS `_aggr_count_users` FROM `main`.`faculties` LEFT JOIN (SELECT `main`.`departments`.`facultyId`, COUNT(*) AS `_aggr_count_departments` FROM `main`.`departments` WHERE 1=1 GROUP BY `main`.`departments`.`facultyId`) AS `aggr_selection_0_Department` ON (`main`.`faculties`.`id` = `aggr_selection_0_Department`.`facultyId`) LEFT JOIN (SELECT `main`.`users`.`facultyId`, COUNT(*) AS `_aggr_count_users` FROM `main`.`users` WHERE 1=1 GROUP BY `main`.`users`.`facultyId`) AS `aggr_selection_1_User` ON (`main`.`faculties`.`id` = `aggr_selection_1_User`.`facultyId`) WHERE `main`.`faculties`.`isActive` = ? ORDER BY `main`.`faculties`.`nameTh` ASC LIMIT ? OFFSET ?
- GET /api/document-template 401 in 2278ms
- GET /api/faculties 200 in 2283ms
- GET /api/document-template 401 in 68ms
-prisma:query SELECT `main`.`faculties`.`id`, `main`.`faculties`.`nameTh`, `main`.`faculties`.`nameEn`, `main`.`faculties`.`code`, `main`.`faculties`.`isActive`, `main`.`faculties`.`createdAt`, `main`.`faculties`.`updatedAt`, COALESCE(`aggr_selection_0_Department`.`_aggr_count_departments`, 0) AS `_aggr_count_departments`, COALESCE(`aggr_selection_1_User`.`_aggr_count_users`, 0) AS `_aggr_count_users` FROM `main`.`faculties` LEFT JOIN (SELECT `main`.`departments`.`facultyId`, COUNT(*) AS `_aggr_count_departments` FROM `main`.`departments` WHERE 1=1 GROUP BY `main`.`departments`.`facultyId`) AS `aggr_selection_0_Department` ON (`main`.`faculties`.`id` = `aggr_selection_0_Department`.`facultyId`) LEFT JOIN (SELECT `main`.`users`.`facultyId`, COUNT(*) AS `_aggr_count_users` FROM `main`.`users` WHERE 1=1 GROUP BY `main`.`users`.`facultyId`) AS `aggr_selection_1_User` ON (`main`.`faculties`.`id` = `aggr_selection_1_User`.`facultyId`) WHERE `main`.`faculties`.`isActive` = ? ORDER BY `main`.`faculties`.`nameTh` ASC LIMIT ? OFFSET ?
- GET /api/faculties 200 in 80ms
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`users`.`id` FROM `main`.`users` WHERE (`main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ?) LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT `main`.`users`.`id`, `main`.`users`.`name`, `main`.`users`.`email`, `main`.`users`.`roles`, `main`.`users`.`t_title`, `main`.`users`.`t_name`, `main`.`users`.`t_middle_name`, `main`.`users`.`t_surname`, `main`.`users`.`e_title`, `main`.`users`.`e_name`, `main`.`users`.`e_middle_name`, `main`.`users`.`e_surname`, `main`.`users`.`studentYear` FROM `main`.`users` WHERE (`main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ?) ORDER BY `main`.`users`.`updatedAt` DESC, `main`.`users`.`createdAt` DESC LIMIT ? OFFSET ?
+ GET /api/students?role=educators&limit=1000 200 in 8103ms
+👋 Client disconnected: 1hJRThxMsE-U0rQ-AAAP
+👤 Client connected: W37MHApbjkO_4QFiAAAR
+👤 User adminPick joined their room
+👑 Admin joined admin room
+👋 Client disconnected: W37MHApbjkO_4QFiAAAR
+👤 Client connected: agz2Rj6h-mv8n8CAAAAT
+👤 User adminPick joined their room
+👑 Admin joined admin room
+👋 Client disconnected: agz2Rj6h-mv8n8CAAAAT
+👤 Client connected: KstV3fFDSYfiHdBXAAAV
+👤 User adminPick joined their room
+👑 Admin joined admin room
+👋 Client disconnected: KstV3fFDSYfiHdBXAAAV
+👤 Client connected: gsV1ErOJzaKsMw5fAAAX
+👤 User adminPick joined their room
+👋 Client disconnected: gsV1ErOJzaKsMw5fAAAX
+👤 Client connected: R8E553wQB4AyO9d7AAAZ
+👤 User adminPick joined their room
+👑 Admin joined admin room
+👋 Client disconnected: R8E553wQB4AyO9d7AAAZ
+👤 Client connected: qGt59VtxvOTEVqcjAAAb
+👤 User adminPick joined their room
+👋 Client disconnected: qGt59VtxvOTEVqcjAAAb
+👤 Client connected: AW5m3XTMYJxrFrldAAAd
+👤 User adminPick joined their room
+👋 Client disconnected: AW5m3XTMYJxrFrldAAAd
+👤 Client connected: NkyQL7V8Sv62SkTkAAAf
+👤 User adminPick joined their room
+👑 Admin joined admin room
+👋 Client disconnected: NkyQL7V8Sv62SkTkAAAf
+👤 Client connected: DnnTa4lxkU7J1LnDAAAh
+👤 User adminPick joined their room
+👑 Admin joined admin room
+👋 Client disconnected: DnnTa4lxkU7J1LnDAAAh
+👤 Client connected: iHFaO58dejQjSB-GAAAj
+👤 User adminPick joined their room
+👋 Client disconnected: iHFaO58dejQjSB-GAAAj
  ○ Compiling /admin/educator-roles ...
- ✓ Compiled /admin/educator-roles in 2.7s (3379 modules)
- GET /admin/educator-roles 200 in 2930ms
- ○ Compiling /api/educator-role-assignments ...
- ✓ Compiled /api/educator-role-assignments in 6.5s (3388 modules)
- GET /api/academic-years 401 in 7083ms
- GET /api/semesters 401 in 7090ms
- GET /api/educator-role-assignments?page=1&limit=10 401 in 7071ms
- GET /api/students?role=educators&limit=1000 401 in 7117ms
- GET /api/academic-years 401 in 152ms
- GET /api/educator-role-assignments?page=1&limit=10 401 in 342ms
- GET /api/students?role=educators&limit=1000 401 in 348ms
- GET /api/semesters 401 in 361ms
-👋 Client disconnected: aYaj1-_y7sNMaYIYAAAD
-👤 Client connected: 2IsTTLtfgFyuWY_9AAAF
-👤 User user_admin joined their room
+👤 Client connected: VB3ADtEgwreg8kICAAAl
+👤 User adminPick joined their room
 👑 Admin joined admin room
-👋 Client disconnected: 2IsTTLtfgFyuWY_9AAAF
-👤 Client connected: 4XWDAgGhIngQPy3kAAAH
-👤 User user_admin joined their room
+👋 Client disconnected: VB3ADtEgwreg8kICAAAl
+👤 Client connected: mshuaqTaZ2VEXwb3AAAn
+👤 User adminPick joined their room
 👑 Admin joined admin room
-👋 Client disconnected: 4XWDAgGhIngQPy3kAAAH
- GET /admin/educator-roles 200 in 1001ms
- GET /api/students?role=educators&limit=1000 401 in 61ms
- GET /api/user/profile 200 in 104ms
- GET /api/academic-years 401 in 96ms
- GET /api/semesters 401 in 89ms
- GET /api/educator-role-assignments?page=1&limit=10 401 in 61ms
- GET /api/user/profile 200 in 26ms
- GET /api/students?role=educators&limit=1000 401 in 33ms
-👤 Client connected: lWZVFRpqQ-uqIV_LAAAK
- GET /api/academic-years 401 in 203ms
- GET /api/semesters 401 in 209ms
- GET /api/educator-role-assignments?page=1&limit=10 401 in 171ms
-👤 User user_admin joined their room
+👋 Client disconnected: mshuaqTaZ2VEXwb3AAAn
+👤 Client connected: VWTl-j-MaM3UDcfCAAAp
+👤 User adminPick joined their room
 👑 Admin joined admin room
-👋 Client disconnected: lWZVFRpqQ-uqIV_LAAAK
- GET /admin/educator-roles 200 in 350ms
- GET /api/user/profile 200 in 44ms
- GET /api/students?role=educators&limit=1000 401 in 174ms
-👤 Client connected: CtKV1RS1GfLUSY1YAAAN
- GET /api/semesters 401 in 239ms
- GET /api/academic-years 401 in 298ms
- GET /api/educator-role-assignments?page=1&limit=10 401 in 424ms
- GET /api/user/profile 200 in 478ms
-👤 User user_admin joined their room
+👋 Client disconnected: VWTl-j-MaM3UDcfCAAAp
+👤 Client connected: LFI4V7-OrEdhniJ0AAAr
+👤 User adminPick joined their room
 👑 Admin joined admin room
- GET /api/students?role=educators&limit=1000 401 in 479ms
- GET /api/semesters 401 in 116ms
- GET /api/academic-years 401 in 140ms
- GET /api/educator-role-assignments?page=1&limit=10 401 in 151ms
- ✓ Compiled in 7.9s (3391 modules)
- GET /admin/educator-roles 200 in 336ms
- ✓ Compiled in 1350ms (3391 modules)
- GET /admin/educator-roles 200 in 138ms
-👋 Client disconnected: CtKV1RS1GfLUSY1YAAAN
- GET /admin/educator-roles 200 in 987ms
- GET /api/user/profile 200 in 44ms
- GET /api/students?role=educators&limit=1000 401 in 43ms
- GET /api/academic-years 401 in 80ms
- GET /api/semesters 401 in 234ms
- GET /api/educator-role-assignments?page=1&limit=10 401 in 241ms
- GET /api/students?role=educators&limit=1000 401 in 247ms
- GET /api/user/profile 200 in 254ms
- GET /api/academic-years 401 in 232ms
- GET /api/educator-role-assignments?page=1&limit=10 401 in 61ms
- GET /api/semesters 401 in 64ms
-👤 Client connected: 0O9C9xv4e1vZCJNkAAAQ
-👤 User user_admin joined their room
+👋 Client disconnected: LFI4V7-OrEdhniJ0AAAr
+👤 Client connected: jIn295KFIhEFIIq6AAAt
+👤 User adminPick joined their room
 👑 Admin joined admin room
-👋 Client disconnected: 0O9C9xv4e1vZCJNkAAAQ
-👤 Client connected: OWvJ0QNbUhogzMefAAAS
- GET /login 200 in 252ms
- GET /login 200 in 234ms
-👋 Client disconnected: OWvJ0QNbUhogzMefAAAS
- ○ Compiling /api/auth/verify ...
- ✓ Compiled /api/auth/verify in 1305ms (1724 modules)
-🔍 Auth verify API called
-📝 Request body: { identifier: 'admin@smart-solutions.com', password: '***' }
-✅ Database connected
-🔍 Searching for user: admin@smart-solutions.com
-prisma:query SELECT 1
-prisma:query SELECT `main`.`users`.`id`, `main`.`users`.`email`, `main`.`users`.`name`, `main`.`users`.`password`, `main`.`users`.`roles` FROM `main`.`users` WHERE (`main`.`users`.`id` = ? OR `main`.`users`.`email` = ?) LIMIT ? OFFSET ?
-✅ User found: System Administrator admin@smart-solutions.com
-🔐 Password valid: true
-👤 User roles: [ 'admin' ]
-✅ Authentication successful for: System Administrator
- POST /api/auth/verify 200 in 2169ms
+👋 Client disconnected: jIn295KFIhEFIIq6AAAt
+👤 Client connected: 4NsGyJXhKXjBZbWVAAAv
+👤 User adminPick joined their room
+👑 Admin joined admin room
+ ✓ Compiled /admin/educator-roles in 41.1s (1570 modules)
+ GET /admin/educator-roles 200 in 46799ms
+ ○ Compiling /api/health ...
+👋 Client disconnected: 4NsGyJXhKXjBZbWVAAAv
+ ✓ Compiled /api/health in 31.5s (1601 modules)
+ GET /api/health 200 in 34602ms
+👤 Client connected: xrSrgtlCRFcc_yTIAAAx
+👤 User adminPick joined their room
+👑 Admin joined admin room
+👋 Client disconnected: xrSrgtlCRFcc_yTIAAAx
+👤 Client connected: MIWXg3d1U1e8ABj4AAAz
+👤 User adminPick joined their room
  ○ Compiling /api/auth/login ...
- ✓ Compiled /api/auth/login in 592ms (1726 modules)
+ ✓ Compiled /api/auth/login in 9s (973 modules)
  Login API called
  Request body: {
   identifier: 'admin@smart-solutions.com',
@@ -188,418 +156,56 @@ prisma:query SELECT `main`.`users`.`id`, `main`.`users`.`email`, `main`.`users`.
   password: '***'
 }
 Database connected
-prisma:query SELECT `main`.`users`.`id`, `main`.`users`.`email`, `main`.`users`.`name`, `main`.`users`.`password`, `main`.`users`.`roles` FROM `main`.`users` WHERE (`main`.`users`.`id` = ? OR `main`.`users`.`email` = ?) LIMIT ? OFFSET ?
+prisma:query SELECT 1
 User found: System Administrator admin@smart-solutions.com
+prisma:query SELECT `main`.`users`.`id`, `main`.`users`.`email`, `main`.`users`.`name`, `main`.`users`.`password`, `main`.`users`.`roles` FROM `main`.`users` WHERE (`main`.`users`.`id` = ? OR `main`.`users`.`email` = ?) LIMIT ? OFFSET ?
+Password valid: false
+ POST /api/auth/login 401 in 16240ms
+ Login API called
+ Request body: { identifier: 'ultramanx88@gmail.com', role: 'admin', password: '***' }
+Database connected
+prisma:query SELECT 1
+prisma:query SELECT `main`.`users`.`id`, `main`.`users`.`email`, `main`.`users`.`name`, `main`.`users`.`password`, `main`.`users`.`roles` FROM `main`.`users` WHERE (`main`.`users`.`id` = ? OR `main`.`users`.`email` = ?) LIMIT ? OFFSET ?
+User found: ธเนศ บุญทัพ ultramanx88@gmail.com
+Password valid: false
+ POST /api/auth/login 401 in 1580ms
+👋 Client disconnected: MIWXg3d1U1e8ABj4AAAz
+ Login API called
+ Request body: { identifier: 'ultramanx88@gmail.com', role: 'admin', password: '***' }
+Database connected
+prisma:query SELECT 1
+prisma:query SELECT `main`.`users`.`id`, `main`.`users`.`email`, `main`.`users`.`name`, `main`.`users`.`password`, `main`.`users`.`roles` FROM `main`.`users` WHERE (`main`.`users`.`id` = ? OR `main`.`users`.`email` = ?) LIMIT ? OFFSET ?
+User found: ธเนศ บุญทัพ ultramanx88@gmail.com
 Password valid: true
 User roles: [ 'admin' ]
 Checking role access: admin in [ 'admin' ]
-Login successful for: System Administrator
- POST /api/auth/login 200 in 1218ms
-👤 Client connected: 1nDitZ2YdFc3MCVLAAAU
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: 1nDitZ2YdFc3MCVLAAAU
- GET /admin 200 in 269ms
- GET /api/user/profile 200 in 101ms
- GET /api/user/profile 200 in 25ms
-👤 Client connected: pNB9z5qop5xKT_iFAAAW
-👤 User user_admin joined their room
-👑 Admin joined admin room
- GET /admin/educator-roles 200 in 285ms
- GET /api/students?role=educators&limit=1000 401 in 94ms
- GET /api/academic-years 401 in 119ms
- GET /api/educator-role-assignments?page=1&limit=10 401 in 128ms
- GET /api/semesters 401 in 146ms
- GET /api/students?role=educators&limit=1000 401 in 116ms
- GET /api/academic-years 401 in 93ms
- GET /api/educator-role-assignments?page=1&limit=10 401 in 100ms
- GET /api/semesters 401 in 109ms
-👋 Client disconnected: pNB9z5qop5xKT_iFAAAW
-👤 Client connected: 4mvnoo76dhdpamdDAAAY
-👤 User user_admin joined their room
-👑 Admin joined admin room
- ○ Compiling /admin/users ...
- ✓ Compiled /api/educator-role-assignments in 15.1s (3483 modules)
-Error fetching semesters: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/semesters/route.ts:48:22)
-  46 |     // Get semesters with related data
-  47 |     const [semesters, total] = await Promise.all([
-> 48 |       prisma.semester.findMany({
-     |                      ^
-  49 |         where: whereClause,
-  50 |         include: {
-  51 |           academicYear: {
-Error fetching educator role assignments: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/educator-role-assignments/route.ts:51:36)
-  49 |     // Get assignments with related data
-  50 |     const [assignments, total] = await Promise.all([
-> 51 |       prisma.educatorRoleAssignment.findMany({
-     |                                    ^
-  52 |         where: whereClause,
-  53 |         include: {
-  54 |           educator: {
-Error fetching academic years: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/academic-years/route.ts:44:26)
-  42 |     // Get academic years with related data
-  43 |     const [academicYears, total] = await Promise.all([
-> 44 |       prisma.academicYear.findMany({
-     |                          ^
-  45 |         where: whereClause,
-  46 |         include: {
-  47 |           semesters: {
-prisma:query SELECT 1
- GET /api/semesters 500 in 5055ms
- GET /api/educator-role-assignments?page=1&limit=10 500 in 5050ms
- GET /api/academic-years 500 in 5058ms
- GET /api/students?role=educators&limit=1000 200 in 5071ms
-prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`users`.`id` FROM `main`.`users` WHERE (`main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ?) LIMIT ? OFFSET ?) AS `sub`
-prisma:query SELECT `main`.`users`.`id`, `main`.`users`.`name`, `main`.`users`.`email`, `main`.`users`.`roles`, `main`.`users`.`t_title`, `main`.`users`.`t_name`, `main`.`users`.`t_middle_name`, `main`.`users`.`t_surname`, `main`.`users`.`e_title`, `main`.`users`.`e_name`, `main`.`users`.`e_middle_name`, `main`.`users`.`e_surname`, `main`.`users`.`studentYear` FROM `main`.`users` WHERE (`main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ?) ORDER BY `main`.`users`.`updatedAt` DESC, `main`.`users`.`createdAt` DESC LIMIT ? OFFSET ?
- GET /admin/users 200 in 16148ms
- GET /admin/settings 200 in 236ms
-👋 Client disconnected: 4mvnoo76dhdpamdDAAAY
-👤 Client connected: v-sZPFYglGqc8hWxAAAa
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: v-sZPFYglGqc8hWxAAAa
-👤 Client connected: BCtMyZcuW4l4wq7cAAAc
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: BCtMyZcuW4l4wq7cAAAc
- GET /admin/educator-roles 200 in 1134ms
-👤 Client connected: Q7mbVViicxyUoj6lAAAf
- ○ Compiling /api/educator-role-assignments ...
- ✓ Compiled /api/educator-role-assignments in 1172ms (1699 modules)
- ✓ Compiled (1720 modules)
-Error fetching semesters: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/semesters/route.ts:48:22)
-  46 |     // Get semesters with related data
-  47 |     const [semesters, total] = await Promise.all([
-> 48 |       prisma.semester.findMany({
-     |                      ^
-  49 |         where: whereClause,
-  50 |         include: {
-  51 |           academicYear: {
-Error fetching educator role assignments: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/educator-role-assignments/route.ts:51:36)
-  49 |     // Get assignments with related data
-  50 |     const [assignments, total] = await Promise.all([
-> 51 |       prisma.educatorRoleAssignment.findMany({
-     |                                    ^
-  52 |         where: whereClause,
-  53 |         include: {
-  54 |           educator: {
-Error fetching academic years: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/academic-years/route.ts:44:26)
-  42 |     // Get academic years with related data
-  43 |     const [academicYears, total] = await Promise.all([
-> 44 |       prisma.academicYear.findMany({
-     |                          ^
-  45 |         where: whereClause,
-  46 |         include: {
-  47 |           semesters: {
-prisma:query SELECT 1
-prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`users`.`id` FROM `main`.`users` WHERE (`main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ?) LIMIT ? OFFSET ?) AS `sub`
-prisma:query SELECT 1
-prisma:query SELECT `main`.`users`.`id`, `main`.`users`.`name`, `main`.`users`.`email`, `main`.`users`.`roles`, `main`.`users`.`t_title`, `main`.`users`.`t_name`, `main`.`users`.`t_middle_name`, `main`.`users`.`t_surname`, `main`.`users`.`e_title`, `main`.`users`.`e_name`, `main`.`users`.`e_middle_name`, `main`.`users`.`e_surname`, `main`.`users`.`studentYear` FROM `main`.`users` WHERE (`main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ?) ORDER BY `main`.`users`.`updatedAt` DESC, `main`.`users`.`createdAt` DESC LIMIT ? OFFSET ?
- GET /api/user/profile 200 in 2130ms
- GET /api/semesters 500 in 2179ms
- GET /api/educator-role-assignments?page=1&limit=10 500 in 2174ms
- GET /api/academic-years 500 in 2180ms
- GET /api/students?role=educators&limit=1000 200 in 2180ms
-👤 User user_admin joined their room
- GET /api/user/profile 200 in 301ms
-👑 Admin joined admin room
-Error fetching semesters: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/semesters/route.ts:48:22)
-  46 |     // Get semesters with related data
-  47 |     const [semesters, total] = await Promise.all([
-> 48 |       prisma.semester.findMany({
-     |                      ^
-  49 |         where: whereClause,
-  50 |         include: {
-  51 |           academicYear: {
-Error fetching educator role assignments: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/educator-role-assignments/route.ts:51:36)
-  49 |     // Get assignments with related data
-  50 |     const [assignments, total] = await Promise.all([
-> 51 |       prisma.educatorRoleAssignment.findMany({
-     |                                    ^
-  52 |         where: whereClause,
-  53 |         include: {
-  54 |           educator: {
-Error fetching academic years: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/academic-years/route.ts:44:26)
-  42 |     // Get academic years with related data
-  43 |     const [academicYears, total] = await Promise.all([
-> 44 |       prisma.academicYear.findMany({
-     |                          ^
-  45 |         where: whereClause,
-  46 |         include: {
-  47 |           semesters: {
-prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`users`.`id` FROM `main`.`users` WHERE (`main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ?) LIMIT ? OFFSET ?) AS `sub`
-prisma:query SELECT `main`.`users`.`id`, `main`.`users`.`name`, `main`.`users`.`email`, `main`.`users`.`roles`, `main`.`users`.`t_title`, `main`.`users`.`t_name`, `main`.`users`.`t_middle_name`, `main`.`users`.`t_surname`, `main`.`users`.`e_title`, `main`.`users`.`e_name`, `main`.`users`.`e_middle_name`, `main`.`users`.`e_surname`, `main`.`users`.`studentYear` FROM `main`.`users` WHERE (`main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ?) ORDER BY `main`.`users`.`updatedAt` DESC, `main`.`users`.`createdAt` DESC LIMIT ? OFFSET ?
- GET /api/semesters 500 in 604ms
- GET /api/educator-role-assignments?page=1&limit=10 500 in 605ms
- GET /api/academic-years 500 in 605ms
- GET /api/students?role=educators&limit=1000 200 in 604ms
- GET /admin/settings 200 in 252ms
- ○ Compiling /api/document-template ...
- ✓ Compiled /api/document-template in 2s (1723 modules)
- ✓ Compiled (1725 modules)
- GET /api/document-template 401 in 2833ms
- GET /api/faculties 200 in 2865ms
-prisma:query SELECT 1
-prisma:query SELECT `main`.`faculties`.`id`, `main`.`faculties`.`nameTh`, `main`.`faculties`.`nameEn`, `main`.`faculties`.`code`, `main`.`faculties`.`isActive`, `main`.`faculties`.`createdAt`, `main`.`faculties`.`updatedAt`, COALESCE(`aggr_selection_0_Department`.`_aggr_count_departments`, 0) AS `_aggr_count_departments`, COALESCE(`aggr_selection_1_User`.`_aggr_count_users`, 0) AS `_aggr_count_users` FROM `main`.`faculties` LEFT JOIN (SELECT `main`.`departments`.`facultyId`, COUNT(*) AS `_aggr_count_departments` FROM `main`.`departments` WHERE 1=1 GROUP BY `main`.`departments`.`facultyId`) AS `aggr_selection_0_Department` ON (`main`.`faculties`.`id` = `aggr_selection_0_Department`.`facultyId`) LEFT JOIN (SELECT `main`.`users`.`facultyId`, COUNT(*) AS `_aggr_count_users` FROM `main`.`users` WHERE 1=1 GROUP BY `main`.`users`.`facultyId`) AS `aggr_selection_1_User` ON (`main`.`faculties`.`id` = `aggr_selection_1_User`.`facultyId`) WHERE `main`.`faculties`.`isActive` = ? ORDER BY `main`.`faculties`.`nameTh` ASC LIMIT ? OFFSET ?
-prisma:query SELECT `main`.`faculties`.`id`, `main`.`faculties`.`nameTh`, `main`.`faculties`.`nameEn`, `main`.`faculties`.`code`, `main`.`faculties`.`isActive`, `main`.`faculties`.`createdAt`, `main`.`faculties`.`updatedAt`, COALESCE(`aggr_selection_0_Department`.`_aggr_count_departments`, 0) AS `_aggr_count_departments`, COALESCE(`aggr_selection_1_User`.`_aggr_count_users`, 0) AS `_aggr_count_users` FROM `main`.`faculties` LEFT JOIN (SELECT `main`.`departments`.`facultyId`, COUNT(*) AS `_aggr_count_departments` FROM `main`.`departments` WHERE 1=1 GROUP BY `main`.`departments`.`facultyId`) AS `aggr_selection_0_Department` ON (`main`.`faculties`.`id` = `aggr_selection_0_Department`.`facultyId`) LEFT JOIN (SELECT `main`.`users`.`facultyId`, COUNT(*) AS `_aggr_count_users` FROM `main`.`users` WHERE 1=1 GROUP BY `main`.`users`.`facultyId`) AS `aggr_selection_1_User` ON (`main`.`faculties`.`id` = `aggr_selection_1_User`.`facultyId`) WHERE `main`.`faculties`.`isActive` = ? ORDER BY `main`.`faculties`.`nameTh` ASC LIMIT ? OFFSET ?
- GET /api/faculties 200 in 140ms
- GET /api/document-template 401 in 156ms
-👋 Client disconnected: Q7mbVViicxyUoj6lAAAf
-👤 Client connected: Taji5mKUZ-TqFVcfAAAh
-👤 User user_admin joined their room
-👋 Client disconnected: Taji5mKUZ-TqFVcfAAAh
- GET /admin/educator-roles 200 in 184ms
-Error fetching academic years: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/academic-years/route.ts:44:26)
-  42 |     // Get academic years with related data
-  43 |     const [academicYears, total] = await Promise.all([
-> 44 |       prisma.academicYear.findMany({
-     |                          ^
-  45 |         where: whereClause,
-  46 |         include: {
-  47 |           semesters: {
-Error fetching educator role assignments: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/educator-role-assignments/route.ts:51:36)
-  49 |     // Get assignments with related data
-  50 |     const [assignments, total] = await Promise.all([
-> 51 |       prisma.educatorRoleAssignment.findMany({
-     |                                    ^
-  52 |         where: whereClause,
-  53 |         include: {
-  54 |           educator: {
+Login successful for: ธเนศ บุญทัพ
+ POST /api/auth/login 200 in 2702ms
+ ○ Compiling /api/students ...
+ ✓ Compiled /api/students in 2.7s (198 modules)
 prisma:query SELECT 1
 prisma:query SELECT 1
 prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`users`.`id` FROM `main`.`users` WHERE (`main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ?) LIMIT ? OFFSET ?) AS `sub`
 prisma:query SELECT `main`.`users`.`id`, `main`.`users`.`name`, `main`.`users`.`email`, `main`.`users`.`roles`, `main`.`users`.`t_title`, `main`.`users`.`t_name`, `main`.`users`.`t_middle_name`, `main`.`users`.`t_surname`, `main`.`users`.`e_title`, `main`.`users`.`e_name`, `main`.`users`.`e_middle_name`, `main`.`users`.`e_surname`, `main`.`users`.`studentYear` FROM `main`.`users` WHERE (`main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ?) ORDER BY `main`.`users`.`updatedAt` DESC, `main`.`users`.`createdAt` DESC LIMIT ? OFFSET ?
-Error fetching semesters: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/semesters/route.ts:48:22)
-  46 |     // Get semesters with related data
-  47 |     const [semesters, total] = await Promise.all([
-> 48 |       prisma.semester.findMany({
-     |                      ^
-  49 |         where: whereClause,
-  50 |         include: {
-  51 |           academicYear: {
- GET /api/academic-years 500 in 692ms
- GET /api/educator-role-assignments?page=1&limit=10 500 in 692ms
- GET /api/students?role=educators&limit=1000 200 in 694ms
- GET /api/semesters 500 in 692ms
-Error fetching academic years: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/academic-years/route.ts:44:26)
-  42 |     // Get academic years with related data
-  43 |     const [academicYears, total] = await Promise.all([
-> 44 |       prisma.academicYear.findMany({
-     |                          ^
-  45 |         where: whereClause,
-  46 |         include: {
-  47 |           semesters: {
- GET /api/academic-years 500 in 247ms
-Error fetching educator role assignments: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/educator-role-assignments/route.ts:51:36)
-  49 |     // Get assignments with related data
-  50 |     const [assignments, total] = await Promise.all([
-> 51 |       prisma.educatorRoleAssignment.findMany({
-     |                                    ^
-  52 |         where: whereClause,
-  53 |         include: {
-  54 |           educator: {
-Error fetching semesters: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at GET (src/app/api/semesters/route.ts:48:22)
-  46 |     // Get semesters with related data
-  47 |     const [semesters, total] = await Promise.all([
-> 48 |       prisma.semester.findMany({
-     |                      ^
-  49 |         where: whereClause,
-  50 |         include: {
-  51 |           academicYear: {
-prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`users`.`id` FROM `main`.`users` WHERE (`main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ?) LIMIT ? OFFSET ?) AS `sub`
-prisma:query SELECT `main`.`users`.`id`, `main`.`users`.`name`, `main`.`users`.`email`, `main`.`users`.`roles`, `main`.`users`.`t_title`, `main`.`users`.`t_name`, `main`.`users`.`t_middle_name`, `main`.`users`.`t_surname`, `main`.`users`.`e_title`, `main`.`users`.`e_name`, `main`.`users`.`e_middle_name`, `main`.`users`.`e_surname`, `main`.`users`.`studentYear` FROM `main`.`users` WHERE (`main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ? OR `main`.`users`.`roles` LIKE ?) ORDER BY `main`.`users`.`updatedAt` DESC, `main`.`users`.`createdAt` DESC LIMIT ? OFFSET ?
- GET /api/educator-role-assignments?page=1&limit=10 500 in 448ms
- GET /api/semesters 500 in 449ms
- GET /api/students?role=educators&limit=1000 200 in 466ms
-👤 Client connected: 98D93UFOf7iEmwPbAAAj
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: 98D93UFOf7iEmwPbAAAj
-👤 Client connected: O9C0ZUbnc50LyRqBAAAl
-👤 User user_admin joined their room
-👋 Client disconnected: O9C0ZUbnc50LyRqBAAAl
-👤 Client connected: jE9ZbiK0CaOaP5QQAAAn
-👤 User user_admin joined their room
-👋 Client disconnected: jE9ZbiK0CaOaP5QQAAAn
-👤 Client connected: VNwq19t5srODXXNHAAAp
-👤 User user_admin joined their room
-👋 Client disconnected: VNwq19t5srODXXNHAAAp
-👤 Client connected: V5nI2wGeP0w6YKsrAAAr
-👤 User user_admin joined their room
-👋 Client disconnected: V5nI2wGeP0w6YKsrAAAr
-👤 Client connected: 1jts06HoMQ6ElJFvAAAt
-👤 User user_admin joined their room
-👋 Client disconnected: 1jts06HoMQ6ElJFvAAAt
-👤 Client connected: wlftzWwN3kdk28iJAAAv
-👤 User user_admin joined their room
-👋 Client disconnected: wlftzWwN3kdk28iJAAAv
-👤 Client connected: dxf81F6S3fwwsj7nAAAx
-👤 User user_admin joined their room
-👋 Client disconnected: dxf81F6S3fwwsj7nAAAx
-👤 Client connected: k1HB7-ubIJ5x_FMcAAAz
-👤 User user_admin joined their room
-👋 Client disconnected: k1HB7-ubIJ5x_FMcAAAz
-👤 Client connected: SfFKAYbYlCpqt5SkAAA1
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: SfFKAYbYlCpqt5SkAAA1
-👤 Client connected: EPkyXOrLN_iWk-JlAAA3
-👤 User user_admin joined their room
-👋 Client disconnected: EPkyXOrLN_iWk-JlAAA3
-👤 Client connected: tmgQWtBuO8qMpe73AAA5
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: tmgQWtBuO8qMpe73AAA5
-👤 Client connected: -ZkLGs1swoKAblg4AAA7
-👤 User user_admin joined their room
-👋 Client disconnected: -ZkLGs1swoKAblg4AAA7
-👤 Client connected: DfubWDmeW4TOxvK9AAA9
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: DfubWDmeW4TOxvK9AAA9
-👤 Client connected: s16uB5OYfK_YFvjgAAA_
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: s16uB5OYfK_YFvjgAAA_
-👤 Client connected: a6Qdly3WhtuWOTbAAABB
-👤 User user_admin joined their room
-👋 Client disconnected: a6Qdly3WhtuWOTbAAABB
-👤 Client connected: NaigEZaX_s6-U_RVAABD
-👤 User user_admin joined their room
-👋 Client disconnected: NaigEZaX_s6-U_RVAABD
-👤 Client connected: wc0hhaOG1Ccjw16UAABF
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: wc0hhaOG1Ccjw16UAABF
-👤 Client connected: -pyJhTN0BUayfr2JAABH
-👤 User user_admin joined their room
-👋 Client disconnected: -pyJhTN0BUayfr2JAABH
-👤 Client connected: 8QJ0KAFSOfTfzsJ8AABJ
-👤 User user_admin joined their room
-👋 Client disconnected: 8QJ0KAFSOfTfzsJ8AABJ
-👤 Client connected: _121aVuzbMZN9GUQAABL
-👤 User user_admin joined their room
-👋 Client disconnected: _121aVuzbMZN9GUQAABL
-👤 Client connected: rKtsEdmTCsA41fsmAABN
-👤 User user_admin joined their room
-👋 Client disconnected: rKtsEdmTCsA41fsmAABN
-👤 Client connected: 4OhuukQdu-02app6AABP
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: 4OhuukQdu-02app6AABP
-👤 Client connected: aaAnZNILVuEEkJM8AABR
-👤 User user_admin joined their room
-👋 Client disconnected: aaAnZNILVuEEkJM8AABR
-👤 Client connected: l4WHNqY9nn9ovwIBAABT
-👤 User user_admin joined their room
-👋 Client disconnected: l4WHNqY9nn9ovwIBAABT
-👤 Client connected: FBn3tAcDUvL5OSZLAABV
-👤 User user_admin joined their room
-👋 Client disconnected: FBn3tAcDUvL5OSZLAABV
-👤 Client connected: htBOJN3AGUitT8ecAABX
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: htBOJN3AGUitT8ecAABX
-👤 Client connected: rYuRcxMOcaxu2tIRAABZ
-👤 User user_admin joined their room
-👋 Client disconnected: rYuRcxMOcaxu2tIRAABZ
-👤 Client connected: PPxyDw4zVPCMvnLHAABb
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: PPxyDw4zVPCMvnLHAABb
-👤 Client connected: Q2pInzxQSbvemnYtAABd
-👤 User user_admin joined their room
-👋 Client disconnected: Q2pInzxQSbvemnYtAABd
-👤 Client connected: snWne0KR7vDP5HRnAABf
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: snWne0KR7vDP5HRnAABf
-👤 Client connected: LzZ--U7Ez9pb-K71AABh
-👤 User user_admin joined their room
-👋 Client disconnected: LzZ--U7Ez9pb-K71AABh
-👤 Client connected: -BaaIBljoDFGYy_aAABj
-👤 User user_admin joined their room
-👋 Client disconnected: -BaaIBljoDFGYy_aAABj
-👤 Client connected: 1yTYwPxkmfMD7VRwAABl
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: 1yTYwPxkmfMD7VRwAABl
-👤 Client connected: DO9_iT9PQ5E6TBZHAABn
-👤 User user_admin joined their room
-👋 Client disconnected: DO9_iT9PQ5E6TBZHAABn
-👤 Client connected: TI5bvf_N5ZUIX1zGAABp
-👤 User user_admin joined their room
-👋 Client disconnected: TI5bvf_N5ZUIX1zGAABp
-👤 Client connected: fCt8EVtnMhQ5lsSlAABr
-👤 User user_admin joined their room
-👋 Client disconnected: fCt8EVtnMhQ5lsSlAABr
-👤 Client connected: R5ND3O5UW7lkduwDAABt
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: R5ND3O5UW7lkduwDAABt
-👤 Client connected: A0CmLq8kd1GLDSTpAABv
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: A0CmLq8kd1GLDSTpAABv
-👤 Client connected: ztGXPHG1_NznSYvjAABx
-👤 User user_admin joined their room
-👋 Client disconnected: ztGXPHG1_NznSYvjAABx
-👤 Client connected: 3DpwfDERxi2dgsStAABz
-👤 User user_admin joined their room
-👋 Client disconnected: 3DpwfDERxi2dgsStAABz
-👤 Client connected: ewRky8ea-9wrkK_8AAB1
-👤 User user_admin joined their room
-👋 Client disconnected: ewRky8ea-9wrkK_8AAB1
-👤 Client connected: Uis_hm83vs51-8R0AAB3
-👤 User user_admin joined their room
-👋 Client disconnected: Uis_hm83vs51-8R0AAB3
-👤 Client connected: PF4RpYM2aY2spOf4AAB5
-👤 User user_admin joined their room
-👋 Client disconnected: PF4RpYM2aY2spOf4AAB5
-👤 Client connected: EeWlrf7664gaFa55AAB7
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: EeWlrf7664gaFa55AAB7
-👤 Client connected: yN8zjdQT_zmmaKN1AAB9
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: yN8zjdQT_zmmaKN1AAB9
-👤 Client connected: HOXzLbq8aqad9Gn2AAB_
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: HOXzLbq8aqad9Gn2AAB_
-👤 Client connected: M0Z73P6jvagbl6mhAACB
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: M0Z73P6jvagbl6mhAACB
-👤 Client connected: 2aes9fw4SIFiKlXeAACD
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: 2aes9fw4SIFiKlXeAACD
-👤 Client connected: Od3KzkeS4acvgZzNAACF
-👤 User user_admin joined their room
-👋 Client disconnected: Od3KzkeS4acvgZzNAACF
-👤 Client connected: 5iWMyJBY5ofJFGk5AACH
-👤 User user_admin joined their room
-👑 Admin joined admin room
-👋 Client disconnected: 5iWMyJBY5ofJFGk5AACH
-👤 Client connected: HJoT-NcZshdM43YlAACJ
-👤 User user_admin joined their room
- GET /admin/educator-roles 200 in 122ms
-👋 Client disconnected: HJoT-NcZshdM43YlAACJ
-[?25h
+ GET /api/students?role=educators&limit=5 200 in 3321ms
+ ○ Compiling /api/academic-years ...
+ ✓ Compiled /api/academic-years in 2.7s (191 modules)
+Fetching academic years with whereClause: {}
+prisma:query SELECT 1
+prisma:query SELECT `main`.`academic_years`.`id`, `main`.`academic_years`.`year`, `main`.`academic_years`.`name`, `main`.`academic_years`.`startDate`, `main`.`academic_years`.`endDate`, `main`.`academic_years`.`isActive`, `main`.`academic_years`.`createdAt`, `main`.`academic_years`.`updatedAt`, COALESCE(`aggr_selection_0_Semester`.`_aggr_count_semesters`, 0) AS `_aggr_count_semesters`, COALESCE(`aggr_selection_1_EducatorRoleAssignment`.`_aggr_count_roleAssignments`, 0) AS `_aggr_count_roleAssignments` FROM `main`.`academic_years` LEFT JOIN (SELECT `main`.`semesters`.`academicYearId`, COUNT(*) AS `_aggr_count_semesters` FROM `main`.`semesters` WHERE 1=1 GROUP BY `main`.`semesters`.`academicYearId`) AS `aggr_selection_0_Semester` ON (`main`.`academic_years`.`id` = `aggr_selection_0_Semester`.`academicYearId`) LEFT JOIN (SELECT `main`.`educator_role_assignments`.`academicYearId`, COUNT(*) AS `_aggr_count_roleAssignments` FROM `main`.`educator_role_assignments` WHERE 1=1 GROUP BY `main`.`educator_role_assignments`.`academicYearId`) AS `aggr_selection_1_EducatorRoleAssignment` ON (`main`.`academic_years`.`id` = `aggr_selection_1_EducatorRoleAssignment`.`academicYearId`) WHERE 1=1 ORDER BY `main`.`academic_years`.`year` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`semesters`.`id`, `main`.`semesters`.`name`, `main`.`semesters`.`startDate`, `main`.`semesters`.`endDate`, `main`.`semesters`.`isActive`, `main`.`semesters`.`academicYearId` FROM `main`.`semesters` WHERE `main`.`semesters`.`academicYearId` IN (?,?) LIMIT ? OFFSET ?
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`academic_years`.`id` FROM `main`.`academic_years` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+Found academic years: 2
+ GET /api/academic-years 200 in 3193ms
+ ○ Compiling /api/semesters ...
+ ✓ Compiled /api/semesters in 8.5s (968 modules)
+prisma:query SELECT 1
+prisma:query SELECT 1
+prisma:query SELECT `main`.`semesters`.`id`, `main`.`semesters`.`name`, `main`.`semesters`.`academicYearId`, `main`.`semesters`.`startDate`, `main`.`semesters`.`endDate`, `main`.`semesters`.`isActive`, `main`.`semesters`.`createdAt`, `main`.`semesters`.`updatedAt`, COALESCE(`aggr_selection_0_EducatorRoleAssignment`.`_aggr_count_roleAssignments`, 0) AS `_aggr_count_roleAssignments` FROM `main`.`semesters` LEFT JOIN `main`.`academic_years` AS `orderby_1` ON (`orderby_1`.`id`) = (`main`.`semesters`.`academicYearId`) LEFT JOIN (SELECT `main`.`educator_role_assignments`.`semesterId`, COUNT(*) AS `_aggr_count_roleAssignments` FROM `main`.`educator_role_assignments` WHERE 1=1 GROUP BY `main`.`educator_role_assignments`.`semesterId`) AS `aggr_selection_0_EducatorRoleAssignment` ON (`main`.`semesters`.`id` = `aggr_selection_0_EducatorRoleAssignment`.`semesterId`) WHERE 1=1 ORDER BY `orderby_1`.`year` DESC, `main`.`semesters`.`startDate` DESC LIMIT ? OFFSET ?
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`semesters`.`id` FROM `main`.`semesters` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT `main`.`academic_years`.`id`, `main`.`academic_years`.`year`, `main`.`academic_years`.`name`, `main`.`academic_years`.`isActive` FROM `main`.`academic_years` WHERE `main`.`academic_years`.`id` IN (?,?) LIMIT ? OFFSET ?
+ GET /api/semesters 200 in 9703ms
+ ✓ Compiled in 2.5s (791 modules)
+ ✓ Compiled in 3.4s (791 modules)
+ ✓ Compiled in 1069ms (791 modules)
+ ✓ Compiled in 1058ms (791 modules)

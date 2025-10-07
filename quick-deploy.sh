@@ -35,12 +35,16 @@ npx prisma generate
 echo -e "${BLUE}Building application...${NC}"
 npm run build:prod
 
-# Deploy to Vercel
-echo -e "${BLUE}Deploying to Vercel...${NC}"
-if command -v vercel &> /dev/null; then
-    vercel --prod --yes
-    echo -e "${GREEN}✅ Deployed successfully!${NC}"
+# Deploy to VPS
+echo -e "${BLUE}Deploying to VPS...${NC}"
+VPS_HOST="203.170.129.199"
+VPS_USER="root"
+VPS_PATH="/var/www/internship-system"
+
+if ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "cd $VPS_PATH && git pull origin main && npm run build && pm2 restart internship-system || pm2 start npm --name 'internship-system' -- start"; then
+    echo -e "${GREEN}✅ Deployed to VPS successfully!${NC}"
+    echo -e "${BLUE}Application URL: http://$VPS_HOST:3000${NC}"
 else
-    echo -e "${RED}Vercel CLI not found. Please install: npm i -g vercel${NC}"
+    echo -e "${RED}VPS deployment failed${NC}"
     exit 1
 fi

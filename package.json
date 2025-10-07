@@ -62,6 +62,7 @@
     "db:switch:prod": "./scripts/db-switch.sh production",
     "deploy": "./deploy.sh",
     "deploy:quick": "./quick-deploy.sh",
+    "deploy:vps": "./deploy-vps.sh",
     "deploy:prod": "./deploy.sh --env production",
     "deploy:staging": "./deploy.sh --env staging",
     "deploy:force": "./deploy.sh --force",

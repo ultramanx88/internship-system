@@ -1,5 +1,6 @@
 'use client';
 
+import { AuthProvider } from '@/hooks/use-auth-provider';
 import { useAuth } from '@/hooks/use-auth';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -12,11 +13,7 @@ import { StudentMenu } from '@/components/student/StudentMenu';
 import { EducatorMenu } from '@/components/educator/EducatorMenu';
 import { useEducatorRole } from '@/hooks/useEducatorRole';
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function DashboardContent({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const { educatorRole } = useEducatorRole();
   const router = useRouter();
@@ -96,5 +93,17 @@ export default function DashboardLayout({
         </div>
       </SidebarInset>
     </SidebarProvider>
+  );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <AuthProvider>
+      <DashboardContent>{children}</DashboardContent>
+    </AuthProvider>
   );
 }

@@ -138,7 +138,7 @@ export async function createStudentApplication(data: StudentWorkflowData) {
         feedback: data.feedback,
         
         // Student Workflow
-        studentWorkflowStep: 'application_submitted',
+        studentWorkflowStep: 'profile_complete',
         studentProfileComplete: true,
         applicationSubmitted: true,
         staffReviewed: false,
@@ -288,7 +288,7 @@ export async function getStudentWorkflowStatus(applicationId: string): Promise<S
     } else if (profileComplete && !applicationSubmitted) {
       currentStep = 'profile_complete';
     } else if (applicationSubmitted && !staffReviewed) {
-      currentStep = 'application_submitted';
+      currentStep = 'profile_complete'; // แสดงขั้นตอนที่ 2 เมื่อส่งคำขอแล้ว
     } else if (staffReviewed) {
       currentStep = 'staff_reviewed';
     }

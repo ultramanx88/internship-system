@@ -112,7 +112,7 @@ export default function EducatorRolesPage() {
       });
       if (response.ok) {
         const data = await response.json();
-        setAcademicYears(data || []);
+        setAcademicYears(data.academicYears || []);
       }
     } catch (error) {
       console.error('Error fetching academic years:', error);
@@ -128,7 +128,7 @@ export default function EducatorRolesPage() {
       });
       if (response.ok) {
         const data = await response.json();
-        setSemesters(data || []);
+        setSemesters(data.semesters || []);
       }
     } catch (error) {
       console.error('Error fetching semesters:', error);

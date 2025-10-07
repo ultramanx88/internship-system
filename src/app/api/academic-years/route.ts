@@ -39,33 +39,36 @@ export async function GET(request: NextRequest) {
       whereClause.isActive = isActive === 'true';
     }
 
+    console.log('Fetching academic years with whereClause:', whereClause);
+
     // Get academic years with related data
-    const [academicYears, total] = await Promise.all([
-      prisma.academicYear.findMany({
-        where: whereClause,
-        include: {
-          semesters: {
-            select: {
-              id: true,
-              name: true,
-              startDate: true,
-              endDate: true,
-              isActive: true
-            }
-          },
-          _count: {
-            select: {
-              semesters: true,
-              roleAssignments: true
-            }
+    const academicYears = await prisma.academicYear.findMany({
+      where: whereClause,
+      include: {
+        semesters: {
+          select: {
+            id: true,
+            name: true,
+            startDate: true,
+            endDate: true,
+            isActive: true
           }
         },
-        orderBy: { year: 'desc' },
-        skip: offset,
-        take: limit
-      }),
-      prisma.academicYear.count({ where: whereClause })
-    ]);
+        _count: {
+          select: {
+            semesters: true,
+            roleAssignments: true
+          }
+        }
+      },
+      orderBy: { year: 'desc' },
+      skip: offset,
+      take: limit
+    });
+
+    const total = await prisma.academicYear.count({ where: whereClause });
+
+    console.log('Found academic years:', academicYears.length);
 
     return NextResponse.json({
       success: true,
