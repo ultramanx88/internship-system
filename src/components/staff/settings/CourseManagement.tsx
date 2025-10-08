@@ -74,6 +74,8 @@ export default function CourseManagement() {
   const [isCreating, setIsCreating] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
 
+  const ALL_VALUE = '__all__';
+
   // Form state
   const [formData, setFormData] = useState({
     code: '',
@@ -351,12 +353,12 @@ export default function CourseManagement() {
                 </div>
                 <div>
                   <Label htmlFor="faculty">คณะ</Label>
-                  <Select value={selectedFaculty} onValueChange={setSelectedFaculty}>
+                  <Select value={selectedFaculty || ALL_VALUE} onValueChange={(v) => setSelectedFaculty(v === ALL_VALUE ? '' : v)}>
                     <SelectTrigger>
                       <SelectValue placeholder="เลือกคณะ" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">ทั้งหมด</SelectItem>
+                      <SelectItem value={ALL_VALUE}>ทั้งหมด</SelectItem>
                       {faculties.map(faculty => (
                         <SelectItem key={faculty.id} value={faculty.id}>
                           {faculty.name}
@@ -367,12 +369,12 @@ export default function CourseManagement() {
                 </div>
                 <div>
                   <Label htmlFor="department">ภาควิชา</Label>
-                  <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                  <Select value={selectedDepartment || ALL_VALUE} onValueChange={(v) => setSelectedDepartment(v === ALL_VALUE ? '' : v)}>
                     <SelectTrigger>
                       <SelectValue placeholder="เลือกภาควิชา" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">ทั้งหมด</SelectItem>
+                      <SelectItem value={ALL_VALUE}>ทั้งหมด</SelectItem>
                       {departments.map(dept => (
                         <SelectItem key={dept.id} value={dept.id}>
                           {dept.name}
@@ -383,12 +385,12 @@ export default function CourseManagement() {
                 </div>
                 <div>
                   <Label htmlFor="curriculum">หลักสูตร</Label>
-                  <Select value={selectedCurriculum} onValueChange={setSelectedCurriculum}>
+                  <Select value={selectedCurriculum || ALL_VALUE} onValueChange={(v) => setSelectedCurriculum(v === ALL_VALUE ? '' : v)}>
                     <SelectTrigger>
                       <SelectValue placeholder="เลือกหลักสูตร" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">ทั้งหมด</SelectItem>
+                      <SelectItem value={ALL_VALUE}>ทั้งหมด</SelectItem>
                       {curriculums.map(curriculum => (
                         <SelectItem key={curriculum.id} value={curriculum.id}>
                           {curriculum.name}
@@ -667,6 +669,7 @@ export default function CourseManagement() {
                     <SelectValue placeholder="เลือกสาขา" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="__none__">ทั้งหมด</SelectItem>
                     {majors.map(major => (
                       <SelectItem key={major.id} value={major.id}>
                         {major.name}
