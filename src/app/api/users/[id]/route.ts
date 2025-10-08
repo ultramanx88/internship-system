@@ -69,16 +69,7 @@ export async function GET(
         curriculumId: true,
         majorId: true,
         studentYear: true,
-        educatorRoleId: true,
-        educatorRole: {
-          select: {
-            id: true,
-            name: true,
-            nameEn: true,
-            description: true,
-            isActive: true
-          }
-        }
+        // educatorRole fields removed for compatibility with current schema
       }
     });
 
@@ -90,9 +81,20 @@ export async function GET(
     // แปลง roles จาก JSON string เป็น array อย่างปลอดภัย
     let parsedRoles: any = [];
     try {
-      parsedRoles = Array.isArray((user as any).roles)
-        ? (user as any).roles
-        : ((user as any).roles ? JSON.parse((user as any).roles as any) : []);
+      const rawRoles: any = (user as any).roles;
+      if (Array.isArray(rawRoles)) {
+        parsedRoles = rawRoles;
+      } else if (typeof rawRoles === 'string' && rawRoles.trim() !== '') {
+        // Try JSON parse; if it fails and string is a single role, wrap it
+        try {
+          parsedRoles = JSON.parse(rawRoles);
+          if (!Array.isArray(parsedRoles)) parsedRoles = [String(parsedRoles)];
+        } catch {
+          parsedRoles = [rawRoles];
+        }
+      } else {
+        parsedRoles = [];
+      }
     } catch {
       parsedRoles = [];
     }

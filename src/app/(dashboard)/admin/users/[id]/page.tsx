@@ -66,7 +66,20 @@ export default function UserProfilePage() {
           const foundUser = await response.json();
           console.log('Found user:', foundUser);
           setProfile(foundUser as User);
-          const userRoles = Array.isArray(foundUser.roles) ? foundUser.roles : JSON.parse(foundUser.roles || '[]');
+          // Robust roles parsing (array or JSON string)
+          let userRoles: string[] = [];
+          try {
+            const raw = (foundUser as any).roles;
+            if (Array.isArray(raw)) userRoles = raw as string[];
+            else if (typeof raw === 'string' && raw.trim() !== '') {
+              try {
+                const parsed = JSON.parse(raw);
+                userRoles = Array.isArray(parsed) ? parsed : [String(parsed)];
+              } catch {
+                userRoles = [raw];
+              }
+            }
+          } catch {}
           const newFormData = {
             Login_id: foundUser.id || '',
             password: '', // Password should not be pre-filled for security
@@ -100,7 +113,20 @@ export default function UserProfilePage() {
             const candidate = list.find(u => u.id === userId) || (list.length > 0 ? list[0] : null);
             if (candidate) {
               setProfile(candidate as User);
-              const userRoles = Array.isArray(candidate.roles) ? candidate.roles : JSON.parse(candidate.roles || '[]');
+              // Robust roles parsing (array or JSON string)
+              let userRoles: string[] = [];
+              try {
+                const raw = (candidate as any).roles;
+                if (Array.isArray(raw)) userRoles = raw as string[];
+                else if (typeof raw === 'string' && raw.trim() !== '') {
+                  try {
+                    const parsed = JSON.parse(raw);
+                    userRoles = Array.isArray(parsed) ? parsed : [String(parsed)];
+                  } catch {
+                    userRoles = [raw];
+                  }
+                }
+              } catch {}
               const newFormData = {
                 Login_id: candidate.id || '',
                 password: '',
