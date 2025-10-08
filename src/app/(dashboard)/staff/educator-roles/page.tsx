@@ -104,7 +104,8 @@ export default function EducatorRolesPage() {
       const response = await fetch('/api/academic-years');
       if (response.ok) {
         const data = await response.json();
-        setAcademicYears(data || []);
+        const years = Array.isArray(data) ? data : (data?.academicYears ?? []);
+        setAcademicYears(years);
       }
     } catch (error) {
       console.error('Error fetching academic years:', error);
@@ -117,7 +118,8 @@ export default function EducatorRolesPage() {
       const response = await fetch('/api/semesters');
       if (response.ok) {
         const data = await response.json();
-        setSemesters(data || []);
+        const items = Array.isArray(data) ? data : (data?.semesters ?? []);
+        setSemesters(items);
       }
     } catch (error) {
       console.error('Error fetching semesters:', error);
