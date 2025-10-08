@@ -177,7 +177,7 @@ export function AcademicManagement() {
     try {
       const res = await fetch('/api/academic-years', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'admin' },
         body: JSON.stringify({ ids: [id] })
       });
       if (!res.ok) {
