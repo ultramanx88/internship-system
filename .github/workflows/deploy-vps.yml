@@ -1,0 +1,122 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Generate Prisma Client
+      run: npx prisma generate
+      
+    - name: Build application
+      run: npm run build
+      env:
+        NODE_ENV: production
+        
+    - name: Create deployment package
+      run: |
+        mkdir -p deploy-package
+        cp -r .next deploy-package/
+        cp -r public deploy-package/
+        cp -r prisma deploy-package/
+        cp package.json deploy-package/
+        cp package-lock.json deploy-package/
+        cp next.config.ts deploy-package/
+        cp .env.production deploy-package/.env
+        
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: 22
+        script: |
+          cd /var/www/internship-system
+          
+          # Stop current application
+          pm2 stop internship-system || true
+          pm2 delete internship-system || true
+          
+          # Backup current version
+          if [ -d ".next" ]; then
+            mv .next .next.backup.$(date +%Y%m%d_%H%M%S)
+          fi
+          
+          # Clear old files
+          rm -rf .next public prisma package.json package-lock.json next.config.ts .env
+          
+    - name: Upload files to VPS
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: 22
+        source: "deploy-package/*"
+        target: "/var/www/internship-system/"
+        
+    - name: Install dependencies and start on VPS
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: 22
+        script: |
+          cd /var/www/internship-system
+          
+          # Install production dependencies
+          npm ci --only=production
+          
+          # Generate Prisma Client
+          npx prisma generate
+          
+          # Run database migrations
+          npx prisma db push
+          
+          # Start application with PM2
+          pm2 start npm --name "internship-system" -- run start
+          
+          # Save PM2 configuration
+          pm2 save
+          
+          # Check status
+          pm2 status
+          
+    - name: Health check
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: 22
+        script: |
+          # Wait for application to start
+          sleep 10
+          
+          # Check if application is running
+          if curl -f http://localhost:8080/api/health; then
+            echo "✅ Application is running successfully!"
+          else
+            echo "❌ Application health check failed!"
+            pm2 logs internship-system --lines 20
+            exit 1
+          fi

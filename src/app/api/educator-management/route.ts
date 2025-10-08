@@ -42,12 +42,6 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication and authorization
-    const authResult = await requireAuth(request, ['admin', 'staff']);
-    if ('error' in authResult) {
-      return authResult.error;
-    }
-
     const { educatorRoles, courseInstructors } = await request.json();
 
     // Update educator roles
