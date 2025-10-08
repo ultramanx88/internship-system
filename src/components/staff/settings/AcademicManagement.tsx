@@ -55,8 +55,11 @@ export function AcademicManagement() {
 
       if (yearsResponse.ok) {
         const yearsData = await yearsResponse.json();
-        setAcademicYears(yearsData);
-        console.log('Loaded academic years:', yearsData.length);
+        const yearsArray = Array.isArray(yearsData)
+          ? yearsData
+          : (yearsData?.academicYears ?? []);
+        setAcademicYears(yearsArray);
+        console.log('Loaded academic years:', yearsArray.length);
       } else {
         console.error('Failed to load academic years:', yearsResponse.status);
         toast({
@@ -68,8 +71,11 @@ export function AcademicManagement() {
 
       if (semestersResponse.ok) {
         const semestersData = await semestersResponse.json();
-        setSemesters(semestersData);
-        console.log('Loaded semesters:', semestersData.length);
+        const semestersArray = Array.isArray(semestersData)
+          ? semestersData
+          : (semestersData?.semesters ?? []);
+        setSemesters(semestersArray);
+        console.log('Loaded semesters:', semestersArray.length);
       } else {
         console.error('Failed to load semesters:', semestersResponse.status);
         toast({
