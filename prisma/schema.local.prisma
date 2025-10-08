@@ -204,6 +204,17 @@ model Company {
   @@map("companies")
 }
 
+// Optional table for educator supervision mappings (not required by current app routes)
+model SupervisedStudent {
+  id         String   @id @default(cuid())
+  educatorId String
+  studentId  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("supervised_students")
+}
+
 enum Role {
   admin
   staff

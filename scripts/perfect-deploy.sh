@@ -208,7 +208,7 @@ npx prisma db push --accept-data-loss
 
 # Clear and import
 PGPASSWORD=internship_pass psql -U internship_user -d internship_system -h localhost -c "
-TRUNCATE TABLE print_records, documents, applications, internships, companies, users, majors, curriculums, departments, faculties, supervised_students, course_instructors, educator_roles, semesters, academic_years, evaluation_answers, evaluations, evaluation_questions, evaluation_forms, subdistricts, districts, provinces RESTART IDENTITY CASCADE;
+TRUNCATE TABLE IF EXISTS print_records, documents, applications, internships, companies, users, majors, curriculums, departments, faculties, supervised_students, course_instructors, educator_roles, semesters, academic_years, evaluation_answers, evaluations, evaluation_questions, evaluation_forms, subdistricts, districts, provinces RESTART IDENTITY CASCADE;
 "
 
 npx tsx scripts/import-data.ts backups/deploy-data.json
