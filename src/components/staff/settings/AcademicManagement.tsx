@@ -171,6 +171,27 @@ export function AcademicManagement() {
     ));
   };
 
+  const handleDeleteAcademicYear = async (id: string) => {
+    if (!id) return;
+    if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบปีการศึกษานี้?')) return;
+    try {
+      const res = await fetch('/api/academic-years', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [id] })
+      });
+      if (!res.ok) {
+        const detail = await res.json().catch(() => ({}));
+        throw new Error(detail.error || 'ลบปีการศึกษาไม่สำเร็จ');
+      }
+      setAcademicYears(prev => prev.filter(y => y.id !== id));
+      setSemesters(prev => prev.filter(s => s.academicYearId !== id));
+      toast({ title: 'ลบสำเร็จ', description: 'ลบปีการศึกษาเรียบร้อยแล้ว' });
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'เกิดข้อผิดพลาด', description: e?.message || 'ไม่สามารถลบได้' });
+    }
+  };
+
   const handleSemesterChange = (id: string, field: string, value: string | boolean) => {
     setSemesters(prev => prev.map(semester => 
       semester.id === id ? { ...semester, [field]: value } : semester
@@ -241,7 +262,7 @@ export function AcademicManagement() {
                       </Select>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" onClick={() => handleDeleteAcademicYear(year.id)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </TableCell>
