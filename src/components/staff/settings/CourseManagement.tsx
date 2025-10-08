@@ -107,42 +107,42 @@ export default function CourseManagement() {
 
       if (coursesRes.ok) {
         const coursesData = await coursesRes.json();
-        setCourses(coursesData);
+        setCourses(Array.isArray(coursesData) ? coursesData : (coursesData?.courses ?? []));
       } else {
         console.error('Failed to fetch courses');
       }
 
       if (categoriesRes.ok) {
         const categoriesData = await categoriesRes.json();
-        setCategories(categoriesData);
+        setCategories(Array.isArray(categoriesData) ? categoriesData : (categoriesData?.categories ?? []));
       } else {
         console.error('Failed to fetch course categories');
       }
 
       if (facultiesRes.ok) {
         const facultiesData = await facultiesRes.json();
-        setFaculties(facultiesData);
+        setFaculties(Array.isArray(facultiesData) ? facultiesData : (facultiesData?.faculties ?? []));
       } else {
         console.error('Failed to fetch faculties');
       }
 
       if (departmentsRes.ok) {
         const departmentsData = await departmentsRes.json();
-        setDepartments(departmentsData);
+        setDepartments(Array.isArray(departmentsData) ? departmentsData : (departmentsData?.departments ?? []));
       } else {
         console.error('Failed to fetch departments');
       }
 
       if (curriculumsRes.ok) {
         const curriculumsData = await curriculumsRes.json();
-        setCurriculums(curriculumsData);
+        setCurriculums(Array.isArray(curriculumsData) ? curriculumsData : (curriculumsData?.curriculums ?? []));
       } else {
         console.error('Failed to fetch curriculums');
       }
 
       if (majorsRes.ok) {
         const majorsData = await majorsRes.json();
-        setMajors(majorsData);
+        setMajors(Array.isArray(majorsData) ? majorsData : (majorsData?.majors ?? []));
       } else {
         console.error('Failed to fetch majors');
       }
