@@ -111,7 +111,17 @@ export default function CourseManagement() {
         const coursesData = await coursesRes.json();
         setCourses(Array.isArray(coursesData) ? coursesData : (coursesData?.courses ?? []));
       } else {
-        console.error('Failed to fetch courses');
+        let detail = '';
+        try {
+          const ct = coursesRes.headers.get('content-type') || '';
+          detail = ct.includes('application/json') ? JSON.stringify(await coursesRes.json()) : (await coursesRes.text());
+        } catch {}
+        console.error('Failed to fetch courses', coursesRes.status, coursesRes.statusText, detail);
+        toast({
+          variant: 'destructive',
+          title: 'โหลดรายวิชาล้มเหลว',
+          description: `API /api/courses: ${coursesRes.status} ${coursesRes.statusText}`
+        });
       }
 
       if (categoriesRes.ok) {
