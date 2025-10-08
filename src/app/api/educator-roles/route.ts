@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { requireAuth, cleanup } from '@/lib/auth-utils';
 
 const prisma = new PrismaClient();
 
@@ -16,11 +17,19 @@ export async function GET() {
       { error: 'Failed to fetch educator roles' },
       { status: 500 }
     );
+  } finally {
+    await cleanup();
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication and authorization
+    const authResult = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+
     const { educatorRoles, courseInstructors } = await request.json();
 
     // Update educator roles
@@ -87,5 +96,7 @@ export async function POST(request: NextRequest) {
       { error: 'Failed to save educator data' },
       { status: 500 }
     );
+  } finally {
+    await cleanup();
   }
 }
