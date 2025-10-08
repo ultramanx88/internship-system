@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { cleanup } from '@/lib/auth-utils';
 import { z } from 'zod';
 
 // Schema for creating educator role assignment
@@ -85,10 +86,15 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Parse roles from JSON string
-    const assignmentsWithParsedRoles = assignments.map(assignment => ({
-      ...assignment,
-      roles: JSON.parse(assignment.roles)
-    }));
+    // Parse roles safely (array in DB string or already array)
+    const assignmentsWithParsedRoles = assignments.map((assignment: any) => {
+      let parsed: string[] = [];
+      try {
+        if (Array.isArray(assignment.roles)) parsed = assignment.roles;
+        else if (typeof assignment.roles === 'string') parsed = JSON.parse(assignment.roles || '[]');
+      } catch {}
+      return { ...assignment, roles: parsed };
+    });
 
     return NextResponse.json({
       success: true,

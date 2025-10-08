@@ -3,163 +3,197 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  // สร้างข้อมูลคณะ
+  // สร้างโครงสร้างวิชาการตามที่ระบุ
+  // คณะเดียว: บริหารธุรกิจและศิลปศาสตร์ / Business Administration and Liberal Arts
   const faculty1 = await prisma.faculty.upsert({
-    where: { id: 'faculty-1' },
+    where: { id: 'faculty-bala' },
     update: {},
     create: {
-      id: 'faculty-1',
-      nameTh: 'คณะวิทยาศาสตร์และเทคโนโลยี',
-      nameEn: 'Faculty of Science and Technology',
-      code: 'SCI',
+      id: 'faculty-bala',
+      nameTh: 'บริหารธุรกิจและศิลปศาสตร์',
+      nameEn: 'Business Administration and Liberal Arts',
+      code: 'BALA',
       isActive: true
     }
   });
 
-  const faculty2 = await prisma.faculty.upsert({
-    where: { id: 'faculty-2' },
+  // สาขา
+  const deptAccounting = await prisma.department.upsert({
+    where: { id: 'dept-acc' },
     update: {},
     create: {
-      id: 'faculty-2',
-      nameTh: 'คณะบริหารธุรกิจ',
-      nameEn: 'Faculty of Business Administration',
-      code: 'BUS',
-      isActive: true
-    }
-  });
-
-  // สร้างข้อมูลภาควิชา
-  const dept1 = await prisma.department.upsert({
-    where: { id: 'dept-1' },
-    update: {},
-    create: {
-      id: 'dept-1',
-      nameTh: 'สาขาวิชาเทคโนโลยีสารสนเทศ',
-      nameEn: 'Information Technology',
-      code: 'IT',
+      id: 'dept-acc',
+      nameTh: 'สาขาบัญชี',
+      nameEn: 'Department of Accounting',
+      code: 'ACC',
       facultyId: faculty1.id,
       isActive: true
     }
   });
 
-  const dept2 = await prisma.department.upsert({
-    where: { id: 'dept-2' },
+  const deptManagement = await prisma.department.upsert({
+    where: { id: 'dept-mgmt' },
     update: {},
     create: {
-      id: 'dept-2',
-      nameTh: 'สาขาวิชาวิทยาการคอมพิวเตอร์',
-      nameEn: 'Computer Science',
-      code: 'CS',
+      id: 'dept-mgmt',
+      nameTh: 'สาขาบริหาร',
+      nameEn: 'Department of Management',
+      code: 'MGMT',
       facultyId: faculty1.id,
       isActive: true
     }
   });
 
-  const dept3 = await prisma.department.upsert({
-    where: { id: 'dept-3' },
+  const deptLiberalArts = await prisma.department.upsert({
+    where: { id: 'dept-libarts' },
     update: {},
     create: {
-      id: 'dept-3',
-      nameTh: 'สาขาวิชาการจัดการธุรกิจ',
-      nameEn: 'Business Management',
-      code: 'BM',
-      facultyId: faculty2.id,
+      id: 'dept-libarts',
+      nameTh: 'สาขาศิลปศาสตร์',
+      nameEn: 'Department of Liberal Arts',
+      code: 'LA',
+      facultyId: faculty1.id,
       isActive: true
     }
   });
 
-  // สร้างข้อมูลหลักสูตร
-  const curriculum1 = await prisma.curriculum.upsert({
-    where: { id: 'curr-1' },
+  // หลักสูตร
+  // Accounting: ไม่มีวิชาเอก
+  const curriculumAccounting = await prisma.curriculum.upsert({
+    where: { id: 'curr-acc-bba' },
     update: {},
     create: {
-      id: 'curr-1',
-      nameTh: 'เทคโนโลยีสารสนเทศ',
-      nameEn: 'Information Technology',
-      code: 'IT',
-      degree: 'ปริญญาตรี',
-      departmentId: dept1.id,
+      id: 'curr-acc-bba',
+      nameTh: 'บช.บ.การบัญชี',
+      nameEn: 'B.B.A Accounting',
+      code: 'BBA-ACC',
+      degree: 'B.B.A',
+      departmentId: deptAccounting.id,
       isActive: true
     }
   });
 
-  const curriculum2 = await prisma.curriculum.upsert({
-    where: { id: 'curr-2' },
+  // Management: 3 หลักสูตร (หนึ่งในนั้นมี 4 วิชาเอก)
+  const curriculumBA = await prisma.curriculum.upsert({
+    where: { id: 'curr-bba-ba' },
     update: {},
     create: {
-      id: 'curr-2',
-      nameTh: 'วิทยาการคอมพิวเตอร์',
-      nameEn: 'Computer Science',
-      code: 'CS',
-      degree: 'ปริญญาตรี',
-      departmentId: dept2.id,
+      id: 'curr-bba-ba',
+      nameTh: 'บธ.บ.บริหารธุรกิจ',
+      nameEn: 'B.B.A Business Administration',
+      code: 'BBA-BA',
+      degree: 'B.B.A',
+      departmentId: deptManagement.id,
       isActive: true
     }
   });
 
-  const curriculum3 = await prisma.curriculum.upsert({
-    where: { id: 'curr-3' },
+  const curriculumIBM = await prisma.curriculum.upsert({
+    where: { id: 'curr-ibm-int' },
     update: {},
     create: {
-      id: 'curr-3',
-      nameTh: 'การจัดการธุรกิจ',
-      nameEn: 'Business Management',
-      code: 'BM',
-      degree: 'ปริญญาตรี',
-      departmentId: dept3.id,
+      id: 'curr-ibm-int',
+      nameTh: 'บธ.บ.การจัดการธุรกิจระหว่างประเทศ(นานาชาติ)',
+      nameEn: 'B.B.A International Business Management (International Program)',
+      code: 'BBA-IBM-INT',
+      degree: 'B.B.A',
+      departmentId: deptManagement.id,
       isActive: true
     }
   });
 
-  // สร้างข้อมูลวิชาเอก
+  const curriculumBIS = await prisma.curriculum.upsert({
+    where: { id: 'curr-bis' },
+    update: {},
+    create: {
+      id: 'curr-bis',
+      nameTh: 'บธ.บ.ระบบสารสนเทศทางธุรกิจ',
+      nameEn: 'B.B.A Business Information System',
+      code: 'BBA-BIS',
+      degree: 'B.B.A',
+      departmentId: deptManagement.id,
+      isActive: true
+    }
+  });
+
+  // Liberal Arts: 2 หลักสูตร (ไม่มีวิชาเอก)
+  const curriculumTH = await prisma.curriculum.upsert({
+    where: { id: 'curr-th' },
+    update: {},
+    create: {
+      id: 'curr-th',
+      nameTh: 'ศศ.บ.การท่องเที่ยวและการบริการ',
+      nameEn: 'B.A. Tourism and Hospitality',
+      code: 'BA-TH',
+      degree: 'B.A.',
+      departmentId: deptLiberalArts.id,
+      isActive: true
+    }
+  });
+
+  const curriculumEIC = await prisma.curriculum.upsert({
+    where: { id: 'curr-eic' },
+    update: {},
+    create: {
+      id: 'curr-eic',
+      nameTh: 'ศศ.บ.ภาษาอังกฤษเพื่อการสื่อสารสากล',
+      nameEn: 'B.A. English for International Communication',
+      code: 'BA-EIC',
+      degree: 'B.A.',
+      departmentId: deptLiberalArts.id,
+      isActive: true
+    }
+  });
+
+  // วิชาเอกเฉพาะใน บธ.บ.บริหารธุรกิจ (4 วิชาเอก)
   const major1 = await prisma.major.upsert({
-    where: { id: 'major-1' },
+    where: { id: 'major-mgmt' },
     update: {},
     create: {
-      id: 'major-1',
-      nameTh: 'เทคโนโลยีสารสนเทศ',
-      nameEn: 'Information Technology',
-      curriculumId: curriculum1.id,
-      area: 'เทคโนโลยี',
-      isActive: true
-    }
-  });
-
-  const major2 = await prisma.major.upsert({
-    where: { id: 'major-2' },
-    update: {},
-    create: {
-      id: 'major-2',
-      nameTh: 'การพัฒนาซอฟต์แวร์',
-      nameEn: 'Software Development',
-      curriculumId: curriculum1.id,
-      area: 'เทคโนโลยี',
-      isActive: true
-    }
-  });
-
-  const major3 = await prisma.major.upsert({
-    where: { id: 'major-3' },
-    update: {},
-    create: {
-      id: 'major-3',
-      nameTh: 'วิทยาการคอมพิวเตอร์',
-      nameEn: 'Computer Science',
-      curriculumId: curriculum2.id,
-      area: 'วิทยาศาสตร์',
-      isActive: true
-    }
-  });
-
-  const major4 = await prisma.major.upsert({
-    where: { id: 'major-4' },
-    update: {},
-    create: {
-      id: 'major-4',
+      id: 'major-mgmt',
       nameTh: 'การจัดการธุรกิจ',
-      nameEn: 'Business Management',
-      curriculumId: curriculum3.id,
-      area: 'บริหารธุรกิจ',
+      nameEn: 'Management',
+      curriculumId: curriculumBA.id,
+      area: 'Business Management',
+      isActive: true
+    }
+  });
+
+  await prisma.major.upsert({
+    where: { id: 'major-mkt' },
+    update: {},
+    create: {
+      id: 'major-mkt',
+      nameTh: 'การตลาดและการตลาดดิจิทัล',
+      nameEn: 'Marketing',
+      curriculumId: curriculumBA.id,
+      area: 'Marketing',
+      isActive: true
+    }
+  });
+
+  await prisma.major.upsert({
+    where: { id: 'major-be' },
+    update: {},
+    create: {
+      id: 'major-be',
+      nameTh: 'ภาษาอังกฤษธุรกิจ',
+      nameEn: 'Business English',
+      curriculumId: curriculumBA.id,
+      area: 'Business English',
+      isActive: true
+    }
+  });
+
+  await prisma.major.upsert({
+    where: { id: 'major-retail' },
+    update: {},
+    create: {
+      id: 'major-retail',
+      nameTh: 'ธุรกิจการค้าและบริการ',
+      nameEn: 'Retail Business Management',
+      curriculumId: curriculumBA.id,
+      area: 'Retail Management',
       isActive: true
     }
   });
@@ -493,8 +527,8 @@ async function main() {
       password: hashedPassword,
       roles: '["student"]',
       facultyId: faculty1.id,
-      departmentId: dept1.id,
-      curriculumId: curriculum1.id,
+      departmentId: deptManagement.id,
+      curriculumId: curriculumBA.id,
       majorId: major1.id
     }
   });
@@ -509,8 +543,8 @@ async function main() {
       password: hashedPassword,
       roles: '["student"]',
       facultyId: faculty1.id,
-      departmentId: dept1.id,
-      curriculumId: curriculum1.id,
+      departmentId: deptManagement.id,
+      curriculumId: curriculumBA.id,
       majorId: major1.id
     }
   });
@@ -539,8 +573,8 @@ async function main() {
       statement: 'นักศึกษาที่มีใจรักในการเรียนรู้และพัฒนาตนเอง พร้อมที่จะนำความรู้ไปใช้ในการทำงานจริง',
       studentYear: 4,
       facultyId: faculty1.id,
-      departmentId: dept1.id,
-      curriculumId: curriculum1.id,
+      departmentId: deptManagement.id,
+      curriculumId: curriculumBA.id,
       majorId: major1.id
     }
   });
@@ -569,8 +603,8 @@ async function main() {
       statement: 'นักศึกษาที่หลงใหลในการออกแบบและสร้างสรรค์ผลงานที่สวยงามและใช้งานได้จริง',
       studentYear: 3,
       facultyId: faculty1.id,
-      departmentId: dept1.id,
-      curriculumId: curriculum1.id,
+      departmentId: deptManagement.id,
+      curriculumId: curriculumBA.id,
       majorId: major1.id
     }
   });
@@ -599,8 +633,8 @@ async function main() {
       statement: 'นักศึกษาที่สนใจในด้าน AI และ Machine Learning พร้อมที่จะพัฒนาเทคโนโลยีเพื่อสังคม',
       studentYear: 4,
       facultyId: faculty1.id,
-      departmentId: dept1.id,
-      curriculumId: curriculum1.id,
+      departmentId: deptManagement.id,
+      curriculumId: curriculumBA.id,
       majorId: major1.id
     }
   });
@@ -628,8 +662,8 @@ async function main() {
       statement: 'นักศึกษาที่มีความสนใจในการพัฒนาระบบ Backend และการจัดการฐานข้อมูล',
       studentYear: 3,
       facultyId: faculty1.id,
-      departmentId: dept1.id,
-      curriculumId: curriculum1.id,
+      departmentId: deptManagement.id,
+      curriculumId: curriculumBA.id,
       majorId: major1.id
     }
   });
@@ -658,8 +692,8 @@ async function main() {
       statement: 'นักศึกษาที่มีจิตใจดีและรักในการเรียนรู้เทคโนโลยีใหม่ๆ',
       studentYear: 4,
       facultyId: faculty1.id,
-      departmentId: dept1.id,
-      curriculumId: curriculum1.id,
+      departmentId: deptManagement.id,
+      curriculumId: curriculumBA.id,
       majorId: major1.id
     }
   });
@@ -688,8 +722,8 @@ async function main() {
       statement: 'นักศึกษาที่สนใจในการวิเคราะห์ระบบและการออกแบบฐานข้อมูล',
       studentYear: 3,
       facultyId: faculty1.id,
-      departmentId: dept1.id,
-      curriculumId: curriculum1.id,
+      departmentId: deptManagement.id,
+      curriculumId: curriculumBA.id,
       majorId: major1.id
     }
   });
@@ -737,8 +771,8 @@ async function main() {
         password: hashedPassword,
         roles: '["student"]',
         facultyId: faculty1.id,
-        departmentId: dept1.id,
-        curriculumId: curriculum1.id,
+        departmentId: deptManagement.id,
+        curriculumId: curriculumBA.id,
         majorId: major1.id
       }
     });
@@ -746,9 +780,9 @@ async function main() {
 
   console.log('Seed data created successfully!');
   console.log('Created:');
-  console.log('- 2 Faculties');
+  console.log('- 1 Faculty');
   console.log('- 3 Departments');
-  console.log('- 3 Curriculums');
+  console.log('- 6 Curriculums');
   console.log('- 4 Majors');
   console.log('- 4 Companies');
   console.log('- 6 Internships');

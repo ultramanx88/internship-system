@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AddressSelector from '@/components/ui/AddressSelector';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Camera } from 'lucide-react';
 import Link from 'next/link';
@@ -720,75 +721,23 @@ export default function InternshipFormPage() {
                                     />
                                 </div>
 
-                                <div className="grid gap-4 md:grid-cols-3">
-                                    <div>
-                                        <Label htmlFor="provinceId">{isEnglish ? 'Province' : 'จังหวัด'}</Label>
-                                        <Select 
-                                            value={formData.provinceId} 
-                                            onValueChange={(value) => handleInputChange('provinceId', value)}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={isEnglish ? 'Select Province' : 'เลือกจังหวัด'} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {provinces.map((province) => (
-                                                    <SelectItem key={province.id} value={province.id}>
-                                                        {province.label || province.nameTh}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="districtId">{isEnglish ? 'District' : 'อำเภอ/เขต'}</Label>
-                                        <Select 
-                                            value={formData.districtId} 
-                                            onValueChange={(value) => handleInputChange('districtId', value)}
-                                            disabled={!formData.provinceId}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={isEnglish ? 'Select District' : 'เลือกอำเภอ/เขต'} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {districts.map((district) => (
-                                                    <SelectItem key={district.id} value={district.id}>
-                                                        {district.label || district.nameTh}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="subdistrictId">{isEnglish ? 'Subdistrict' : 'ตำบล/แขวง'}</Label>
-                                        <Select 
-                                            value={formData.subdistrictId} 
-                                            onValueChange={(value) => handleInputChange('subdistrictId', value)}
-                                            disabled={!formData.districtId}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={isEnglish ? 'Select Subdistrict' : 'เลือกตำบล/แขวง'} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {subdistricts.map((subdistrict) => (
-                                                    <SelectItem key={subdistrict.id} value={subdistrict.id}>
-                                                        {subdistrict.label || subdistrict.nameTh}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="postalCode">{isEnglish ? 'Postal Code' : 'รหัสไปรษณีย์'}</Label>
-                                    <Input
-                                        id="postalCode"
-                                        type="number"
-                                        placeholder={isEnglish ? 'Postal code' : 'รหัสไปรษณีย์'}
-                                        value={formData.postalCode}
-                                        onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                                    />
-                                </div>
+                                <AddressSelector
+                                    value={{
+                                        provinceId: formData.provinceId,
+                                        districtId: formData.districtId,
+                                        subdistrictId: formData.subdistrictId,
+                                        postalCode: formData.postalCode,
+                                    }}
+                                    onChange={(v) => setFormData(prev => ({
+                                        ...prev,
+                                        provinceId: v.provinceId,
+                                        districtId: v.districtId,
+                                        subdistrictId: v.subdistrictId,
+                                        postalCode: v.postalCode || prev.postalCode
+                                    }))}
+                                    lang={isEnglish ? 'en' : 'th'}
+                                    className="mt-2"
+                                />
                             </div>
 
                             <div>

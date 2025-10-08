@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AddressSelector from '@/components/ui/AddressSelector';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -37,16 +38,10 @@ const industryOptions = [
 
 export function AddCompanyForm({ onSuccess, onCancel }: AddCompanyFormProps) {
     const [isLoading, setIsLoading] = useState(false);
-    const [provinces, setProvinces] = useState<any[]>([]);
-    const [districts, setDistricts] = useState<any[]>([]);
-    const [subdistricts, setSubdistricts] = useState<any[]>([]);
     const [formData, setFormData] = useState({
         name: '',
         nameEn: '',
         address: '',
-        province: '',
-        district: '',
-        subdistrict: '',
         provinceId: '',
         districtId: '',
         subdistrictId: '',
@@ -61,65 +56,7 @@ export function AddCompanyForm({ onSuccess, onCancel }: AddCompanyFormProps) {
 
     const { toast } = useToast();
 
-    // โหลดข้อมูลจังหวัด
-    useEffect(() => {
-        const loadProvinces = async () => {
-            try {
-                const response = await fetch('/api/address/provinces?lang=th');
-                if (response.ok) {
-                    const data = await response.json();
-                    setProvinces(data.provinces);
-                }
-            } catch (error) {
-                console.error('Error loading provinces:', error);
-            }
-        };
-        loadProvinces();
-    }, []);
-
-    // โหลดข้อมูลอำเภอเมื่อเลือกจังหวัด
-    useEffect(() => {
-        if (formData.provinceId) {
-            const loadDistricts = async () => {
-                try {
-                    const response = await fetch(`/api/address/districts?provinceId=${formData.provinceId}&lang=th`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        setDistricts(data.districts);
-                        setSubdistricts([]); // รีเซ็ตตำบล
-                        setFormData(prev => ({ ...prev, districtId: '', subdistrictId: '' }));
-                    }
-                } catch (error) {
-                    console.error('Error loading districts:', error);
-                }
-            };
-            loadDistricts();
-        } else {
-            setDistricts([]);
-            setSubdistricts([]);
-        }
-    }, [formData.provinceId]);
-
-    // โหลดข้อมูลตำบลเมื่อเลือกอำเภอ
-    useEffect(() => {
-        if (formData.districtId) {
-            const loadSubdistricts = async () => {
-                try {
-                    const response = await fetch(`/api/address/subdistricts?districtId=${formData.districtId}&lang=th`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        setSubdistricts(data.subdistricts);
-                        setFormData(prev => ({ ...prev, subdistrictId: '' }));
-                    }
-                } catch (error) {
-                    console.error('Error loading subdistricts:', error);
-                }
-            };
-            loadSubdistricts();
-        } else {
-            setSubdistricts([]);
-        }
-    }, [formData.districtId]);
+    // ใช้คอมโพเนนต์ AddressSelector แทนการโหลดเอง
 
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({
@@ -215,76 +152,23 @@ export function AddCompanyForm({ onSuccess, onCancel }: AddCompanyFormProps) {
                 />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="provinceId">จังหวัด</Label>
-                    <Select
-                        value={formData.provinceId}
-                        onValueChange={(value) => handleInputChange('provinceId', value)}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="เลือกจังหวัด" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {provinces.map((province) => (
-                                <SelectItem key={province.id} value={province.id}>
-                                    {province.label || province.nameTh}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="districtId">อำเภอ/เขต</Label>
-                    <Select
-                        value={formData.districtId}
-                        onValueChange={(value) => handleInputChange('districtId', value)}
-                        disabled={!formData.provinceId}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder={formData.provinceId ? "เลือกอำเภอ/เขต" : "เลือกจังหวัดก่อน"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {districts.map((district) => (
-                                <SelectItem key={district.id} value={district.id}>
-                                    {district.label || district.nameTh}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="subdistrictId">ตำบล/แขวง</Label>
-                    <Select
-                        value={formData.subdistrictId}
-                        onValueChange={(value) => handleInputChange('subdistrictId', value)}
-                        disabled={!formData.districtId}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder={formData.districtId ? "เลือกตำบล/แขวง" : "เลือกอำเภอก่อน"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {subdistricts.map((subdistrict) => (
-                                <SelectItem key={subdistrict.id} value={subdistrict.id}>
-                                    {subdistrict.label || subdistrict.nameTh}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="postalCode">รหัสไปรษณีย์</Label>
-                    <Input
-                        id="postalCode"
-                        value={formData.postalCode}
-                        onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                        placeholder="รหัสไปรษณีย์"
-                    />
-                </div>
-            </div>
+            <AddressSelector
+                value={{
+                    provinceId: formData.provinceId,
+                    districtId: formData.districtId,
+                    subdistrictId: formData.subdistrictId,
+                    postalCode: formData.postalCode,
+                }}
+                onChange={(v) => setFormData(prev => ({
+                    ...prev,
+                    provinceId: v.provinceId,
+                    districtId: v.districtId,
+                    subdistrictId: v.subdistrictId,
+                    postalCode: v.postalCode || prev.postalCode
+                }))}
+                lang="th"
+                className="mt-2"
+            />
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

@@ -31,10 +31,31 @@ import {
 import { AddCompanyForm } from './AddCompanyForm';
 import { Badge } from '@/components/ui/badge';
 
-type DisplayCompany = Company & {
+type DisplayCompany = {
+    id: string;
+    name: string;
+    nameEn?: string | null;
+    address?: string | null;
+    addressEn?: string | null;
+    province?: string | null;
+    district?: string | null;
+    subdistrict?: string | null;
+    postalCode?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    website?: string | null;
+    description?: string | null;
+    industry?: string | null;
+    size?: any;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
     _count: {
         internships: number;
     };
+    provinceId?: string | null;
+    districtId?: string | null;
+    subdistrictId?: string | null;
 };
 
 const companySizeLabels = {

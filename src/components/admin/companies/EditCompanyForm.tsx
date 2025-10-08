@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AddressSelector from '@/components/ui/AddressSelector';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -278,47 +279,26 @@ export function EditCompanyForm({ companyId }: EditCompanyFormProps) {
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="province">จังหวัด</Label>
-                                <Input
-                                    id="province"
-                                    value={formData.province}
-                                    onChange={(e) => handleInputChange('province', e.target.value)}
-                                    placeholder="จังหวัด"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="district">อำเภอ/เขต</Label>
-                                <Input
-                                    id="district"
-                                    value={formData.district}
-                                    onChange={(e) => handleInputChange('district', e.target.value)}
-                                    placeholder="อำเภอ/เขต"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="subdistrict">ตำบล/แขวง</Label>
-                                <Input
-                                    id="subdistrict"
-                                    value={formData.subdistrict}
-                                    onChange={(e) => handleInputChange('subdistrict', e.target.value)}
-                                    placeholder="ตำบล/แขวง"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="postalCode">รหัสไปรษณีย์</Label>
-                                <Input
-                                    id="postalCode"
-                                    value={formData.postalCode}
-                                    onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                                    placeholder="รหัสไปรษณีย์"
-                                />
-                            </div>
-                        </div>
+                        <AddressSelector
+                            value={{
+                                provinceId: (company as any)?.provinceId || '',
+                                districtId: (company as any)?.districtId || '',
+                                subdistrictId: (company as any)?.subdistrictId || '',
+                                postalCode: formData.postalCode || ''
+                            }}
+                            onChange={(v) => {
+                                setFormData(prev => ({
+                                    ...prev,
+                                    // เก็บเป็นชื่อเขต/จังหวัดแบบเดิมสำหรับ back-compat ถ้ายังใช้ฟิลด์ text
+                                    province: prev.province,
+                                    district: prev.district,
+                                    subdistrict: prev.subdistrict,
+                                    postalCode: v.postalCode || prev.postalCode
+                                }));
+                            }}
+                            lang="th"
+                            className="mt-2"
+                        />
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">

@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AddressSelector from '@/components/ui/AddressSelector';
 import { Save, ArrowLeft, MapPin, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -92,12 +93,7 @@ export default function EvaluationFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [mapCoordinates, setMapCoordinates] = useState<{ lat: number; lng: number } | null>(null);
-  const [provinces, setProvinces] = useState<any[]>([]);
-  const [districts, setDistricts] = useState<any[]>([]);
-  const [subdistricts, setSubdistricts] = useState<any[]>([]);
-  const [selectedProvince, setSelectedProvince] = useState<string>('');
-  const [selectedDistrict, setSelectedDistrict] = useState<string>('');
-  const [selectedSubdistrict, setSelectedSubdistrict] = useState<string>('');
+  const [addressSelection, setAddressSelection] = useState<{ provinceId: string; districtId: string; subdistrictId: string; postalCode?: string }>({ provinceId: '', districtId: '', subdistrictId: '', postalCode: '' });
 
   // Load evaluation data
   useEffect(() => {
@@ -126,15 +122,12 @@ export default function EvaluationFormPage() {
           }
 
           // Set initial address selections
-          if (evalData.company.provinceId) {
-            setSelectedProvince(evalData.company.provinceId);
-          }
-          if (evalData.company.districtId) {
-            setSelectedDistrict(evalData.company.districtId);
-          }
-          if (evalData.company.subdistrictId) {
-            setSelectedSubdistrict(evalData.company.subdistrictId);
-          }
+          setAddressSelection({
+            provinceId: (evalData.company as any).provinceId || '',
+            districtId: (evalData.company as any).districtId || '',
+            subdistrictId: (evalData.company as any).subdistrictId || '',
+            postalCode: evalData.company.postalCode || ''
+          });
         } else {
           // Create new evaluation if none exists
           await createNewEvaluation();
@@ -154,69 +147,7 @@ export default function EvaluationFormPage() {
     loadEvaluation();
   }, [companyId, toast]);
 
-  // Load provinces
-  useEffect(() => {
-    const loadProvinces = async () => {
-      try {
-        const response = await fetch('/api/address/provinces');
-        const data = await response.json();
-        if (data.success) {
-          setProvinces(data.provinces);
-        }
-      } catch (error) {
-        console.error('Error loading provinces:', error);
-      }
-    };
-    loadProvinces();
-  }, []);
-
-  // Load districts when province changes
-  useEffect(() => {
-    if (selectedProvince) {
-      const loadDistricts = async () => {
-        try {
-          const response = await fetch(`/api/address/districts?provinceId=${selectedProvince}`);
-          const data = await response.json();
-          if (data.success) {
-            setDistricts(data.districts);
-            setSubdistricts([]);
-            setSelectedDistrict('');
-            setSelectedSubdistrict('');
-          }
-        } catch (error) {
-          console.error('Error loading districts:', error);
-        }
-      };
-      loadDistricts();
-    } else {
-      setDistricts([]);
-      setSubdistricts([]);
-      setSelectedDistrict('');
-      setSelectedSubdistrict('');
-    }
-  }, [selectedProvince]);
-
-  // Load subdistricts when district changes
-  useEffect(() => {
-    if (selectedDistrict) {
-      const loadSubdistricts = async () => {
-        try {
-          const response = await fetch(`/api/address/subdistricts?districtId=${selectedDistrict}`);
-          const data = await response.json();
-          if (data.success) {
-            setSubdistricts(data.subdistricts);
-            setSelectedSubdistrict('');
-          }
-        } catch (error) {
-          console.error('Error loading subdistricts:', error);
-        }
-      };
-      loadSubdistricts();
-    } else {
-      setSubdistricts([]);
-      setSelectedSubdistrict('');
-    }
-  }, [selectedDistrict]);
+  // ใช้ AddressSelector จัดการโหลดข้อมูลแทน
 
   const loadMapCoordinates = async (company: any) => {
     try {
@@ -327,7 +258,7 @@ export default function EvaluationFormPage() {
 
   const handleAddressUpdate = async () => {
     try {
-      if (!selectedProvince || !selectedDistrict || !selectedSubdistrict) {
+      if (!addressSelection.provinceId || !addressSelection.districtId || !addressSelection.subdistrictId) {
         toast({
           title: "ข้อมูลไม่ครบถ้วน",
           description: "กรุณาเลือกจังหวัด อำเภอ และตำบล",
@@ -336,22 +267,8 @@ export default function EvaluationFormPage() {
         return;
       }
 
-      // หาข้อมูลที่เลือก
-      const province = provinces.find(p => p.id === selectedProvince);
-      const district = districts.find(d => d.id === selectedDistrict);
-      const subdistrict = subdistricts.find(s => s.id === selectedSubdistrict);
-
-      if (!province || !district || !subdistrict) {
-        toast({
-          title: "เกิดข้อผิดพลาด",
-          description: "ไม่พบข้อมูลที่เลือก",
-          variant: "destructive"
-        });
-        return;
-      }
-
       // สร้างที่อยู่ใหม่
-      const newAddress = `${evaluation?.company.addressNumber || ''} ${evaluation?.company.building || ''} ${evaluation?.company.floor || ''} ${evaluation?.company.soi || ''} ${evaluation?.company.road || ''} ${subdistrict.nameTh} ${district.nameTh} ${province.nameTh} ${subdistrict.postalCode || ''}`.trim();
+      const newAddress = `${evaluation?.company.addressNumber || ''} ${evaluation?.company.building || ''} ${evaluation?.company.floor || ''} ${evaluation?.company.soi || ''} ${evaluation?.company.road || ''}`.trim();
 
       // อัปเดตข้อมูลบริษัทผ่าน API
       const updateResponse = await fetch(`/api/companies/${evaluation.companyId}`, {
@@ -360,10 +277,10 @@ export default function EvaluationFormPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          provinceId: selectedProvince,
-          districtId: selectedDistrict,
-          subdistrictId: selectedSubdistrict,
-          postalCode: subdistrict.postalCode
+          provinceId: addressSelection.provinceId,
+          districtId: addressSelection.districtId,
+          subdistrictId: addressSelection.subdistrictId,
+          postalCode: addressSelection.postalCode
         })
       });
 
@@ -543,69 +460,17 @@ export default function EvaluationFormPage() {
           {/* Address Edit Form */}
           <div className="border-t pt-4">
             <h4 className="font-medium mb-3">แก้ไขที่อยู่:</h4>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div>
-                <Label htmlFor="province">จังหวัด</Label>
-                <Select value={selectedProvince} onValueChange={setSelectedProvince}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="เลือกจังหวัด" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {provinces.map((province) => (
-                      <SelectItem key={province.id} value={province.id}>
-                        {province.nameTh}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="district">อำเภอ/เขต</Label>
-                <Select 
-                  value={selectedDistrict} 
-                  onValueChange={setSelectedDistrict}
-                  disabled={!selectedProvince}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="เลือกอำเภอ/เขต" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {districts.map((district) => (
-                      <SelectItem key={district.id} value={district.id}>
-                        {district.nameTh}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="subdistrict">ตำบล/แขวง</Label>
-                <Select 
-                  value={selectedSubdistrict} 
-                  onValueChange={setSelectedSubdistrict}
-                  disabled={!selectedDistrict}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="เลือกตำบล/แขวง" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subdistricts.map((subdistrict) => (
-                      <SelectItem key={subdistrict.id} value={subdistrict.id}>
-                        {subdistrict.nameTh}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <AddressSelector
+              value={addressSelection}
+              onChange={setAddressSelection}
+              className="mb-4"
+            />
             
             <div className="mt-4">
               <Button 
                 type="button"
                 onClick={handleAddressUpdate}
-                disabled={!selectedProvince || !selectedDistrict || !selectedSubdistrict}
+                disabled={!addressSelection.provinceId || !addressSelection.districtId || !addressSelection.subdistrictId}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 อัปเดตที่อยู่

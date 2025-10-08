@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import UserMultiSelect from '@/components/ui/UserMultiSelect';
 import { useAuth } from '@/hooks/use-auth';
 import { useEducatorRole } from '@/hooks/useEducatorRole';
 import { useToast } from '@/hooks/use-toast';
@@ -679,7 +680,7 @@ export default function AssignAdvisorPage() {
                 <p className="text-gray-600">สำหรับนักศึกษา: <span className="font-medium text-amber-600">{editingApplication.studentName}</span></p>
               </div>
 
-              <div className="space-y-4">
+                <div className="space-y-4">
                 {/* ข้อมูลนักศึกษา */}
                 <Card className="border-l-4 border-amber-500">
                   <CardHeader>
@@ -843,53 +844,14 @@ export default function AssignAdvisorPage() {
                 {/* เลือกกรรมการ */}
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">เลือกกรรมการ (สามารถเลือกได้ 1-6 ท่าน)</label>
-                    <div className="grid gap-3 max-h-60 overflow-y-auto">
-                      {committees.map(committee => (
-                        <Card key={committee.id} className="border border-gray-200">
-                          <CardContent className="p-4">
-                            <div className="flex items-start gap-3">
-                              <Checkbox
-                                checked={selectedCommitteeIds.includes(committee.id)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    if (selectedCommitteeIds.length < 6) {
-                                      setSelectedCommitteeIds(prev => [...prev, committee.id]);
-                                    } else {
-                                      toast({
-                                        title: 'ข้อจำกัด',
-                                        description: 'สามารถเลือกกรรมการได้สูงสุด 6 ท่าน',
-                                        variant: 'destructive'
-                                      });
-                                    }
-                                  } else {
-                                    setSelectedCommitteeIds(prev => prev.filter(id => id !== committee.id));
-                                  }
-                                }}
-                                disabled={!selectedCommitteeIds.includes(committee.id) && selectedCommitteeIds.length >= 6}
-                              />
-                              <div className="flex-1">
-                                <h3 className="font-medium text-gray-900">{committee.name}</h3>
-                                <p className="text-sm text-gray-500">{committee.academicYear} ภาคเรียนที่ {committee.semester}</p>
-                                <div className="mt-2">
-                                  <p className="text-sm text-gray-600 mb-1">สมาชิกกรรมการ:</p>
-                                  <div className="flex flex-wrap gap-1">
-                                    {committee.members?.map((member: any, index: number) => (
-                                      <Badge key={index} variant="outline" className="text-xs">
-                                        {member.user.name} ({member.role === 'chair' ? 'ประธาน' : member.role === 'secretary' ? 'เลขา' : 'กรรมการ'})
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-2">
-                      เลือกแล้ว: {selectedCommitteeIds.length}/6 ท่าน
-                    </p>
+                    <UserMultiSelect
+                      label="เลือกกรรมการ (สามารถเลือกได้ 1-6 ท่าน)"
+                      roles={["committee"]}
+                      values={selectedCommitteeIds}
+                      onChange={setSelectedCommitteeIds}
+                      maxSelected={6}
+                      sort="new"
+                    />
                   </div>
                 </div>
 

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import UserSelect from '@/components/ui/UserSelect';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { EducatorMenu } from '@/components/educator/EducatorMenu';
@@ -300,21 +301,14 @@ export default function AssignSupervisorPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="supervisor">อาจารย์นิเทศ</Label>
-                    <Select value={selectedSupervisor} onValueChange={setSelectedSupervisor}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="เลือกอาจารย์นิเทศ" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {supervisors.map((supervisor) => (
-                          <SelectItem key={supervisor.id} value={supervisor.id}>
-                            {supervisor.name} - {supervisor.department}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <UserSelect
+                    label="อาจารย์นิเทศ"
+                    roles={["courseInstructor"]}
+                    value={selectedSupervisor}
+                    onChange={setSelectedSupervisor}
+                    placeholder="เลือกอาจารย์นิเทศ"
+                    sort="new"
+                  />
 
                   {selectedSupervisor && (
                     <div className="p-4 bg-amber-50 rounded-lg">

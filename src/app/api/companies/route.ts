@@ -54,44 +54,47 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: sort === 'desc' ? 'desc' : 'asc' },
         skip,
         take: limit,
-        select: {
-          id: true,
-          name: true,
-          nameEn: true,
-          address: true,
-          addressEn: true,
-          province: true,
-          district: true,
-          subdistrict: true,
-          postalCode: true,
-          phone: true,
-          email: true,
-          website: true,
-          description: true,
-          descriptionEn: true,
-          industry: true,
-          industryEn: true,
-          size: true,
-          isActive: true,
-          createdAt: true,
-          updatedAt: true,
-          _count: {
-            select: {
-              internships: true,
-            },
-          },
-        },
+        include: {
+          provinceRef: { select: { id: true, nameTh: true, nameEn: true, code: true } },
+          districtRef: { select: { id: true, nameTh: true, nameEn: true, code: true, provinceId: true } },
+          subdistrictRef: { select: { id: true, nameTh: true, nameEn: true, code: true, postalCode: true, districtId: true } },
+          _count: { select: { internships: true } }
+        }
       }),
       prisma.company.count({ where }),
     ]);
 
-    const items = companies.map((c) => ({
-      ...c,
-      label: lang === 'en' ? (c.nameEn || c.name) : c.name,
-      description: lang === 'en' ? (c.descriptionEn || c.description) : c.description,
-      industry: lang === 'en' ? (c.industryEn || c.industry) : c.industry,
-      address: lang === 'en' ? (c.addressEn || c.address) : c.address,
-    }));
+    const items = companies.map((c: any) => {
+      const provinceLabel = c.provinceRef ? (lang === 'en' ? (c.provinceRef.nameEn || c.provinceRef.nameTh) : c.provinceRef.nameTh) : c.province;
+      const districtLabel = c.districtRef ? (lang === 'en' ? (c.districtRef.nameEn || c.districtRef.nameTh) : c.districtRef.nameTh) : c.district;
+      const subdistrictLabel = c.subdistrictRef ? (lang === 'en' ? (c.subdistrictRef.nameEn || c.subdistrictRef.nameTh) : c.subdistrictRef.nameTh) : c.subdistrict;
+      return {
+        id: c.id,
+        name: c.name,
+        nameEn: c.nameEn,
+        address: lang === 'en' ? (c.addressEn || c.address) : c.address,
+        addressEn: c.addressEn,
+        province: provinceLabel,
+        district: districtLabel,
+        subdistrict: subdistrictLabel,
+        postalCode: c.subdistrictRef?.postalCode || c.postalCode,
+        phone: c.phone,
+        email: c.email,
+        website: c.website,
+        description: lang === 'en' ? (c.descriptionEn || c.description) : c.description,
+        industry: lang === 'en' ? (c.industryEn || c.industry) : c.industry,
+        size: c.size,
+        isActive: c.isActive,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+        _count: c._count,
+        // expose ids if needed by clients
+        provinceId: c.provinceIdRef,
+        districtId: c.districtIdRef,
+        subdistrictId: c.subdistrictIdRef,
+        label: lang === 'en' ? (c.nameEn || c.name) : c.name
+      };
+    });
 
     return NextResponse.json({
       companies: items,
@@ -124,9 +127,9 @@ export async function POST(request: NextRequest) {
       name,
       nameEn,
       address,
-      province,
-      district,
-      subdistrict,
+    province,
+    district,
+    subdistrict,
       provinceId,
       districtId,
       subdistrictId,
@@ -167,9 +170,9 @@ export async function POST(request: NextRequest) {
         province,
         district,
         subdistrict,
-        provinceIdRef: provinceId,
-        districtIdRef: districtId,
-        subdistrictIdRef: subdistrictId,
+        provinceIdRef: provinceId || undefined,
+        districtIdRef: districtId || undefined,
+        subdistrictIdRef: subdistrictId || undefined,
         postalCode,
         phone,
         email,

@@ -21,6 +21,16 @@ export async function GET(
     const company = await prisma.company.findUnique({
       where: { id },
       include: {
+        // normalized refs for address labels
+        provinceRef: {
+          select: { id: true, nameTh: true, nameEn: true, code: true }
+        },
+        districtRef: {
+          select: { id: true, nameTh: true, nameEn: true, code: true, provinceId: true }
+        },
+        subdistrictRef: {
+          select: { id: true, nameTh: true, nameEn: true, code: true, postalCode: true, districtId: true }
+        },
         internships: {
           select: {
             id: true,
@@ -85,6 +95,9 @@ export async function PUT(
       province,
       district,
       subdistrict,
+      provinceId,
+      districtId,
+      subdistrictId,
       postalCode,
       description,
       industry,
@@ -105,6 +118,10 @@ export async function PUT(
         province: province || undefined,
         district: district || undefined,
         subdistrict: subdistrict || undefined,
+        // New ID refs for normalized address
+        provinceIdRef: provinceId || undefined,
+        districtIdRef: districtId || undefined,
+        subdistrictIdRef: subdistrictId || undefined,
         postalCode: postalCode || undefined,
         description: description || undefined,
         industry: industry || undefined,

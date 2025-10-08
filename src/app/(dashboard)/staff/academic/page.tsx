@@ -4,10 +4,7 @@ import Link from 'next/link';
 import { StaffGuard } from '@/components/auth/PermissionGuard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FacultyManagement } from '@/components/admin/settings/FacultyManagement';
-import { DepartmentManagement } from '@/components/admin/settings/DepartmentManagement';
-import { CurriculumManagement } from '@/components/admin/settings/CurriculumManagement';
-import { MajorManagement } from '@/components/admin/settings/MajorManagement';
+import StaffHierarchicalAcademicManagement from '@/components/staff/settings/HierarchicalAcademicManagement';
 
 export default function StaffAcademicManagementPage() {
   return (
@@ -24,30 +21,9 @@ export default function StaffAcademicManagementPage() {
           <p className="text-sm text-muted-foreground mt-1">สิทธิ์: เจ้าหน้าที่ (Staff) สามารถเพิ่ม แก้ไข และลบข้อมูลได้</p>
         </div>
 
-        <Tabs defaultValue="faculties" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="faculties">คณะ</TabsTrigger>
-            <TabsTrigger value="departments">สาขา</TabsTrigger>
-            <TabsTrigger value="curriculums">หลักสูตร</TabsTrigger>
-            <TabsTrigger value="majors">วิชาเอก</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="faculties">
-            <FacultyManagement />
-          </TabsContent>
-
-          <TabsContent value="departments">
-            <DepartmentManagement />
-          </TabsContent>
-
-          <TabsContent value="curriculums">
-            <CurriculumManagement />
-          </TabsContent>
-
-          <TabsContent value="majors">
-            <MajorManagement />
-          </TabsContent>
-        </Tabs>
+        <div className="w-full">
+          <StaffHierarchicalAcademicManagement />
+        </div>
       </div>
     </StaffGuard>
   );

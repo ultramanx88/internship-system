@@ -17,7 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Save, User, Bell, Shield, Database, Mail, Globe, GraduationCap, Calendar, BookOpen } from 'lucide-react';
 import { AcademicManagement } from '@/components/staff/settings/AcademicManagement';
 import { EducatorManagement } from '@/components/staff/settings/EducatorManagement';
-import CourseManagement from '@/components/staff/settings/CourseManagement';
+import StaffHierarchicalAcademicManagement from '@/components/staff/settings/HierarchicalAcademicManagement';
 
 export default function SettingsPage() {
     const { user } = useAuth();
@@ -228,9 +228,9 @@ export default function SettingsPage() {
                         <AcademicManagement />
                     </TabsContent>
 
-                    {/* Course Management */}
+                    {/* Course Management + Hierarchical Tree */}
                     <TabsContent value="courses" className="space-y-6">
-                        <CourseManagement />
+                        <StaffHierarchicalAcademicManagement />
                     </TabsContent>
 
                     {/* Educator Management */}
