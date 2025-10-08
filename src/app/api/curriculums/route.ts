@@ -1,135 +1,100 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAuth, cleanup } from '@/lib/auth-utils';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const departmentId = searchParams.get('departmentId');
-    const lang = (searchParams.get('lang') || 'th').toLowerCase();
-    const includeRelations = searchParams.get('include') === 'true';
-
-    const where: any = {
-      isActive: true,
-    };
-
-    if (departmentId) {
-      where.departmentId = departmentId;
-    }
-
     const curriculums = await prisma.curriculum.findMany({
-      where,
       include: {
         department: {
           include: {
-            faculty: true,
-          },
+            faculty: true
+          }
         },
-        ...(includeRelations && {
-          majors: {
-            where: { isActive: true },
-          },
-        }),
-        _count: {
-          select: {
-            majors: true,
-            users: true,
-          },
-        },
+        majors: true
       },
       orderBy: {
-        nameTh: 'asc',
-      },
+        nameTh: 'asc'
+      }
     });
 
-    const items = curriculums.map((c) => ({
-      ...c,
-      label: lang === 'en' ? (c.nameEn || c.nameTh) : c.nameTh,
-      majors: c.majors?.map((m: any) => ({
-        ...m,
-        label: lang === 'en' ? (m.nameEn || m.nameTh) : m.nameTh,
-      })),
-    }));
-
-    return NextResponse.json({
-      curriculums: items,
+    return NextResponse.json({ 
+      success: true, 
+      curriculums 
     });
   } catch (error) {
     console.error('Error fetching curriculums:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { success: false, error: 'Failed to fetch curriculums' },
       { status: 500 }
     );
+  } finally {
+    await cleanup();
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { nameTh, nameEn, code, degree, departmentId } = body;
-
-    if (!nameTh || !departmentId) {
-      return NextResponse.json(
-        { error: 'ชื่อหลักสูตรและภาควิชาเป็นข้อมูลที่จำเป็น' },
-        { status: 400 }
-      );
+    const auth = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in auth) return auth.error as unknown as NextResponse;
+    const curriculums = await request.json();
+    
+    // Process each curriculum
+    for (const curr of curriculums) {
+      if (curr.id.startsWith('new-')) {
+        // Create new curriculum
+        await prisma.curriculum.create({
+          data: {
+            nameTh: curr.nameTh,
+            nameEn: curr.nameEn,
+            code: curr.code,
+            degree: curr.degree,
+            departmentId: curr.departmentId,
+            isActive: curr.isActive !== false
+          }
+        });
+      } else {
+        // Update existing curriculum
+        await prisma.curriculum.update({
+          where: { id: curr.id },
+          data: {
+            nameTh: curr.nameTh,
+            nameEn: curr.nameEn,
+            code: curr.code,
+            degree: curr.degree,
+            departmentId: curr.departmentId,
+            isActive: curr.isActive !== false
+          }
+        });
+      }
     }
 
-    // Check if department exists
-    const department = await prisma.department.findUnique({
-      where: { id: departmentId },
-    });
-
-    if (!department) {
-      return NextResponse.json(
-        { error: 'ไม่พบภาควิชาที่ระบุ' },
-        { status: 404 }
-      );
-    }
-
-    // Check if curriculum with same name already exists in this department
-    const existingCurriculum = await prisma.curriculum.findFirst({
-      where: {
-        nameTh,
-        departmentId,
-      },
-    });
-
-    if (existingCurriculum) {
-      return NextResponse.json(
-        { error: 'หลักสูตรนี้มีอยู่ในภาควิชาแล้ว' },
-        { status: 400 }
-      );
-    }
-
-    const curriculum = await prisma.curriculum.create({
-      data: {
-        nameTh,
-        nameEn,
-        code,
-        degree,
-        departmentId,
-      },
+    // Fetch updated data
+    const updatedCurriculums = await prisma.curriculum.findMany({
       include: {
         department: {
           include: {
-            faculty: true,
-          },
+            faculty: true
+          }
         },
-        _count: {
-          select: {
-            majors: true,
-            users: true,
-          },
-        },
+        majors: true
       },
+      orderBy: {
+        nameTh: 'asc'
+      }
     });
 
-    return NextResponse.json(curriculum, { status: 201 });
+    return NextResponse.json({ 
+      success: true, 
+      data: updatedCurriculums 
+    });
   } catch (error) {
-    console.error('Error creating curriculum:', error);
+    console.error('Error saving curriculums:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { success: false, error: 'Failed to save curriculums' },
       { status: 500 }
     );
+  } finally {
+    await cleanup();
   }
 }

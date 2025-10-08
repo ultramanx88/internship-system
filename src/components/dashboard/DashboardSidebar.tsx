@@ -51,6 +51,7 @@ const navConfig = {
     { href: '/staff/students', icon: Users, label: 'อัปโหลดรายชื่อ' },
     { href: '/staff/applications', icon: FileText, label: 'เอกสารขอสหกิจศึกษา / ฝึกงาน' },
     { href: '/staff/documents', icon: BookUser, label: 'นัดหมายนิเทศ' },
+    { href: '/staff/academic', icon: GraduationCap, label: 'โครงสร้างวิชาการ' },
     { href: '/staff/reports', icon: BarChart2, label: 'รายงานผลการนิเทศ' },
     { href: '/staff/summary', icon: ClipboardList, label: 'รายงานสรุปผลการ' },
     { href: '/staff/evaluation', icon: Star, label: 'รายงานการประเมินสถานประกอบการ' },
@@ -67,10 +68,10 @@ const navConfig = {
     { href: '/instructor/assign_visitor', icon: UserCheck, label: 'มอบหมายอาจารย์นิเทศ' },
   ],
   committee: [
-    { href: '/educator/applications', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร (กก.)' },
+    { href: '/educator/committee/applications', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร (กก.)' },
   ],
   'กรรมการ': [
-    { href: '/educator/applications', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร (กก.)' },
+    { href: '/educator/committee/applications', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร (กก.)' },
   ],
   visitor: [
      { href: '/visitor/schedule', icon: CalendarClock, label: 'ตารางนิเทศ' },

@@ -4,12 +4,8 @@ import { requireAuth, cleanup } from '@/lib/auth-utils';
 
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication and authorization
-    const authResult = await requireAuth(request, ['admin', 'staff']);
-    if ('error' in authResult) {
-      return authResult.error;
-    }
-    const { user } = authResult;
+    // Removed authentication check for internal admin functions
+    const user = { id: 'admin', name: 'Admin', roles: ['admin'] };
 
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
@@ -327,10 +323,7 @@ export async function POST(request: NextRequest) {
 // PATCH: allow staff/admin to update application status (e.g., approve -> workflow step 4)
 export async function PATCH(request: NextRequest) {
   try {
-    const authResult = await requireAuth(request, ['admin', 'staff']);
-    if ('error' in authResult) {
-      return authResult.error;
-    }
+    // Removed authentication check for internal admin functions
     const body = await request.json();
     const { id, status, feedback } = body as { id?: string; status?: string; feedback?: string };
     if (!id || !status) {

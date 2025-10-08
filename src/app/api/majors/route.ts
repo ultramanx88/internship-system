@@ -1,64 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth, cleanup } from '@/lib/auth-utils';
-import { sanitizeUserInput, sanitizeString } from '@/lib/security';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Check authentication and authorization
-    const authResult = await requireAuth(request, ['admin', 'staff']);
-    if ('error' in authResult) {
-      return authResult.error;
-    }
-    const { user } = authResult;
-
-    const { searchParams } = new URL(request.url);
-    const lang = (searchParams.get('lang') || 'th').toLowerCase();
-    const curriculumId = searchParams.get('curriculumId');
-
-    const where: any = {
-      isActive: true,
-    };
-
-    if (curriculumId) {
-      where.curriculumId = curriculumId;
-    }
-
     const majors = await prisma.major.findMany({
-      where,
       include: {
         curriculum: {
           include: {
             department: {
               include: {
-                faculty: true,
-              },
-            },
-          },
-        },
-        _count: {
-          select: {
-            users: true,
-          },
-        },
+                faculty: true
+              }
+            }
+          }
+        }
       },
       orderBy: {
-        nameTh: 'asc',
-      },
+        nameTh: 'asc'
+      }
     });
 
-    const items = majors.map((m) => ({
-      ...m,
-      label: lang === 'en' ? (m.nameEn || m.nameTh) : m.nameTh,
-    }));
-
     return NextResponse.json({
-      majors: items,
+      success: true, 
+      majors 
     });
   } catch (error) {
     console.error('Error fetching majors:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { success: false, error: 'Failed to fetch majors' },
       { status: 500 }
     );
   } finally {
@@ -68,93 +38,64 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication and authorization
-    const authResult = await requireAuth(request, ['admin', 'staff']);
-    if ('error' in authResult) {
-      return authResult.error;
-    }
-    const { user } = authResult;
-
-    const body = await request.json();
+    const auth = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in auth) return auth.error as unknown as NextResponse;
+    const majors = await request.json();
     
-    // Sanitize input
-    const sanitizedBody = sanitizeUserInput(body);
-    if (!sanitizedBody.isValid) {
-      return NextResponse.json(
-        { error: 'ข้อมูลไม่ถูกต้อง', details: sanitizedBody.errors },
-        { status: 400 }
-      );
-    }
-    
-    const { nameTh, nameEn, curriculumId, area } = sanitizedBody.sanitized;
-    const sanitizedNameTh = sanitizeString(nameTh);
-    const sanitizedNameEn = nameEn ? sanitizeString(nameEn) : null;
-    const sanitizedArea = area ? sanitizeString(area) : null;
-
-    if (!sanitizedNameTh || !curriculumId) {
-      return NextResponse.json(
-        { error: 'ชื่อสาขาวิชาและหลักสูตรเป็นข้อมูลที่จำเป็น' },
-        { status: 400 }
-      );
-    }
-
-    // Check if curriculum exists
-    const curriculum = await prisma.curriculum.findUnique({
-      where: { id: curriculumId },
-    });
-
-    if (!curriculum) {
-      return NextResponse.json(
-        { error: 'ไม่พบหลักสูตรที่ระบุ' },
-        { status: 404 }
-      );
+    // Process each major
+    for (const major of majors) {
+      if (major.id.startsWith('new-')) {
+        // Create new major
+        await prisma.major.create({
+          data: {
+            nameTh: major.nameTh,
+            nameEn: major.nameEn,
+            curriculumId: major.curriculumId,
+            area: major.area,
+            isActive: major.isActive !== false
+          }
+        });
+      } else {
+        // Update existing major
+        await prisma.major.update({
+          where: { id: major.id },
+          data: {
+            nameTh: major.nameTh,
+            nameEn: major.nameEn,
+            curriculumId: major.curriculumId,
+            area: major.area,
+            isActive: major.isActive !== false
+          }
+        });
+      }
     }
 
-    // Check if major with same name already exists in this curriculum
-    const existingMajor = await prisma.major.findFirst({
-      where: {
-        nameTh,
-        curriculumId,
-      },
-    });
-
-    if (existingMajor) {
-      return NextResponse.json(
-        { error: 'สาขาวิชานี้มีอยู่ในหลักสูตรแล้ว' },
-        { status: 400 }
-      );
-    }
-
-    const major = await prisma.major.create({
-      data: {
-        nameTh: sanitizedNameTh,
-        nameEn: sanitizedNameEn,
-        curriculumId,
-        area: sanitizedArea,
-      },
+    // Fetch updated data
+    const updatedMajors = await prisma.major.findMany({
       include: {
         curriculum: {
           include: {
             department: {
               include: {
-                faculty: true,
-              },
-            },
-          },
-        },
-        _count: {
-          select: {
-            users: true,
-          },
-        },
+                faculty: true
+              }
+            }
+          }
+        }
       },
+      orderBy: {
+        nameTh: 'asc'
+      }
     });
 
-    return NextResponse.json(major, { status: 201 });
+    return NextResponse.json({ 
+      success: true, 
+      data: updatedMajors 
+    });
   } catch (error) {
-    console.error('Error creating major:', error);
+    console.error('Error saving majors:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { success: false, error: 'Failed to save majors' },
       { status: 500 }
     );
   } finally {

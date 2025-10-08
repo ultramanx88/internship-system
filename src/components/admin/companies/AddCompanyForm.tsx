@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,6 +37,9 @@ const industryOptions = [
 
 export function AddCompanyForm({ onSuccess, onCancel }: AddCompanyFormProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [provinces, setProvinces] = useState<any[]>([]);
+    const [districts, setDistricts] = useState<any[]>([]);
+    const [subdistricts, setSubdistricts] = useState<any[]>([]);
     const [formData, setFormData] = useState({
         name: '',
         nameEn: '',
@@ -44,6 +47,9 @@ export function AddCompanyForm({ onSuccess, onCancel }: AddCompanyFormProps) {
         province: '',
         district: '',
         subdistrict: '',
+        provinceId: '',
+        districtId: '',
+        subdistrictId: '',
         postalCode: '',
         phone: '',
         email: '',
@@ -54,6 +60,66 @@ export function AddCompanyForm({ onSuccess, onCancel }: AddCompanyFormProps) {
     });
 
     const { toast } = useToast();
+
+    // โหลดข้อมูลจังหวัด
+    useEffect(() => {
+        const loadProvinces = async () => {
+            try {
+                const response = await fetch('/api/address/provinces?lang=th');
+                if (response.ok) {
+                    const data = await response.json();
+                    setProvinces(data.provinces);
+                }
+            } catch (error) {
+                console.error('Error loading provinces:', error);
+            }
+        };
+        loadProvinces();
+    }, []);
+
+    // โหลดข้อมูลอำเภอเมื่อเลือกจังหวัด
+    useEffect(() => {
+        if (formData.provinceId) {
+            const loadDistricts = async () => {
+                try {
+                    const response = await fetch(`/api/address/districts?provinceId=${formData.provinceId}&lang=th`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setDistricts(data.districts);
+                        setSubdistricts([]); // รีเซ็ตตำบล
+                        setFormData(prev => ({ ...prev, districtId: '', subdistrictId: '' }));
+                    }
+                } catch (error) {
+                    console.error('Error loading districts:', error);
+                }
+            };
+            loadDistricts();
+        } else {
+            setDistricts([]);
+            setSubdistricts([]);
+        }
+    }, [formData.provinceId]);
+
+    // โหลดข้อมูลตำบลเมื่อเลือกอำเภอ
+    useEffect(() => {
+        if (formData.districtId) {
+            const loadSubdistricts = async () => {
+                try {
+                    const response = await fetch(`/api/address/subdistricts?districtId=${formData.districtId}&lang=th`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setSubdistricts(data.subdistricts);
+                        setFormData(prev => ({ ...prev, subdistrictId: '' }));
+                    }
+                } catch (error) {
+                    console.error('Error loading subdistricts:', error);
+                }
+            };
+            loadSubdistricts();
+        } else {
+            setSubdistricts([]);
+        }
+    }, [formData.districtId]);
 
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({
@@ -84,6 +150,10 @@ export function AddCompanyForm({ onSuccess, onCancel }: AddCompanyFormProps) {
                 body: JSON.stringify({
                     ...formData,
                     size: formData.size || null,
+                    // ส่งข้อมูล ID แทนชื่อ
+                    provinceId: formData.provinceId || null,
+                    districtId: formData.districtId || null,
+                    subdistrictId: formData.subdistrictId || null,
                 }),
             });
 
@@ -147,34 +217,63 @@ export function AddCompanyForm({ onSuccess, onCancel }: AddCompanyFormProps) {
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label htmlFor="province">จังหวัด</Label>
-                    <Input
-                        id="province"
-                        value={formData.province}
-                        onChange={(e) => handleInputChange('province', e.target.value)}
-                        placeholder="จังหวัด"
-                    />
+                    <Label htmlFor="provinceId">จังหวัด</Label>
+                    <Select
+                        value={formData.provinceId}
+                        onValueChange={(value) => handleInputChange('provinceId', value)}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="เลือกจังหวัด" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {provinces.map((province) => (
+                                <SelectItem key={province.id} value={province.id}>
+                                    {province.label || province.nameTh}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="district">อำเภอ/เขต</Label>
-                    <Input
-                        id="district"
-                        value={formData.district}
-                        onChange={(e) => handleInputChange('district', e.target.value)}
-                        placeholder="อำเภอ/เขต"
-                    />
+                    <Label htmlFor="districtId">อำเภอ/เขต</Label>
+                    <Select
+                        value={formData.districtId}
+                        onValueChange={(value) => handleInputChange('districtId', value)}
+                        disabled={!formData.provinceId}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder={formData.provinceId ? "เลือกอำเภอ/เขต" : "เลือกจังหวัดก่อน"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {districts.map((district) => (
+                                <SelectItem key={district.id} value={district.id}>
+                                    {district.label || district.nameTh}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label htmlFor="subdistrict">ตำบล/แขวง</Label>
-                    <Input
-                        id="subdistrict"
-                        value={formData.subdistrict}
-                        onChange={(e) => handleInputChange('subdistrict', e.target.value)}
-                        placeholder="ตำบล/แขวง"
-                    />
+                    <Label htmlFor="subdistrictId">ตำบล/แขวง</Label>
+                    <Select
+                        value={formData.subdistrictId}
+                        onValueChange={(value) => handleInputChange('subdistrictId', value)}
+                        disabled={!formData.districtId}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder={formData.districtId ? "เลือกตำบล/แขวง" : "เลือกอำเภอก่อน"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {subdistricts.map((subdistrict) => (
+                                <SelectItem key={subdistrict.id} value={subdistrict.id}>
+                                    {subdistrict.label || subdistrict.nameTh}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="postalCode">รหัสไปรษณีย์</Label>

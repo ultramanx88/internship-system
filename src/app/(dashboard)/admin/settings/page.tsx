@@ -11,7 +11,11 @@ import { AcademicCalendarSettings } from '@/components/admin/settings/AcademicCa
 import { TitleManagement } from '@/components/admin/settings/TitleManagement';
 import { MajorManagement } from '@/components/admin/settings/MajorManagement';
 import { FacultyManagement } from '@/components/admin/settings/FacultyManagement';
+import { HierarchicalAcademicManagement } from '@/components/admin/settings/HierarchicalAcademicManagement';
+import { DepartmentManagement } from '@/components/admin/settings/DepartmentManagement';
+import { CurriculumManagement } from '@/components/admin/settings/CurriculumManagement';
 import { DocumentNumberSettings } from '@/components/admin/settings/DocumentNumberSettings';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { AdminGuard } from '@/components/auth/PermissionGuard';
 import Image from 'next/image';
@@ -28,8 +32,37 @@ export default function AdminSettingsPage() {
         </div>
 
         <TitleManagement />
-        <FacultyManagement />
-        <MajorManagement />
+        
+        <Tabs defaultValue="hierarchical" className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="hierarchical">แบบลำดับชั้น</TabsTrigger>
+            <TabsTrigger value="faculties">คณะ</TabsTrigger>
+            <TabsTrigger value="departments">สาขา</TabsTrigger>
+            <TabsTrigger value="curriculums">หลักสูตร</TabsTrigger>
+            <TabsTrigger value="majors">วิชาเอก</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="hierarchical">
+            <HierarchicalAcademicManagement />
+          </TabsContent>
+          
+          <TabsContent value="faculties">
+            <FacultyManagement />
+          </TabsContent>
+          
+          <TabsContent value="departments">
+            <DepartmentManagement />
+          </TabsContent>
+          
+          <TabsContent value="curriculums">
+            <CurriculumManagement />
+          </TabsContent>
+          
+          <TabsContent value="majors">
+            <MajorManagement />
+          </TabsContent>
+        </Tabs>
+        
         <DocumentNumberSettings />
         <AcademicCalendarSettings />
         <RoleManagementMatrix />

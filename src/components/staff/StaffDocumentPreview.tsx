@@ -37,6 +37,13 @@ interface ApplicationData {
     documentDate: string;
     printedAt: string;
   };
+  // ข้อมูลที่นักเรียนกรอกเข้ามา
+  studentReason?: string;
+  expectedSkills?: string[];
+  projectProposal?: string;
+  preferredStartDate?: string;
+  availableDuration?: number;
+  feedback?: string;
 }
 
 interface StaffDocumentPreviewProps {
@@ -79,7 +86,7 @@ export function StaffDocumentPreview({
       title: 'สหกิจศึกษา',
       subtitle: 'Cooperative Education',
       documents: [
-        { key: 'application', name: '01_แบบฟอร์มขอสหกิจศึกษา', icon: FileText, template: '01_แบบฟอร์มขอสหกิจศึกษา.docx' },
+        { key: 'application', name: '01_แบบตอบรับสหกิจศึกษา', icon: FileText, template: '01_แบบฟอร์มขอสหกิจศึกษา.docx' },
         { key: 'request', name: '02_หนังสือขอสหกิจศึกษา', icon: FileText, template: '02_หนังสือขอสหกิจศึกษา.docx' },
         { key: 'introduction', name: '03_หนังสือส่งตัวสหกิจศึกษา', icon: User, template: '03_หนังสือส่งตัวสหกิจศึกษา.docx' }
       ]
@@ -659,6 +666,62 @@ ${type === 'co_op' ? `       อาจารย์ที่รับผิดช
                       <div className="font-medium">เลขที่เอกสาร: {application.printRecord.documentNumber}</div>
                       <div className="text-muted-foreground">พิมพ์เมื่อ: {application.printRecord.printedAt}</div>
                     </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* ข้อมูลที่นักเรียนกรอกเข้ามา */}
+            <Card className="mt-4">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm">รายละเอียดที่นักเรียนกรอก</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-xs">
+                {application.studentReason && (
+                  <div>
+                    <div className="font-medium text-muted-foreground mb-1">เหตุผลในการสมัคร:</div>
+                    <div className="text-sm bg-muted/50 p-2 rounded">{application.studentReason}</div>
+                  </div>
+                )}
+                
+                {application.expectedSkills && application.expectedSkills.length > 0 && (
+                  <div>
+                    <div className="font-medium text-muted-foreground mb-1">ทักษะที่คาดหวัง:</div>
+                    <div className="flex flex-wrap gap-1">
+                      {application.expectedSkills.map((skill, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {application.projectProposal && (
+                  <div>
+                    <div className="font-medium text-muted-foreground mb-1">โครงการที่เสนอ:</div>
+                    <div className="text-sm bg-muted/50 p-2 rounded">{application.projectProposal}</div>
+                  </div>
+                )}
+                
+                {application.preferredStartDate && (
+                  <div>
+                    <div className="font-medium text-muted-foreground mb-1">วันที่ต้องการเริ่มฝึกงาน:</div>
+                    <div className="text-sm">{application.preferredStartDate}</div>
+                  </div>
+                )}
+                
+                {application.availableDuration && (
+                  <div>
+                    <div className="font-medium text-muted-foreground mb-1">ระยะเวลาที่สามารถฝึกงานได้:</div>
+                    <div className="text-sm">{application.availableDuration} เดือน</div>
+                  </div>
+                )}
+                
+                {application.feedback && (
+                  <div>
+                    <div className="font-medium text-muted-foreground mb-1">ความคิดเห็นเพิ่มเติม:</div>
+                    <div className="text-sm bg-muted/50 p-2 rounded">{application.feedback}</div>
                   </div>
                 )}
               </CardContent>

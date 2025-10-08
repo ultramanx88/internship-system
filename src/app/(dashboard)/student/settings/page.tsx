@@ -100,10 +100,52 @@ export default function SettingsPage() {
     majors: []
   });
 
+  // Filtered academic data based on selections
+  const [filteredAcademicData, setFilteredAcademicData] = useState({
+    departments: [],
+    curriculums: [],
+    majors: []
+  });
+
   // ฟังก์ชันลองใหม่
   const retryLoadSettings = () => {
     setRetryCount(prev => prev + 1);
     setSettingsError(null);
+  };
+
+  // ฟังก์ชันสำหรับ filter ข้อมูลตามที่เลือก (คณะ > สาขา > หลักสูตร > วิชาเอก)
+  const filterAcademicData = (selectedFaculty: string, selectedDepartment: string, selectedProgram: string) => {
+    const filtered = {
+      departments: [],
+      curriculums: [],
+      majors: []
+    };
+
+    // 1. Filter สาขาตามคณะที่เลือก
+    if (selectedFaculty) {
+      const faculty = academicData.faculties.find((f: any) => f.nameTh === selectedFaculty);
+      if (faculty && (faculty as any).departments) {
+        filtered.departments = (faculty as any).departments || [];
+        
+        // 2. Filter หลักสูตรตามสาขาที่เลือก
+        if (selectedDepartment) {
+          const department = (faculty as any).departments?.find((d: any) => d.nameTh === selectedDepartment);
+          if (department && (department as any).curriculums) {
+            filtered.curriculums = (department as any).curriculums || [];
+            
+            // 3. Filter วิชาเอกตามหลักสูตรที่เลือก
+            if (selectedProgram) {
+              const curriculum = (department as any).curriculums?.find((c: any) => c.nameTh === selectedProgram);
+              if (curriculum && (curriculum as any).majors) {
+                filtered.majors = (curriculum as any).majors || [];
+              }
+            }
+          }
+        }
+      }
+    }
+
+    setFilteredAcademicData(filtered);
   };
 
   // โหลดข้อมูลจาก API เมื่อ component mount
@@ -178,10 +220,10 @@ export default function SettingsPage() {
             const updatedUserData = {
               ...data.settings,
               // ใช้ข้อมูลจาก API ก่อน ถ้าไม่มีจึงใช้ข้อมูลจาก user object
-              thaiName: data.settings.thaiName || (user?.t_name) || (user?.name && user.name.includes(' ') ? user.name.split(' ')[0] : user?.name) || '',
-              thaiSurname: data.settings.thaiSurname || (user?.t_surname) || (user?.name && user.name.includes(' ') ? user.name.split(' ').slice(1).join(' ') : '') || '',
-              englishName: data.settings.englishName || (user?.e_name) || (user?.name && user.name.includes(' ') ? user.name.split(' ')[0] : user?.name) || '',
-              englishSurname: data.settings.englishSurname || (user?.e_surname) || (user?.name && user.name.includes(' ') ? user.name.split(' ').slice(1).join(' ') : '') || '',
+              thaiName: data.settings.thaiName || ((user as any)?.t_name) || (user?.name && user.name.includes(' ') ? user.name.split(' ')[0] : user?.name) || '',
+              thaiSurname: data.settings.thaiSurname || ((user as any)?.t_surname) || (user?.name && user.name.includes(' ') ? user.name.split(' ').slice(1).join(' ') : '') || '',
+              englishName: data.settings.englishName || ((user as any)?.e_name) || (user?.name && user.name.includes(' ') ? user.name.split(' ')[0] : user?.name) || '',
+              englishSurname: data.settings.englishSurname || ((user as any)?.e_surname) || (user?.name && user.name.includes(' ') ? user.name.split(' ').slice(1).join(' ') : '') || '',
             };
             
             console.log('Settings - Updated user data:', updatedUserData);
@@ -252,18 +294,18 @@ export default function SettingsPage() {
           }
           setUserData(prev => ({
             ...prev,
-            thaiName: (user as any).t_name || user.name || prev.thaiName,
-            thaiSurname: (user as any).t_surname || prev.thaiSurname,
-            englishName: (user as any).e_name || user.name || prev.englishName,
-            englishSurname: (user as any).e_surname || prev.englishSurname,
-            email: user.email || prev.email,
-            phone: (user as any).phone || prev.phone,
-            studentId: user.id || prev.studentId,
-            nationality: (user as any).nationality || prev.nationality,
-            passportId: (user as any).passportId || prev.passportId,
-            visaType: (user as any).visaType || prev.visaType,
-            campus: (user as any).campus || prev.campus,
-            gpa: (user as any).gpa || prev.gpa
+            thaiName: (user as any)?.t_name || user?.name || prev.thaiName,
+            thaiSurname: (user as any)?.t_surname || prev.thaiSurname,
+            englishName: (user as any)?.e_name || user?.name || prev.englishName,
+            englishSurname: (user as any)?.e_surname || prev.englishSurname,
+            email: user?.email || prev.email,
+            phone: (user as any)?.phone || prev.phone,
+            studentId: user?.id || prev.studentId,
+            nationality: (user as any)?.nationality || prev.nationality,
+            passportId: (user as any)?.passportId || prev.passportId,
+            visaType: (user as any)?.visaType || prev.visaType,
+            campus: (user as any)?.campus || prev.campus,
+            gpa: (user as any)?.gpa || prev.gpa
           }));
         }
         
@@ -304,6 +346,13 @@ export default function SettingsPage() {
     loadUserSettings();
     loadAcademicData();
   }, [user?.id, retryCount, preferences.language]);
+
+  // Filter academic data when userData changes
+  useEffect(() => {
+    if (academicData.faculties.length > 0) {
+      filterAcademicData(userData.faculty, userData.department, userData.program);
+    }
+  }, [academicData, userData.faculty, userData.department, userData.program]);
 
   // Update userData เมื่อ user object เปลี่ยน
   useEffect(() => {
@@ -819,13 +868,28 @@ export default function SettingsPage() {
 
 
                 {/* ข้อมูลการศึกษา */}
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800 font-medium">
+                    📚 กรุณาเลือกข้อมูลตามลำดับ: คณะ → สาขา → หลักสูตร → วิชาเอก
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Please select in order: Faculty → Department → Program → Major
+                  </p>
+                </div>
                 <div className="grid gap-4 md:grid-cols-4">
                   <div>
                     <Label htmlFor="faculty">คณะ</Label>
                     <p className="text-xs text-muted-foreground mb-1">Faculty</p>
                     <Select value={userData.faculty} onValueChange={(value) => {
-                      const newData = {...userData, faculty: value};
+                      const newData = {
+                        ...userData, 
+                        faculty: value,
+                        department: '', // Reset สาขา when คณะ changes
+                        program: '', // Reset หลักสูตร when คณะ changes
+                        major: '' // Reset วิชาเอก when คณะ changes
+                      };
                       setUserData(newData);
+                      filterAcademicData(value, '', ''); // Reset all downstream selections
                       autoSave(newData);
                     }}>
                       <SelectTrigger className={mark('facultyId')}>
@@ -843,16 +907,25 @@ export default function SettingsPage() {
                   <div>
                     <Label htmlFor="department">สาขา</Label>
                     <p className="text-xs text-muted-foreground mb-1">Department</p>
-                    <Select value={userData.department} onValueChange={(value) => {
-                      const newData = {...userData, department: value};
+                    <Select 
+                      value={userData.department} 
+                      disabled={!userData.faculty} // Disable if no faculty selected
+                      onValueChange={(value) => {
+                      const newData = {
+                        ...userData, 
+                        department: value,
+                        program: '', // Reset หลักสูตร when สาขา changes
+                        major: '' // Reset วิชาเอก when สาขา changes
+                      };
                       setUserData(newData);
+                      filterAcademicData(userData.faculty, value, ''); // Keep คณะ, reset หลักสูตร and วิชาเอก
                       autoSave(newData);
                     }}>
                       <SelectTrigger>
-                        <SelectValue placeholder="สาขา (Department)" />
+                        <SelectValue placeholder={userData.faculty ? "เลือกสาขา" : "เลือกคณะก่อน"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {academicData.departments.map((department: any) => (
+                        {filteredAcademicData.departments.map((department: any) => (
                           <SelectItem key={department.id} value={department.nameTh}>
                             {department.nameTh}
                           </SelectItem>
@@ -863,16 +936,24 @@ export default function SettingsPage() {
                   <div>
                     <Label htmlFor="program">หลักสูตร</Label>
                     <p className="text-xs text-muted-foreground mb-1">Program</p>
-                    <Select value={userData.program} onValueChange={(value) => {
-                      const newData = {...userData, program: value};
+                    <Select 
+                      value={userData.program} 
+                      disabled={!userData.department} // Disable if no department selected
+                      onValueChange={(value) => {
+                      const newData = {
+                        ...userData, 
+                        program: value,
+                        major: '' // Reset วิชาเอก when หลักสูตร changes
+                      };
                       setUserData(newData);
+                      filterAcademicData(userData.faculty, userData.department, value); // Keep คณะ and สาขา, reset วิชาเอก
                       autoSave(newData);
                     }}>
                       <SelectTrigger>
-                        <SelectValue placeholder="หลักสูตร (Program)" />
+                        <SelectValue placeholder={userData.department ? "เลือกหลักสูตร" : "เลือกสาขาก่อน"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {academicData.curriculums.map((curriculum: any) => (
+                        {filteredAcademicData.curriculums.map((curriculum: any) => (
                           <SelectItem key={curriculum.id} value={curriculum.nameTh}>
                             {curriculum.nameTh}
                           </SelectItem>
@@ -883,16 +964,19 @@ export default function SettingsPage() {
                   <div>
                     <Label htmlFor="major">วิชาเอก</Label>
                     <p className="text-xs text-muted-foreground mb-1">Major</p>
-                    <Select value={userData.major} onValueChange={(value) => {
+                    <Select 
+                      value={userData.major} 
+                      disabled={!userData.program} // Disable if no program selected
+                      onValueChange={(value) => {
                       const newData = {...userData, major: value};
                       setUserData(newData);
                       autoSave(newData);
                     }}>
                       <SelectTrigger className={mark('majorId')}>
-                        <SelectValue placeholder="วิชาเอก (Major)" />
+                        <SelectValue placeholder={userData.program ? "เลือกวิชาเอก" : "เลือกหลักสูตรก่อน"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {academicData.majors.map((major: any) => (
+                        {filteredAcademicData.majors.map((major: any) => (
                           <SelectItem key={major.id} value={major.nameTh}>
                             {major.nameTh}
                           </SelectItem>

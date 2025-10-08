@@ -38,6 +38,13 @@ interface Application {
     requiredApprovals: number;
     currentApprovals: number;
     pendingCommitteeReview: boolean;
+    // ข้อมูลที่นักเรียนกรอกเข้ามา
+    studentReason?: string;
+    expectedSkills?: string[];
+    projectProposal?: string;
+    preferredStartDate?: string;
+    availableDuration?: number;
+    feedback?: string;
 }
 
 export default function ApplicationsPage() {
@@ -127,6 +134,13 @@ export default function ApplicationsPage() {
                     currentApprovals: app.currentApprovals ?? 0,
                     pendingCommitteeReview: app.pendingCommitteeReview ?? false,
                     committeeApprovals: app.committeeApprovals ?? [],
+                    // ข้อมูลที่นักเรียนกรอกเข้ามา
+                    studentReason: app.studentReason,
+                    expectedSkills: app.expectedSkills,
+                    projectProposal: app.projectProposal,
+                    preferredStartDate: app.preferredStartDate,
+                    availableDuration: app.availableDuration,
+                    feedback: app.feedback,
                 };
             });
 

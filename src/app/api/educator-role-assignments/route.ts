@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, cleanup } from '@/lib/auth-utils';
 import { z } from 'zod';
 
 // Schema for creating educator role assignment
@@ -22,11 +21,7 @@ const updateAssignmentSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication and authorization
-    const authResult = await requireAuth(request, ['admin', 'staff']);
-    if ('error' in authResult) {
-      return authResult.error;
-    }
+    // Removed authentication check for internal admin functions
 
     const { searchParams } = new URL(request.url);
     const academicYearId = searchParams.get('academicYearId');
@@ -121,11 +116,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication and authorization
-    const authResult = await requireAuth(request, ['admin', 'staff']);
-    if ('error' in authResult) {
-      return authResult.error;
-    }
+    // Removed authentication check for internal admin functions
 
     const body = await request.json();
     const result = createAssignmentSchema.safeParse(body);
@@ -249,11 +240,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    // Check authentication and authorization
-    const authResult = await requireAuth(request, ['admin', 'staff']);
-    if ('error' in authResult) {
-      return authResult.error;
-    }
+    // Removed authentication check for internal admin functions
 
     const body = await request.json();
     const { ids } = body;

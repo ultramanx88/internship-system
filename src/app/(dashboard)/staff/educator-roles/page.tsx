@@ -260,7 +260,7 @@ export default function EducatorRolesPage() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="bg-white shadow-sm border-b">
             <div className="px-6 py-4">
-              <h1 className="text-2xl font-bold text-gray-900">จัดการบทบาท Educator</h1>
+              <h1 className="text-2xl font-bold text-gray-900">จัดการบทบาท บุคลากรทางการศึกษา</h1>
               <p className="text-gray-600">กำหนดบทบาทให้ educator ตามเทอมและปีการศึกษา</p>
             </div>
           </div>

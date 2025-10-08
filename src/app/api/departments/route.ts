@@ -1,135 +1,98 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAuth, cleanup } from '@/lib/auth-utils';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const facultyId = searchParams.get('facultyId');
-    const lang = (searchParams.get('lang') || 'th').toLowerCase();
-    const includeRelations = searchParams.get('include') === 'true';
-
-    const where: any = {
-      isActive: true,
-    };
-
-    if (facultyId) {
-      where.facultyId = facultyId;
-    }
-
     const departments = await prisma.department.findMany({
-      where,
       include: {
         faculty: true,
-        ...(includeRelations && {
-          curriculums: {
-            where: { isActive: true },
-            include: {
-              majors: {
-                where: { isActive: true },
-              },
-            },
-          },
-        }),
-        _count: {
-          select: {
-            curriculums: true,
-            users: true,
-          },
-        },
+        curriculums: {
+          include: {
+            majors: true
+          }
+        }
       },
       orderBy: {
-        nameTh: 'asc',
-      },
+        nameTh: 'asc'
+      }
     });
 
-    const items = departments.map((d) => ({
-      ...d,
-      label: lang === 'en' ? (d.nameEn || d.nameTh) : d.nameTh,
-      curriculums: d.curriculums?.map((c: any) => ({
-        ...c,
-        label: lang === 'en' ? (c.nameEn || c.nameTh) : c.nameTh,
-        majors: c.majors?.map((m: any) => ({
-          ...m,
-          label: lang === 'en' ? (m.nameEn || m.nameTh) : m.nameTh,
-        })),
-      })),
-    }));
-
-    return NextResponse.json({
-      departments: items,
+    return NextResponse.json({ 
+      success: true, 
+      departments 
     });
   } catch (error) {
     console.error('Error fetching departments:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { success: false, error: 'Failed to fetch departments' },
       { status: 500 }
     );
+  } finally {
+    await cleanup();
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { nameTh, nameEn, code, facultyId } = body;
-
-    if (!nameTh || !facultyId) {
-      return NextResponse.json(
-        { error: 'ชื่อสาขาและคณะเป็นข้อมูลที่จำเป็น' },
-        { status: 400 }
-      );
+    const auth = await requireAuth(request, ['admin', 'staff']);
+    if ('error' in auth) return auth.error as unknown as NextResponse;
+    const departments = await request.json();
+    
+    // Process each department
+    for (const dept of departments) {
+      if (dept.id.startsWith('new-')) {
+        // Create new department
+        await prisma.department.create({
+          data: {
+            nameTh: dept.nameTh,
+            nameEn: dept.nameEn,
+            code: dept.code,
+            facultyId: dept.facultyId,
+            isActive: dept.isActive !== false
+          }
+        });
+      } else {
+        // Update existing department
+        await prisma.department.update({
+          where: { id: dept.id },
+          data: {
+            nameTh: dept.nameTh,
+            nameEn: dept.nameEn,
+            code: dept.code,
+            facultyId: dept.facultyId,
+            isActive: dept.isActive !== false
+          }
+        });
+      }
     }
 
-    // Check if faculty exists
-    const faculty = await prisma.faculty.findUnique({
-      where: { id: facultyId },
-    });
-
-    if (!faculty) {
-      return NextResponse.json(
-        { error: 'ไม่พบคณะที่ระบุ' },
-        { status: 404 }
-      );
-    }
-
-    // Check if department with same name already exists in this faculty
-    const existingDepartment = await prisma.department.findFirst({
-      where: {
-        nameTh,
-        facultyId,
-      },
-    });
-
-    if (existingDepartment) {
-      return NextResponse.json(
-        { error: 'สาขานี้มีอยู่ในคณะแล้ว' },
-        { status: 400 }
-      );
-    }
-
-    const department = await prisma.department.create({
-      data: {
-        nameTh,
-        nameEn,
-        code,
-        facultyId,
-      },
+    // Fetch updated data
+    const updatedDepartments = await prisma.department.findMany({
       include: {
         faculty: true,
-        _count: {
-          select: {
-            curriculums: true,
-            users: true,
-          },
-        },
+        curriculums: {
+          include: {
+            majors: true
+          }
+        }
       },
+      orderBy: {
+        nameTh: 'asc'
+      }
     });
 
-    return NextResponse.json(department, { status: 201 });
+    return NextResponse.json({ 
+      success: true, 
+      data: updatedDepartments 
+    });
   } catch (error) {
-    console.error('Error creating department:', error);
+    console.error('Error saving departments:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { success: false, error: 'Failed to save departments' },
       { status: 500 }
     );
+  } finally {
+    await cleanup();
   }
 }
