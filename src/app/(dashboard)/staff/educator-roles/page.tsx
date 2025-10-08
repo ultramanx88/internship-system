@@ -88,13 +88,21 @@ export default function EducatorRolesPage() {
   // Fetch educators
   const fetchEducators = useCallback(async () => {
     try {
-      const response = await fetch('/api/students?role=educators&limit=1000');
+      const response = await fetch('/api/students?role=educators&limit=1000', {
+        headers: {
+          'x-user-id': 'admin'
+        }
+      });
       if (response.ok) {
         const data = await response.json();
-        setEducators(data.users || []);
+        setEducators(Array.isArray(data) ? data : (data.users || []));
+      } else {
+        console.error('Failed to fetch educators:', response.status, response.statusText);
+        setEducators([]);
       }
     } catch (error) {
       console.error('Error fetching educators:', error);
+      setEducators([]);
     }
   }, []);
 
