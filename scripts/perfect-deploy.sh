@@ -260,9 +260,8 @@ EOF
     
     sshpass -p "$VPS_PASSWORD" scp "$VPS_USER@$VPS_HOST:$VPS_EXPORT" backups/vps-production-data.json
     
-    # Switch to local schema for SQLite
-    log_info "Switching to local SQLite schema..."
-    cp prisma/schema.local.prisma prisma/schema.prisma
+    # Generate Prisma client for PostgreSQL
+    log_info "Generating Prisma client for PostgreSQL..."
     npx prisma generate
     
     # Import to local

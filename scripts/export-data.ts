@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-// Export all data from SQLite database to JSON
+// Export all data from PostgreSQL database to JSON
 import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';

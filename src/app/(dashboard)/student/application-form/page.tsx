@@ -1,141 +1,138 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useAuth } from '@/hooks/use-auth';
+import { useState, useEffect } from 'react';
 import { StudentGuard } from '@/components/auth/PermissionGuard';
+import { WorkflowTimeline, WorkflowStatus } from '@/components/student/application-workflow';
+import { useStudentWorkflow } from '@/hooks/use-student-workflow';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-type TimelineStep = 1 | 2 | 3 | 4 | 5;
+import { RefreshCw, Globe } from 'lucide-react';
 
 export default function ApplicationFormPage() {
-    const { user } = useAuth();
-    const { toast } = useToast();
-    const [loading, setLoading] = useState(true);
-    const [profileOk, setProfileOk] = useState(false);
-    const [latestApp, setLatestApp] = useState<any | null>(null);
+    const [currentLanguage, setCurrentLanguage] = useState<'th' | 'en'>('th');
+    
+    const {
+        loading,
+        error,
+        workflowState,
+        steps,
+        refresh,
+        getProgressPercentage,
+        language: detectedLanguage
+    } = useStudentWorkflow();
 
-    const lang = useMemo(() => {
-        return (navigator.language || 'th').toLowerCase().startsWith('en') ? 'en' : 'th';
+    // ใช้ภาษา default เป็น thai และให้ user toggle ได้
+    const language = currentLanguage;
+
+    // โหลดการตั้งค่าภาษาจาก localStorage
+    useEffect(() => {
+        const savedLanguage = localStorage.getItem('workflow-language');
+        if (savedLanguage === 'en' || savedLanguage === 'th') {
+            setCurrentLanguage(savedLanguage);
+        }
     }, []);
 
-    useEffect(() => {
-        const load = async () => {
-            try {
-                // 1) ตรวจโปรไฟล์
-                const prof = await fetch('/api/user/profile', { headers: { 'x-user-id': user?.id || '' } });
-                if (prof.ok) {
-                    const data = await prof.json();
-                    const p = data?.profile || data;
-                    const ok = !!(p?.name && p?.email && p?.phone && p?.facultyId && p?.majorId);
-                    setProfileOk(ok);
-                }
-                // 2) ดึงใบสมัครล่าสุดของนักศึกษา
-                const apps = await fetch('/api/student/applications?limit=1', { headers: { 'x-user-id': user?.id || '' } });
-                if (apps.ok) {
-                    const data = await apps.json();
-                    const a = data?.data?.applications?.[0] || null;
-                    setLatestApp(a);
-                }
-            } catch (e) {
-                // noop
-            } finally {
-                setLoading(false);
-            }
-        };
-        if (user?.id) load();
-    }, [user?.id]);
+    // บันทึกการตั้งค่าภาษาเมื่อเปลี่ยน
+    const handleLanguageToggle = () => {
+        const newLanguage = currentLanguage === 'th' ? 'en' : 'th';
+        setCurrentLanguage(newLanguage);
+        localStorage.setItem('workflow-language', newLanguage);
+    };
 
-    const step1Done = profileOk;
-    const step2Done = !!(latestApp && (latestApp.projectTopic || latestApp.feedback));
-    const step3Done = !!latestApp; // ยื่นแล้วถือว่าส่งเอกสารแล้วในเฟสแรก
-    const step4Active = latestApp?.status === 'approved' || latestApp?.status === 'co_op' || latestApp?.status === 'in_progress';
-    const step5Done = !!latestApp?.projectTopic;
-
-    const Row = ({ index, title, done, action, locked, note }: { index: number; title: string; done?: boolean; action?: React.ReactNode; locked?: boolean; note?: string }) => (
-        <div className={`flex items-center justify-between rounded-xl px-4 py-5 mb-4 ${locked ? 'bg-gray-100' : 'bg-white'} border` }>
-            <div className="flex items-center gap-4">
-                <div className={`h-8 w-8 rounded-full flex items-center justify-center text-white font-bold ${done ? 'bg-emerald-600' : 'bg-amber-600'}`}>{done ? <Check className="h-4 w-4"/> : index}</div>
-                <div>
-                    <div className="text-lg font-medium">{title}</div>
-                    {note && <div className="text-sm text-muted-foreground mt-1">{note}</div>}
+    if (loading) {
+        return (
+            <StudentGuard>
+                <div className="min-h-screen bg-gray-50 p-6">
+                    <div className="max-w-4xl mx-auto">
+                        <Card>
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-center">
+                                    <div className="text-center">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                                        <p className="text-muted-foreground">
+                                            {language === 'en' ? 'Loading...' : 'กำลังโหลด...'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
-            </div>
-            <div className="flex items-center gap-2">
-                {action}
-            </div>
-        </div>
-    );
+            </StudentGuard>
+        );
+    }
+
+    if (error) {
+        return (
+            <StudentGuard>
+                <div className="min-h-screen bg-gray-50 p-6">
+                    <div className="max-w-4xl mx-auto">
+                        <Card>
+                            <CardContent className="p-6">
+                                <div className="text-center">
+                                    <p className="text-red-600 mb-4">{error}</p>
+                                    <button
+                                        onClick={refresh}
+                                        className="flex items-center gap-2 mx-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                    >
+                                        <RefreshCw className="h-4 w-4" />
+                                        {language === 'en' ? 'Retry' : 'ลองใหม่'}
+                                    </button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </StudentGuard>
+        );
+    }
 
     return (
         <StudentGuard>
             <div className="min-h-screen bg-gray-50 p-6">
-                <div className="max-w-4xl mx-auto">
-                    <h1 className="text-2xl font-bold mb-6">ยื่นขอสหกิจศึกษา</h1>
-                    {loading ? (
-                        <div className="p-6 bg-white rounded-xl border">กำลังโหลด...</div>
-                    ) : (
-                        <div>
-                            <Row
-                                index={1}
-                                title={'ลงทะเบียนข้อมูลนักศึกษา'}
-                                done={step1Done}
-                                action={
-                                    <Link href="/student/settings">
-                                        <Button variant="outline">ดำเนินการ</Button>
-                                    </Link>
-                                }
-                            />
-
-                            <Row
-                                index={2}
-                                title={'กรอกรายละเอียดสหกิจหรือฝึกงาน'}
-                                done={step2Done}
-                                locked={!step1Done}
-                                action={
-                                    <Link href="/student/application-form/internship-form">
-                                        <Button disabled={!step1Done}>ดำเนินการ</Button>
-                                    </Link>
-                                }
-                                note={!step1Done ? 'กรุณากรอกโปรไฟล์ให้ครบก่อน' : undefined}
-                            />
-
-                            <Row
-                                index={3}
-                                title={'ยื่นเอกสารให้กับทางบริษัท'}
-                                done={step3Done}
-                                locked={!step2Done}
-                                action={
-                                    <Link href="/student/documents">
-                                        <Button variant="outline" disabled={!step2Done}>ธุรการแจ้งรับเอกสาร</Button>
-                                    </Link>
-                                }
-                            />
-
-                            <Row
-                                index={4}
-                                title={'ช่วงสหกิจศึกษา / ฝึกงาน'}
-                                done={step4Active}
-                                locked={!step3Done}
-                                note={step4Active ? 'นศ.อยู่ระหว่างการสหกิจศึกษา / ฝึกงาน' : undefined}
-                                action={<Button variant="outline" disabled>ติดตาม</Button>}
-                            />
-
-                            <Row
-                                index={5}
-                                title={'กรอกหัวข้อโปรเจกต์'}
-                                done={step5Done}
-                                locked={!step4Active}
-                                action={
-                                    <Link href="/student/project-details">
-                                        <Button disabled={!step4Active}>ดำเนินการ</Button>
-                                    </Link>
-                                }
-                            />
+                <div className="max-w-4xl mx-auto space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-2xl font-bold">
+                            {language === 'en' ? 'Student Application Workflow' : 'ยื่นขอสหกิจศึกษา'}
+                        </h1>
+                        <div className="flex items-center gap-2">
+                            {/* Language Toggle */}
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleLanguageToggle}
+                                className="flex items-center gap-2"
+                            >
+                                <Globe className="h-4 w-4" />
+                                {language === 'en' ? 'ไทย' : 'EN'}
+                            </Button>
+                            
+                            {/* Refresh Button */}
+                            <Button
+                                onClick={refresh}
+                                className="flex items-center gap-2"
+                            >
+                                <RefreshCw className="h-4 w-4" />
+                                {language === 'en' ? 'Refresh' : 'รีเฟรช'}
+                            </Button>
                         </div>
+                    </div>
+
+                    {/* Workflow Status */}
+                    {workflowState && (
+                        <WorkflowStatus
+                            state={workflowState}
+                            totalSteps={steps.length}
+                            language={language}
+                        />
                     )}
+
+                    {/* Workflow Timeline */}
+                    <WorkflowTimeline
+                        steps={steps}
+                        currentStep={workflowState?.currentStep || 1}
+                        language={language}
+                    />
                 </div>
             </div>
         </StudentGuard>

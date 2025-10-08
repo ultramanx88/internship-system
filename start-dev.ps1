@@ -90,13 +90,11 @@ function Start-DevEnvironment {
     # Step 2: Setup database
     Write-Step "2/7 Setting up database..."
     
-    # Check if database exists
-    if (-not (Test-Path "prisma/dev.db")) {
-        Write-Status "Creating SQLite database..."
-        npx prisma db push
-        Write-Status "Seeding database with initial data..."
-        npm run db:seed
-    } else {
+    # Check if database is connected
+    Write-Status "Checking PostgreSQL connection..."
+    npx prisma db push
+    Write-Status "Seeding database with initial data..."
+    npm run db:seed
         Write-Success "Database already exists"
     }
     
@@ -204,7 +202,7 @@ function Start-DevEnvironment {
     Write-Host "╠══════════════════════════════════════════════════════════════╣" -ForegroundColor White
     Write-Host "║ 🚀 Next.js App:     http://localhost:3000                ║" -ForegroundColor Cyan
     Write-Host "║ 🗄️  Prisma Studio:   http://localhost:5555                ║" -ForegroundColor Cyan
-    Write-Host "║ 📊 Database:        SQLite (prisma/dev.db)              ║" -ForegroundColor Cyan
+    Write-Host "║ 📊 Database:        PostgreSQL (Production)              ║" -ForegroundColor Cyan
     Write-Host "║ 📝 Jobs:            PowerShell Background Jobs          ║" -ForegroundColor Cyan
     Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor White
     Write-Host ""

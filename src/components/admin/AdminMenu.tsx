@@ -13,7 +13,8 @@ import {
   BarChart2, 
   Settings,
   LogOut,
-  UserCheck
+  UserCheck,
+  Database
 } from 'lucide-react';
 import Image from 'next/image';
 import { useSystemLogo } from '@/hooks/use-system-logo';
@@ -67,6 +68,12 @@ export function AdminMenu({ className }: AdminMenuProps) {
       label: 'ตั้งค่า',
       icon: Settings,
       href: '/admin/settings'
+    },
+    {
+      id: 'system-management',
+      label: 'จัดการระบบ',
+      icon: Database,
+      href: '/admin/system-management'
     }
   ];
 

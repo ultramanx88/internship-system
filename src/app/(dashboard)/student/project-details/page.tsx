@@ -45,7 +45,7 @@ export default function ProjectDetailsPage() {
             const semestersResponse = await fetch('/api/semesters');
             if (semestersResponse.ok) {
                 const semesters = await semestersResponse.json();
-                const activeSemester = semesters.find((s: any) => s.isActive);
+                const activeSemester = semesters.data?.find((s: any) => s.isActive) || semesters.find((s: any) => s.isActive);
                 
                 if (activeSemester) {
                     // Get course instructors for active semester

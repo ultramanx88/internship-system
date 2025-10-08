@@ -36,6 +36,8 @@ model User {
   passportId    String?
   visaType      String?
   profileImage  String?
+  internshipPhoto1 String?  // รูปฝึกงานรูปที่ 1
+  internshipPhoto2 String?  // รูปฝึกงานรูปที่ 2
   // การตั้งค่าการแจ้งเตือน
   notifyEmail   Boolean       @default(true)
   notifyPush    Boolean       @default(false)

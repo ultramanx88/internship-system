@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
     
     if (search) {
       logger.info('Users API GET searching', { search });
-      // SQLite ไม่รองรับ case insensitive search โดยตรง ใช้ LIKE แทน
+      // PostgreSQL รองรับ case insensitive search
       const searchLower = search.toLowerCase();
       whereClause.OR = [
         { name: { contains: search } },

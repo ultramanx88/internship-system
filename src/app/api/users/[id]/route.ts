@@ -356,26 +356,12 @@ export async function DELETE(
       return NextResponse.json({ message: 'ไม่พบผู้ใช้งาน' }, { status: 404 });
     }
 
-    // ลบโฟลเดอร์รูปโปรไฟล์ของผู้ใช้ทั้งโฟลเดอร์ (ถ้ามี)
+    // ลบไฟล์มีเดียทั้งหมดของผู้ใช้ (รูปโปรไฟล์ + รูปฝึกงาน)
     try {
-      if (existingUser.profileImage) {
-        const userDir = path.dirname(path.join(process.cwd(), 'public', existingUser.profileImage));
-        if (existsSync(userDir)) {
-          // ลบทุกไฟล์ภายใต้โฟลเดอร์ของ user แล้วลบโฟลเดอร์
-          try {
-            const { readdir } = await import('fs/promises');
-            const entries = await readdir(userDir);
-            for (const entry of entries) {
-              const p = path.join(userDir, entry);
-              try { await unlink(p); } catch {}
-            }
-            const { rmdir } = await import('fs/promises');
-            try { await rmdir(userDir); } catch {}
-          } catch {}
-        }
-      }
+      const { FileStorageService } = await import('@/lib/file-storage');
+      await FileStorageService.deleteUserMedia(existingUser.id);
     } catch (e) {
-      console.warn('Failed to delete user profile image on delete:', existingUser.id, e);
+      console.warn('Failed to delete user media on delete:', existingUser.id, e);
     }
 
     // ลบผู้ใช้

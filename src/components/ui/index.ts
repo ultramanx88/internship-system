@@ -71,3 +71,12 @@ export { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
 export { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './alert-dialog';
 export { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from './sheet';
+
+// Academic Components
+export { default as AcademicYearSelector } from './AcademicYearSelector';
+export { default as SemesterSelector } from './SemesterSelector';
+export { default as AcademicPeriodSelector } from './AcademicPeriodSelector';
+export { default as AddressSelector } from './AddressSelector';
+
+// Hooks
+export { useAcademicData } from '../../hooks/use-academic-data';

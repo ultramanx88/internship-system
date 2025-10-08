@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
     const userId = formData.get('userId') as string;
     const type = formData.get('type') as string;
+    const photoNumber = formData.get('photoNumber') as string;
 
     if (!file || !userId) {
       return NextResponse.json(
@@ -112,8 +113,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate file name and path
-    const fileName = FileStorageService.generateFileName(userId, file.name);
-    const relativePath = FileStorageService.getFilePath(userId, fileName);
+    const photoNum = photoNumber ? parseInt(photoNumber) : undefined;
+    const fileName = FileStorageService.generateFileName(userId, file.name, type, photoNum);
+    const relativePath = FileStorageService.getFilePath(userId, fileName, type === 'internship' ? 'internships' : type + 's');
     const fullPath = path.join(process.cwd(), 'public', relativePath);
 
     // Create directory if not exists
@@ -128,14 +130,28 @@ export async function POST(request: NextRequest) {
     // Clean old profile images (keep only 2 most recent)
     await cleanOldProfileImages(userId, relativePath);
 
-    // Update user's profile image in database
+    // Update user's media in database
     try {
-      await prisma.user.update({
-        where: { id: userId },
-        data: { profileImage: relativePath }
-      });
+      const updateData: any = {};
+      
+      if (type === 'profile') {
+        updateData.profileImage = relativePath;
+      } else if (type === 'internship' && photoNum) {
+        if (photoNum === 1) {
+          updateData.internshipPhoto1 = relativePath;
+        } else if (photoNum === 2) {
+          updateData.internshipPhoto2 = relativePath;
+        }
+      }
+      
+      if (Object.keys(updateData).length > 0) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: updateData
+        });
+      }
     } catch (error) {
-      console.warn('Failed to update user profile image in database:', error);
+      console.warn('Failed to update user media in database:', error);
     }
 
     // Return public URL

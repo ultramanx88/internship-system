@@ -7,31 +7,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Save, RefreshCw, Eye } from 'lucide-react';
-import { DocumentTemplate, generateLocalizedDocumentNumber, validateDocumentTemplate } from '@/lib/document-number';
-// import { toast } from 'sonner'; // Commented out - using alert instead
-
-interface DocumentTemplateConfig {
-  thai: DocumentTemplate;
-  english: DocumentTemplate;
-}
+import { useToast } from '@/hooks/use-toast';
+import {
+  DocumentSettingsConfig,
+  DocumentSettingsAPI,
+  DocumentSettingsValidator,
+  DocumentNumberGenerator,
+  Language,
+  DEFAULT_CONFIG
+} from '@/lib/document-settings';
 
 export function DocumentNumberSettings() {
-  const [config, setConfig] = useState<DocumentTemplateConfig>({
-    thai: {
-      prefix: 'DOC',
-      digits: 6,
-      suffix: '',
-      currentNumber: 1
-    },
-    english: {
-      prefix: 'DOC',
-      digits: 6,
-      suffix: '',
-      currentNumber: 1
-    }
-  });
+  const [config, setConfig] = useState<DocumentSettingsConfig>(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
   // Load configuration on mount
   useEffect(() => {
@@ -41,15 +31,15 @@ export function DocumentNumberSettings() {
   const loadConfiguration = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/document-template');
-      const data = await response.json();
-      
-      if (data.success) {
-        setConfig(data.data);
-      }
+      const loadedConfig = await DocumentSettingsAPI.loadConfig();
+      setConfig(loadedConfig);
     } catch (error) {
       console.error('Error loading document template:', error);
-      alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+      toast({
+        variant: 'destructive',
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถโหลดข้อมูลการตั้งค่าได้'
+      });
     } finally {
       setLoading(false);
     }
@@ -59,59 +49,56 @@ export function DocumentNumberSettings() {
     try {
       setSaving(true);
 
-      // Validate both templates
-      const thaiValidation = validateDocumentTemplate(config.thai);
-      const englishValidation = validateDocumentTemplate(config.english);
+      // Validate configuration using the module
+      const validation = DocumentSettingsValidator.validateConfig(config);
 
-      if (!thaiValidation.valid || !englishValidation.valid) {
-        const errors = [...thaiValidation.errors, ...englishValidation.errors];
-        alert(`ข้อมูลไม่ถูกต้อง: ${errors.join(', ')}`);
+      if (!validation.valid) {
+        toast({
+          variant: 'destructive',
+          title: 'ข้อมูลไม่ถูกต้อง',
+          description: validation.errors.join(', ')
+        });
         return;
       }
 
-      const response = await fetch('/api/document-template', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(config),
+      // Save using the module
+      await DocumentSettingsAPI.saveConfig(config);
+      
+      toast({
+        title: 'บันทึกสำเร็จ',
+        description: 'บันทึกการตั้งค่าเลขเอกสารเรียบร้อยแล้ว'
       });
-
-      const data = await response.json();
-
-      if (data.success) {
-        alert('บันทึกการตั้งค่าเลขเอกสารสำเร็จ');
-      } else {
-        alert(data.message || 'เกิดข้อผิดพลาดในการบันทึก');
-      }
     } catch (error) {
       console.error('Error saving document template:', error);
-      alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      toast({
+        variant: 'destructive',
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถบันทึกข้อมูลได้'
+      });
     } finally {
       setSaving(false);
     }
   };
 
-  const updateTemplate = (language: 'thai' | 'english', field: keyof DocumentTemplate, value: any) => {
+  const updateTemplate = (language: Language, field: keyof DocumentTemplate, value: any) => {
+    // Sanitize the value using the module
+    const sanitizedValue = DocumentSettingsValidator.sanitizeField(field, value);
+    
     setConfig(prev => ({
       ...prev,
       [language]: {
         ...prev[language],
-        [field]: value
+        [field]: sanitizedValue
       }
     }));
   };
 
-  const generatePreview = (language: 'thai' | 'english') => {
-    return generateLocalizedDocumentNumber(config[language], language);
+  const generatePreview = (language: Language) => {
+    return DocumentNumberGenerator.generatePreview(config[language], language);
   };
 
-  const generateNextPreview = (language: 'thai' | 'english') => {
-    const nextTemplate = {
-      ...config[language],
-      currentNumber: config[language].currentNumber + 1
-    };
-    return generateLocalizedDocumentNumber(nextTemplate, language);
+  const generateNextPreview = (language: Language) => {
+    return DocumentNumberGenerator.generateNextPreview(config[language], language);
   };
 
   if (loading) {

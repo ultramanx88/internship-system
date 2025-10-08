@@ -1,0 +1,16 @@
+[0;34m[2025-10-08 23:57:24][0m Starting full deployment for environment: production
+[0;34m[2025-10-08 23:57:24][0m Step 1/8: Pre-deployment checks
+[1;33m[WARNING][0m Working directory has uncommitted changes.
+[0;32m[SUCCESS][0m Pre-deployment checks passed
+[0;34m[2025-10-08 23:57:28][0m Step 2/8: Database operations
+[0;34m[2025-10-08 23:57:28][0m Creating database backup/export...
+[1;33m[WARNING][0m Database export failed, continuing without backup
+[0;32m[SUCCESS][0m Backup saved to backups/deploy-20251008-235724
+[0;34m[2025-10-08 23:57:30][0m Step 3/8: Updating dependencies
+[0;34m[2025-10-08 23:57:30][0m Checking for security vulnerabilities...
+[1;33m[WARNING][0m Security vulnerabilities found. Consider running 'npm audit fix'
+[0;34m[2025-10-08 23:57:37][0m Installing dependencies...
+[0;32m[SUCCESS][0m Dependencies updated
+[0;34m[2025-10-09 00:02:18][0m Step 4/8: Running tests
+[0;34m[2025-10-09 00:02:18][0m Running TypeScript type check...
+[0;31m[ERROR][0m TypeScript type check failed

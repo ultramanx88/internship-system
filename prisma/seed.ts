@@ -752,8 +752,8 @@ async function main() {
       statement: 'นักศึกษาที่มีความขยันและสนใจในด้านการทดสอบซอฟต์แวร์',
       studentYear: 4,
       facultyId: faculty1.id,
-      departmentId: dept1.id,
-      curriculumId: curriculum1.id,
+      departmentId: deptAccounting.id,
+      curriculumId: curriculumAccounting.id,
       majorId: major1.id
     }
   });

@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AddressSelector from '@/components/ui/AddressSelector';
+import { AcademicYearSelector, SemesterSelector } from '@/components/ui';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Camera } from 'lucide-react';
 import Link from 'next/link';
@@ -579,32 +580,21 @@ export default function InternshipFormPage() {
 
                                 <div className="grid gap-4 md:grid-cols-2 ml-10">
                                     <div>
-                                        <Label htmlFor="semester">{currentLabels.semester}</Label>
-                                        <p className="text-xs text-muted-foreground mb-1">{isEnglish ? 'Semester' : 'Semester'}</p>
-                                        <Select value={formData.semester} onValueChange={(value) => handleInputChange('semester', value)}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={isEnglish ? 'Semester' : 'ภาคการศึกษา (Semester)'} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="1">{isEnglish ? 'Semester 1' : 'ภาคการศึกษาที่ 1'}</SelectItem>
-                                                <SelectItem value="2">{isEnglish ? 'Semester 2' : 'ภาคการศึกษาที่ 2'}</SelectItem>
-                                                <SelectItem value="summer">{isEnglish ? 'Summer' : 'ภาคฤดูร้อน'}</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                        <SemesterSelector
+                                            academicYearId={formData.year}
+                                            value={formData.semester}
+                                            onChange={(value) => handleInputChange('semester', value)}
+                                            label={currentLabels.semester}
+                                            placeholder={isEnglish ? 'Semester' : 'ภาคการศึกษา (Semester)'}
+                                        />
                                     </div>
                                     <div>
-                                        <Label htmlFor="year">{currentLabels.year}</Label>
-                                        <p className="text-xs text-muted-foreground mb-1">{isEnglish ? 'Year' : 'Year'}</p>
-                                        <Select value={formData.year} onValueChange={(value) => handleInputChange('year', value)}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={isEnglish ? 'Year' : 'ปีการศึกษา (Year)'} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="2567">2567</SelectItem>
-                                                <SelectItem value="2568">2568</SelectItem>
-                                                <SelectItem value="2569">2569</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                        <AcademicYearSelector
+                                            value={formData.year}
+                                            onChange={(value) => handleInputChange('year', value)}
+                                            label={currentLabels.year}
+                                            placeholder={isEnglish ? 'Year' : 'ปีการศึกษา (Year)'}
+                                        />
                                     </div>
                                 </div>
                             </div>

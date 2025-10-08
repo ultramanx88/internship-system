@@ -1,26 +1,38 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useSystemTheme } from './use-system-theme';
 
 const SYSTEM_LOGO_KEY = 'system-logo';
 const DEFAULT_SYSTEM_LOGO = '/assets/images/system/garuda-logo.png';
 
 export function useSystemLogo() {
+  const { logo, isLoading: themeLoading } = useSystemTheme();
   const [systemLogo, setSystemLogo] = useState<string>(DEFAULT_SYSTEM_LOGO);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const storedLogo = localStorage.getItem(SYSTEM_LOGO_KEY);
-      if (storedLogo) {
-        setSystemLogo(storedLogo);
-      }
-    } catch (error) {
-      console.error('Error loading system logo from localStorage:', error);
-    } finally {
+    if (!themeLoading) {
+      setSystemLogo(logo);
       setIsLoading(false);
     }
-  }, []);
+  }, [logo, themeLoading]);
+
+  // Fallback to localStorage if database is not available
+  useEffect(() => {
+    if (isLoading && !themeLoading) {
+      try {
+        const storedLogo = localStorage.getItem(SYSTEM_LOGO_KEY);
+        if (storedLogo && storedLogo !== DEFAULT_SYSTEM_LOGO) {
+          setSystemLogo(storedLogo);
+        }
+      } catch (error) {
+        console.error('Error loading system logo from localStorage:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }, [isLoading, themeLoading]);
 
   const updateSystemLogo = (logoUrl: string) => {
     try {

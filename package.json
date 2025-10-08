@@ -64,7 +64,11 @@
     "deploy:force": "./deploy.sh --force",
     "deploy:no-test": "./deploy.sh --skip-tests",
     "node:env": "node -r dotenv/config",
-    "tsx:env": "tsx -r dotenv/config"
+    "tsx:env": "tsx -r dotenv/config",
+    "logs:cleanup": "tsx scripts/cleanup-logs.ts",
+    "backup:create": "tsx -e \"import { backupService } from './src/lib/backup-service'; backupService.createBackup({ type: 'FULL', includeMedia: true, includeLogs: false }).then(console.log).catch(console.error)\"",
+    "backup:schedule": "tsx -e \"import { backupService } from './src/lib/backup-service'; backupService.scheduleBackups().then(console.log).catch(console.error)\"",
+    "pdpa:init": "tsx -e \"import { pdpaService } from './src/lib/pdpa-service'; pdpaService.initializeDefaultRules().then(console.log).catch(console.error)\""
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

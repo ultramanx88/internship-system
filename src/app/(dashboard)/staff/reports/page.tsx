@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AcademicYearSelector, SemesterSelector } from '@/components/ui';
 import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Download, FileText, TrendingUp, Users, Building, Calendar } from 'lucide-react';
@@ -79,29 +80,20 @@ export default function ReportsPage() {
                             <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-gray-500" />
                                 <span className="text-sm font-medium text-gray-700">ปีการศึกษา:</span>
-                                <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                                    <SelectTrigger className="w-32">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="2566">2566</SelectItem>
-                                        <SelectItem value="2567">2567</SelectItem>
-                                        <SelectItem value="2568">2568</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <AcademicYearSelector
+                                    value={selectedPeriod}
+                                    onChange={setSelectedPeriod}
+                                    className="w-32"
+                                />
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-medium text-gray-700">ภาคการศึกษา:</span>
-                                <Select value={selectedSemester} onValueChange={setSelectedSemester}>
-                                    <SelectTrigger className="w-32">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="1">ภาคที่ 1</SelectItem>
-                                        <SelectItem value="2">ภาคที่ 2</SelectItem>
-                                        <SelectItem value="summer">ภาคฤดูร้อน</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <SemesterSelector
+                                    academicYearId={selectedPeriod}
+                                    value={selectedSemester}
+                                    onChange={setSelectedSemester}
+                                    className="w-32"
+                                />
                             </div>
                         </div>
                     </CardContent>

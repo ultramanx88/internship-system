@@ -10,26 +10,38 @@ export class FileStorageService {
   private static readonly UPLOAD_DIR = '/uploads';
   private static readonly MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
   private static readonly ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+  
+  // Media types
+  static readonly MEDIA_TYPES = {
+    PROFILE: 'profile',
+    INTERNSHIP: 'internship',
+    DOCUMENT: 'document'
+  } as const;
 
   /**
    * Generate unique filename with user ID
    */
-  static generateFileName(userId: string, originalName: string): string {
+  static generateFileName(userId: string, originalName: string, type: string = 'profile', photoNumber?: number): string {
     const timestamp = Date.now();
     const extension = originalName.split('.').pop();
-    return `profile_${userId}_${timestamp}.${extension}`;
+    
+    if (type === this.MEDIA_TYPES.INTERNSHIP && photoNumber) {
+      return `internship_${photoNumber}_${userId}_${timestamp}.${extension}`;
+    }
+    
+    return `${type}_${userId}_${timestamp}.${extension}`;
   }
 
   /**
    * Generate file path structure
    */
-  static getFilePath(userId: string, fileName: string): string {
-    // Structure: /uploads/profiles/[year]/[month]/[userId]/filename
+  static getFilePath(userId: string, fileName: string, type: string = 'profiles'): string {
+    // Structure: /uploads/{type}/[year]/[month]/[userId]/filename
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     
-    return `${this.UPLOAD_DIR}/profiles/${year}/${month}/${userId}/${fileName}`;
+    return `${this.UPLOAD_DIR}/${type}/${year}/${month}/${userId}/${fileName}`;
   }
 
   /**
@@ -50,7 +62,7 @@ export class FileStorageService {
   /**
    * Upload file to server
    */
-  static async uploadFile(file: File, userId: string): Promise<FileUploadResult> {
+  static async uploadFile(file: File, userId: string, type: string = 'profile', photoNumber?: number): Promise<FileUploadResult> {
     try {
       // Validate file
       const validation = this.validateFile(file);
@@ -62,7 +74,10 @@ export class FileStorageService {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('userId', userId);
-      formData.append('type', 'profile');
+      formData.append('type', type);
+      if (photoNumber) {
+        formData.append('photoNumber', photoNumber.toString());
+      }
 
       // Upload to server
       const response = await fetch('/api/upload', {
@@ -84,6 +99,20 @@ export class FileStorageService {
   }
 
   /**
+   * Upload profile image
+   */
+  static async uploadProfileImage(file: File, userId: string): Promise<FileUploadResult> {
+    return this.uploadFile(file, userId, this.MEDIA_TYPES.PROFILE);
+  }
+
+  /**
+   * Upload internship photo
+   */
+  static async uploadInternshipPhoto(file: File, userId: string, photoNumber: 1 | 2): Promise<FileUploadResult> {
+    return this.uploadFile(file, userId, this.MEDIA_TYPES.INTERNSHIP, photoNumber);
+  }
+
+  /**
    * Delete old profile image
    */
   static async deleteFile(filePath: string): Promise<boolean> {
@@ -102,9 +131,30 @@ export class FileStorageService {
       return false;
     }
   }
+
+  /**
+   * Delete all user media files and folders
+   */
+  static async deleteUserMedia(userId: string): Promise<boolean> {
+    try {
+      const response = await fetch('/api/upload/user-media', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('Delete user media error:', error);
+      return false;
+    }
+  }
 }
 
 // File path examples:
 // /uploads/profiles/2024/10/user123/profile_user123_1696234567890.jpg
-// /uploads/profiles/2024/10/user456/profile_user456_1696234567891.png
+// /uploads/internships/2024/10/user123/internship_1_user123_1696234567891.jpg
+// /uploads/internships/2024/10/user123/internship_2_user123_1696234567892.jpg
 // /uploads/documents/2024/10/user123/document_user123_1696234567892.pdf
