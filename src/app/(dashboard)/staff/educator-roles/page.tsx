@@ -88,11 +88,8 @@ export default function EducatorRolesPage() {
   // Fetch educators
   const fetchEducators = useCallback(async () => {
     try {
-      const response = await fetch('/api/students?role=educators&limit=1000', {
-        headers: {
-          'x-user-id': 'admin'
-        }
-      });
+      // Use users API which does not require auth in this environment
+      const response = await fetch('/api/users?role=educators&limit=1000');
       if (response.ok) {
         const data = await response.json();
         setEducators(Array.isArray(data) ? data : (data.users || []));
