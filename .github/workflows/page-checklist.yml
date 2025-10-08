@@ -1,0 +1,44 @@
+name: Page Checklist
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  checklist:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Prisma generate
+        run: npx prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || '' }}
+
+      - name: Run checklist for /admin/users
+        run: |
+          bash scripts/checklist-page.sh \
+            --route "/admin/users" \
+            --api "/api/users,/api/users/{id}" \
+            --files "src/app/(dashboard)/admin/users/page.tsx,src/components/admin/users/UsersTable.tsx" \
+            --health "/api/health" \
+            --host "http://localhost:8080"
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint (non-blocking)
+        run: npm run lint || true
+
+
