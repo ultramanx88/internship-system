@@ -105,6 +105,63 @@ export async function POST(request: NextRequest) {
     // Removed authentication check for internal admin functions
 
     const body = await request.json();
+
+    // Bulk save path from staff/settings: { academicYears, semesters }
+    if (Array.isArray(body?.academicYears) || Array.isArray(body?.semesters)) {
+      const years: any[] = Array.isArray(body.academicYears) ? body.academicYears : [];
+      const sems: any[] = Array.isArray(body.semesters) ? body.semesters : [];
+
+      // If any year is set active=true, deactivate others first
+      if (years.some((y) => y.isActive === true)) {
+        await prisma.academicYear.updateMany({ where: { isActive: true }, data: { isActive: false } });
+      }
+
+      // Upsert academic years by id (if present) otherwise by year unique
+      for (const y of years) {
+        const data = {
+          year: Number(y.year),
+          name: y.name ?? String(y.year),
+          startDate: y.startDate ? new Date(y.startDate) : null,
+          endDate: y.endDate ? new Date(y.endDate) : null,
+          isActive: Boolean(y.isActive)
+        } as const;
+
+        if (y.id && typeof y.id === 'string' && !y.id.startsWith('new-')) {
+          await prisma.academicYear.update({ where: { id: y.id }, data });
+        } else {
+          // Create if not exists by year
+          const exists = await prisma.academicYear.findUnique({ where: { year: data.year } });
+          if (exists) {
+            await prisma.academicYear.update({ where: { year: data.year }, data });
+          } else {
+            await prisma.academicYear.create({ data });
+          }
+        }
+      }
+
+      // Upsert semesters (requires academicYearId)
+      for (const s of sems) {
+        if (!s.academicYearId) continue;
+        const data = {
+          name: s.name ?? '',
+          academicYearId: s.academicYearId,
+          startDate: s.startDate ? new Date(s.startDate) : null,
+          endDate: s.endDate ? new Date(s.endDate) : null,
+          isActive: Boolean(s.isActive)
+        } as const;
+
+        if (s.id && typeof s.id === 'string' && !s.id.startsWith('new-')) {
+          await prisma.semester.update({ where: { id: s.id }, data });
+        } else {
+          // Create new semester
+          await prisma.semester.create({ data });
+        }
+      }
+
+      return NextResponse.json({ success: true, message: 'บันทึกข้อมูลปีการศึกษาและภาคเรียนสำเร็จ' });
+    }
+
+    // Single create path
     const result = createAcademicYearSchema.safeParse(body);
 
     if (!result.success) {
@@ -120,11 +177,7 @@ export async function POST(request: NextRequest) {
 
     const { year, name, startDate, endDate, isActive } = result.data;
 
-    // Check if year already exists
-    const existingYear = await prisma.academicYear.findUnique({
-      where: { year }
-    });
-
+    const existingYear = await prisma.academicYear.findUnique({ where: { year } });
     if (existingYear) {
       return NextResponse.json(
         { success: false, error: 'ปีการศึกษานี้มีอยู่แล้ว' },
@@ -132,15 +185,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If this is set as active, deactivate other years
     if (isActive) {
-      await prisma.academicYear.updateMany({
-        where: { isActive: true },
-        data: { isActive: false }
-      });
+      await prisma.academicYear.updateMany({ where: { isActive: true }, data: { isActive: false } });
     }
 
-    // Create new academic year
     const academicYear = await prisma.academicYear.create({
       data: {
         year,
@@ -151,20 +199,11 @@ export async function POST(request: NextRequest) {
       },
       include: {
         semesters: true,
-        _count: {
-          select: {
-            semesters: true,
-            roleAssignments: true
-          }
-        }
+        _count: { select: { semesters: true, roleAssignments: true } }
       }
     });
 
-    return NextResponse.json({
-      success: true,
-      academicYear,
-      message: 'สร้างปีการศึกษาใหม่สำเร็จ'
-    });
+    return NextResponse.json({ success: true, academicYear, message: 'สร้างปีการศึกษาใหม่สำเร็จ' });
 
   } catch (error) {
     console.error('Error creating academic year:', error);
