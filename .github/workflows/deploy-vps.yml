@@ -90,7 +90,7 @@ jobs:
           npx prisma generate
           
           # Run database migrations
-          npx prisma db push
+          npx prisma migrate deploy
           
           # Start application with PM2
           pm2 start npm --name "internship-system" -- run start
