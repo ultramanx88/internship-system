@@ -56,6 +56,7 @@ echo -e "${NC}"
 
 # Parse arguments
 DEPLOY_TYPE="full"
+ONECLICK_PROD=false
 BACKUP_DB=false
 EXPORT_DB=false
 SYNC_DATA=false
@@ -98,6 +99,7 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Options:"
             echo "  --type TYPE           Deployment type: full, code-only, data-sync"
+            echo "  --oneclick-prod       One-click production deploy (uses docker-compose.prod.yml)"
             echo "  --backup-db           Backup database before deployment"
             echo "  --export-db           Export database after deployment"
             echo "  --sync-data           Sync data after deployment"
@@ -112,11 +114,47 @@ while [[ $# -gt 0 ]]; do
             echo "  $0 --type data-sync --export-db --sync-data"
             exit 0
             ;;
+        --oneclick-prod)
+            ONECLICK_PROD=true
+            shift
+            ;;
         *)
             error "Unknown option: $1"
             ;;
     esac
 done
+# Prefer Docker Compose v2 syntax if available
+resolve_compose_cmd() {
+    if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+        echo "docker compose"
+    elif command -v docker-compose >/dev/null 2>&1; then
+        echo "docker-compose"
+    else
+        error "Docker Compose not found. Install Docker Compose v2 or v1."
+    fi
+}
+
+COMPOSE_CMD=$(resolve_compose_cmd)
+
+# Ensure .env exists and has required keys
+ensure_env_prod() {
+    if [ ! -f .env ] && [ -f .env.production ]; then
+        info ".env not found, copying from .env.production"
+        cp .env.production .env
+    fi
+    if [ ! -f .env ]; then
+        error ".env not found. Please create it or provide .env.production"
+    fi
+    # Check required keys exist (values may be masked but must be present)
+    required_keys=(POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB NEXTAUTH_SECRET NEXTAUTH_URL)
+    for k in "${required_keys[@]}"; do
+        if ! grep -E "^${k}=" .env >/dev/null 2>&1; then
+            error "Missing ${k} in .env"
+        fi
+    done
+    success ".env validated"
+}
+
 
 # Function to check if Docker is running
 check_docker() {
@@ -196,11 +234,11 @@ deploy_docker() {
     
     # Stop existing containers
     log "Stopping existing containers..."
-    docker-compose down || true
+    $COMPOSE_CMD down || true
     
     # Start services
     log "Starting services..."
-    if docker-compose up -d; then
+    if $COMPOSE_CMD up -d; then
         success "Services started successfully"
     else
         error "Failed to start services"
@@ -211,7 +249,7 @@ deploy_docker() {
     sleep 30
     
     # Check if app is running
-    if docker-compose ps | grep -q "internship_app.*Up"; then
+    if $COMPOSE_CMD ps | grep -q "internship_app.*Up"; then
         success "Application is running"
     else
         error "Application failed to start"
@@ -229,11 +267,11 @@ sync_data() {
         
         # Run database migrations
         log "Running database migrations..."
-        docker-compose exec app npx prisma migrate deploy || warning "Migration failed"
+        $COMPOSE_CMD exec app npx prisma migrate deploy || warning "Migration failed"
         
         # Seed database if needed
         log "Seeding database..."
-        docker-compose exec app npx prisma db seed || warning "Seeding failed"
+        $COMPOSE_CMD exec app npx prisma db seed || warning "Seeding failed"
         
         success "Data sync completed"
     fi
@@ -256,23 +294,59 @@ show_status() {
     log "📊 Deployment Status:"
     echo ""
     echo "🐳 Docker Containers:"
-    docker-compose ps
+    $COMPOSE_CMD ps
     echo ""
     echo "🌐 Application URLs:"
     echo "  - Main App: http://localhost:8080"
     echo "  - pgAdmin: http://localhost:8081"
     echo ""
     echo "📁 Logs:"
-    echo "  - App Logs: docker-compose logs app"
-    echo "  - DB Logs: docker-compose logs postgres"
-    echo "  - All Logs: docker-compose logs"
+    echo "  - App Logs: $COMPOSE_CMD logs app"
+    echo "  - DB Logs: $COMPOSE_CMD logs postgres"
+    echo "  - All Logs: $COMPOSE_CMD logs"
     echo ""
     echo "🔧 Management Commands:"
-    echo "  - Stop: docker-compose down"
-    echo "  - Restart: docker-compose restart"
-    echo "  - Rebuild: docker-compose up --build -d"
-    echo "  - Shell: docker-compose exec app sh"
-    echo "  - DB Shell: docker-compose exec postgres psql -U postgres -d internship_system_dev"
+    echo "  - Stop: $COMPOSE_CMD down"
+    echo "  - Restart: $COMPOSE_CMD restart"
+    echo "  - Rebuild: $COMPOSE_CMD up --build -d"
+    echo "  - Shell: $COMPOSE_CMD exec app sh"
+    echo "  - DB Shell: $COMPOSE_CMD exec postgres psql -U postgres -d internship_system_dev"
+}
+
+# One-click production deploy (uses docker-compose.prod.yml)
+oneclick_prod_deploy() {
+    log "🧭 One-click production deploy started"
+
+    # Ensure env and compose file
+    ensure_env_prod
+    if [ -z "$COMPOSE_FILE" ]; then
+        export COMPOSE_FILE=docker-compose.prod.yml
+        info "Using COMPOSE_FILE=$COMPOSE_FILE"
+    fi
+
+    # Bring up DB services first
+    log "Starting database and cache services..."
+    $COMPOSE_CMD up -d postgres redis
+
+    # Apply migrations safely
+    log "Applying Prisma migrations..."
+    if ! $COMPOSE_CMD run --rm app sh -lc "npx prisma migrate deploy"; then
+        error "Prisma migrate deploy failed"
+    fi
+
+    # Build app with no cache to honor latest .env at build time
+    log "Building app image (no cache)..."
+    if ! $COMPOSE_CMD build --no-cache app; then
+        error "Docker build failed"
+    fi
+
+    # Start app and nginx
+    log "Starting app and nginx..."
+    $COMPOSE_CMD up -d app nginx
+
+    # Show status
+    show_status
+    success "🎉 One-click production deploy completed"
 }
 
 # Main deployment flow
@@ -284,9 +358,13 @@ main() {
     backup_database
     run_tests
     
-    # Build and deploy
-    build_docker
-    deploy_docker
+    if [ "$ONECLICK_PROD" = true ] || [ "$DEPLOY_TYPE" = "oneclick-prod" ]; then
+        oneclick_prod_deploy
+    else
+        # Build and deploy
+        build_docker
+        deploy_docker
+    fi
     
     # Post-deployment tasks
     sync_data
