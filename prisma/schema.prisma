@@ -107,7 +107,7 @@ model Application {
   studentId     String
   internshipId  String
   status        ApplicationStatus
-  dateApplied   DateTime
+  dateApplied   DateTime          @default(now())
   feedback      String?
   projectTopic  String?
   projectTopicEn String?
@@ -180,6 +180,13 @@ model Application {
   
   // Evaluation relations
   evaluations   Evaluation[]
+
+  // Constraints & Indexes
+  @@unique([studentId, internshipId])
+  @@index([status])
+  @@index([studentId])
+  @@index([internshipId])
+  @@index([createdAt])
 
   @@map("applications")
 }
