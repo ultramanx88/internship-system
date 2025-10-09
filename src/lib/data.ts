@@ -49,7 +49,7 @@ type DemoUser = {
   e_middle_name?: string | null;
 };
 
-// Data from actual database seed, updated to match dev.db
+// Data from actual database seed, aligned with PostgreSQL schema
 export let users: DemoUser[] = [
   // Admin Users (from actual database)
   {
