@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       addRoleContains('committee');
       addRoleContains('visitor');
       addRoleContains('อาจารย์ประจำวิชา');
-      addRoleContains('อาจารย์นิเทศ');
+      addRoleContains('อาจารย์นิเทศก์');
       addRoleContains('กรรมการ');
     }
 

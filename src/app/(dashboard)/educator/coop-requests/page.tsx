@@ -116,13 +116,19 @@ export default function CoopRequestsPage() {
         headers['x-user-id'] = user.id;
       }
       
-      const response = await fetch(`/api/educator/coop-requests?${params}`, {
-        headers
-      });
+      let response = await fetch(`/api/educator/coop-requests?${params}`, { headers });
       
       console.log('Response status:', response.status);
       console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
+      if (!response.ok) {
+        // หากสิทธิ์ไม่ผ่าน ให้ลอง dev bypass อัตโนมัติในโหมด development
+        if ((response.status === 401 || response.status === 403) && process.env.NODE_ENV === 'development') {
+          const retryHeaders = { ...headers, 'x-dev-bypass': 'true' } as Record<string, string>;
+          response = await fetch(`/api/educator/coop-requests?${params}`, { headers: retryHeaders });
+        }
+      }
+
       if (!response.ok) {
         let errorData;
         try {
@@ -172,23 +178,26 @@ export default function CoopRequestsPage() {
   useEffect(() => {
     const isDev = process.env.NODE_ENV === 'development';
     const shouldBypass = isDev && (!user?.id || !educatorRole);
-    
+
+    // รอจนกว่าจะรู้บทบาทครูผู้สอนก่อนค่อยดึง (กันเคส educatorRole ยังโหลดไม่เสร็จ)
+    if (!shouldBypass && !educatorRole && !user?.id) {
+      return;
+    }
+
     if (shouldBypass) {
       console.log('🔧 Development mode: Using bypass authentication');
       fetchRequests();
       return;
     }
-    
-    // สำหรับการทดสอบ ถ้าไม่มี user ให้ใช้ test user
+
     if (!user?.id) {
       console.log('No user found, using test user for demo');
-      // ใช้ test user สำหรับการทดสอบ
       const testUser = { id: 'test_instructor_001' };
       fetchRequestsWithUser(testUser);
       return;
     }
     fetchRequests();
-  }, [user?.id, currentPage, searchTerm, selectedMajor, selectedStatus]);
+  }, [user?.id, educatorRole, currentPage, searchTerm, selectedMajor, selectedStatus]);
 
   // ฟังก์ชันสำหรับดึงข้อมูลด้วย user ที่กำหนด
   const fetchRequestsWithUser = async (testUser: { id: string }) => {
@@ -288,6 +297,50 @@ export default function CoopRequestsPage() {
       }
     } catch (error) {
       console.error('Error approving requests:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (applicationId: string) => {
+    if (!applicationId) return;
+    setLoading(true);
+    try {
+      // ลบถาวรผ่าน DELETE endpoint
+      const response = await fetch('/api/educator/coop-requests', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ applicationIds: [applicationId] })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: 'ลบสำเร็จ',
+          description: `ลบรายการแล้ว (${data.deletedCount})`,
+        });
+        // เอาออกจากรายการทันทีเพื่อความรู้สึกไว
+        setRequests(prev => prev.filter(r => r.id !== applicationId));
+        setSelectedItems(prev => prev.filter(id => id !== applicationId));
+        // หรือจะ refetch ใหม่
+        // fetchRequests();
+      } else {
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: data.error || 'ไม่สามารถลบรายการได้',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting request:', error);
       toast({
         title: 'เกิดข้อผิดพลาด',
         description: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
@@ -499,7 +552,7 @@ export default function CoopRequestsPage() {
                     <TableHead className="font-semibold text-amber-700">นักศึกษา</TableHead>
                     <TableHead className="font-semibold text-amber-700">สาขาวิชา</TableHead>
                     <TableHead className="font-semibold text-amber-700">สถานประกอบการ</TableHead>
-                    <TableHead className="font-semibold text-amber-700">ตำแหน่ง</TableHead>
+                    {/* Removed: ตำแหน่ง */}
                     <TableHead className="font-semibold text-amber-700">วันที่ยื่น</TableHead>
                     <TableHead className="font-semibold text-amber-700">สถานะ</TableHead>
                     <TableHead className="font-semibold text-amber-700 text-center">จัดการ</TableHead>
@@ -530,7 +583,7 @@ export default function CoopRequestsPage() {
                         </TableCell>
                         <TableCell>{request.major}</TableCell>
                         <TableCell>{request.companyName}</TableCell>
-                        <TableCell>{request.position}</TableCell>
+                        {/* Removed: ตำแหน่ง */}
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Calendar className="h-4 w-4 text-gray-400" />
@@ -553,7 +606,14 @@ export default function CoopRequestsPage() {
                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" disabled={loading}>
                                          <Edit className="h-4 w-4" />
                                        </Button>
-                                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700" disabled={loading}>
+                                       <Button 
+                                         variant="ghost" 
+                                         size="sm" 
+                                         className="h-8 w-8 p-0 text-red-600 hover:text-red-700" 
+                                         disabled={loading}
+                                         onClick={() => handleDelete(request.id)}
+                                         title="ลบรายการ"
+                                       >
                                          <Trash2 className="h-4 w-4" />
                                        </Button>
                                      </div>

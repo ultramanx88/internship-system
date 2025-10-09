@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     const isEducator = userRoles.includes('courseInstructor') ||
                        userRoles.includes('committee') ||
                        userRoles.includes('อาจารย์ประจำวิชา') ||
-                       userRoles.includes('อาจารย์นิเทศ') ||
+                       userRoles.includes('อาจารย์นิเทศก์') ||
                        userRoles.includes('กรรมการ');
 
     if (!isEducator) {
@@ -50,11 +50,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // ดึงรายชื่ออาจารย์นิเทศ (อาจารย์ที่มี role อาจารย์นิเทศ)
+    // ดึงรายชื่ออาจารย์นิเทศก์ (อาจารย์ที่มี role อาจารย์นิเทศก์)
     const supervisors = await prisma.user.findMany({
       where: {
         roles: {
-          contains: 'อาจารย์นิเทศ'
+          contains: 'อาจารย์นิเทศก์'
         }
       },
       select: {

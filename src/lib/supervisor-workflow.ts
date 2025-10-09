@@ -18,7 +18,7 @@ export interface SupervisorWorkflowStatus {
 }
 
 /**
- * 1. อาจารย์นิเทศได้รับมอบหมายจากอาจารย์ประจำวิชา
+ * 1. อาจารย์นิเทศก์ได้รับมอบหมายจากอาจารย์ประจำวิชา
  */
 export async function receiveAssignment(data: {
   applicationId: string;
@@ -38,7 +38,7 @@ export async function receiveAssignment(data: {
       };
     }
 
-    // ตรวจสอบว่าอาจารย์ประจำวิชาได้อนุมัติและกำหนดอาจารย์นิเทศแล้วหรือไม่
+    // ตรวจสอบว่าอาจารย์ประจำวิชาได้อนุมัติและกำหนดอาจารย์นิเทศก์แล้วหรือไม่
     if (!application.supervisorAssigned || application.supervisorId !== data.supervisorId) {
       return {
         success: false,
@@ -103,7 +103,7 @@ export async function receiveAssignment(data: {
 }
 
 /**
- * 2. อาจารย์นิเทศตรวจดูและยืนยัน
+ * 2. อาจารย์นิเทศก์ตรวจดูและยืนยัน
  */
 export async function confirmAssignment(data: {
   applicationId: string;
@@ -321,7 +321,7 @@ export async function getSupervisorWorkflowStatus(applicationId: string): Promis
 }
 
 /**
- * ดึงรายการ Application ที่รออาจารย์นิเทศรับมอบหมาย
+ * ดึงรายการ Application ที่รออาจารย์นิเทศก์รับมอบหมาย
  */
 export async function getPendingSupervisorAssignments(supervisorId: string) {
   try {
@@ -370,7 +370,7 @@ export async function getPendingSupervisorAssignments(supervisorId: string) {
 }
 
 /**
- * ดึงรายการ Application ที่อาจารย์นิเทศรับแล้ว
+ * ดึงรายการ Application ที่อาจารย์นิเทศก์รับแล้ว
  */
 export async function getSupervisorAssignments(supervisorId: string) {
   try {
@@ -418,7 +418,7 @@ export async function getSupervisorAssignments(supervisorId: string) {
 }
 
 /**
- * ดึงรายการ Appointment ของอาจารย์นิเทศ
+ * ดึงรายการ Appointment ของอาจารย์นิเทศก์
  */
 export async function getSupervisorAppointments(supervisorId: string) {
   try {

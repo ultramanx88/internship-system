@@ -35,7 +35,7 @@ export function PermissionGuard({
       const aliasToCanonical: Record<string, Role> = {
         'ธุรการ': 'staff',
         'อาจารย์ประจำวิชา': 'courseInstructor',
-        'อาจารย์นิเทศ': 'visitor',
+        'อาจารย์นิเทศก์': 'visitor',
         'กรรมการ': 'committee',
       } as const;
       const normalizedRoles = new Set<string>([
@@ -85,7 +85,7 @@ export function PermissionGuard({
     const aliasToCanonical: Record<string, Role> = {
       'ธุรการ': 'staff',
       'อาจารย์ประจำวิชา': 'courseInstructor',
-      'อาจารย์นิเทศ': 'visitor',
+      'อาจารย์นิเทศก์': 'visitor',
       'กรรมการ': 'committee',
     } as const;
     const normalizedRoles = new Set<string>([

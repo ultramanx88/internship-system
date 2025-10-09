@@ -158,7 +158,9 @@ export class WorkflowValidator {
         return this.validateProfile(profile).valid;
       
       case 3:
-        return application ? this.validateApplicationForm(application).valid : false;
+        // ผ่อนคลายเงื่อนไข: ปลดล็อกเมื่อมีการส่งคำขอแล้ว (มี application record)
+        // ไม่ต้องรอให้อนุมัติ และไม่ต้องผ่าน validation ทั้งหมดก่อนถึงขั้นอัปโหลดเอกสาร
+        return !!application;
       
       case 4:
         return application?.status === 'approved';

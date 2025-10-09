@@ -369,4 +369,36 @@ export async function PUT(request: NextRequest) {
   }
 }
 
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { applicationIds } = body as { applicationIds?: string[] };
+
+    if (!applicationIds || !Array.isArray(applicationIds) || applicationIds.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Application IDs are required' },
+        { status: 400 }
+      );
+    }
+
+    // ลบใบสมัครแบบถาวร (ถ้าต้องการ soft-delete เปลี่ยนเป็น update status=archived)
+    const deleted = await prisma.application.deleteMany({
+      where: { id: { in: applicationIds } }
+    });
+
+    return NextResponse.json({
+      success: true,
+      deletedCount: deleted.count
+    });
+  } catch (error) {
+    console.error('Error deleting applications:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to delete applications' },
+      { status: 500 }
+    );
+  } finally {
+    await cleanup();
+  }
+}
+
 

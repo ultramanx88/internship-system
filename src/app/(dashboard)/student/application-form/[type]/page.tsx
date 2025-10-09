@@ -506,7 +506,7 @@ export default function ApplicationFormTypePage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                    <span>ทางคณะจัดสรรอาจารย์นิเทศ</span>
+                    <span>ทางคณะจัดสรรอาจารย์นิเทศก์</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 bg-green-400 rounded-full"></span>
@@ -557,7 +557,7 @@ export default function ApplicationFormTypePage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
-                    <span>อาจารย์นิเทศ - เยี่ยมชมและให้คำแนะนำ</span>
+                    <span>อาจารย์นิเทศก์ - เยี่ยมชมและให้คำแนะนำ</span>
                   </div>
                 </div>
                 <p className="text-xs text-blue-600 mt-2">

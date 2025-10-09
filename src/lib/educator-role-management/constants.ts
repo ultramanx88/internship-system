@@ -17,7 +17,7 @@ export const ROLE_OPTIONS: RoleOption[] = [
   },
   {
     value: 'supervisor',
-    label: 'อาจารย์นิเทศ',
+    label: 'อาจารย์นิเทศก์',
     labelEn: 'Supervisor',
     description: 'ดูแลและให้คำแนะนำนักศึกษาในการฝึกงาน',
     descriptionEn: 'Supervise and guide students during internship',

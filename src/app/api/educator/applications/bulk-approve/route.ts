@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     const isEducator = userRoles.includes('courseInstructor') ||
                        userRoles.includes('committee') ||
                        userRoles.includes('อาจารย์ประจำวิชา') ||
-                       userRoles.includes('อาจารย์นิเทศ') ||
+                       userRoles.includes('อาจารย์นิเทศก์') ||
                        userRoles.includes('กรรมการ');
 
     if (!isEducator) {
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ตรวจสอบว่า applications มีอยู่หรือไม่ (สำหรับการมอบหมายอาจารย์นิเทศ)
+    // ตรวจสอบว่า applications มีอยู่หรือไม่ (สำหรับการมอบหมายอาจารย์นิเทศก์)
     const applications = await prisma.application.findMany({
       where: { 
         id: { in: applicationIds },
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     // ตรวจสอบว่า applications ที่เลือกมีอยู่จริง
     const foundApplications = applications.length;
     
-    // มอบหมายอาจารย์นิเทศ (ใช้ supervisor_test_001 เป็น default)
+    // มอบหมายอาจารย์นิเทศก์ (ใช้ supervisor_test_001 เป็น default)
     const supervisorId = 'supervisor_test_001';
     
     // อัปเดต applications (ไม่มี supervisorId field แล้ว)

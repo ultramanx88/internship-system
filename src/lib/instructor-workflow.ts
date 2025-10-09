@@ -175,7 +175,7 @@ export async function reviewApplication(data: {
 
     // หากอนุมัติ ให้ดำเนินการขั้นตอนต่อไป
     if (data.status === 'approved') {
-      // กำหนดอาจารย์นิเทศ (ขั้นตอนที่ 3)
+      // กำหนดอาจารย์นิเทศก์ (ขั้นตอนที่ 3)
       await assignSupervisor(data.applicationId);
     } else {
       // หากไม่อนุมัติ ให้ rollback Student ไปที่ workflow 2
@@ -200,11 +200,11 @@ export async function reviewApplication(data: {
 }
 
 /**
- * 3. กำหนดอาจารย์นิเทศ (หากอนุมัติ)
+ * 3. กำหนดอาจารย์นิเทศก์ (หากอนุมัติ)
  */
 export async function assignSupervisor(applicationId: string) {
   try {
-    // หาอาจารย์นิเทศที่เหมาะสม
+    // หาอาจารย์นิเทศก์ที่เหมาะสม
     const supervisor = await findSuitableSupervisor(applicationId);
     
     if (supervisor) {
@@ -222,20 +222,20 @@ export async function assignSupervisor(applicationId: string) {
       return {
         success: true,
         supervisor,
-        message: 'กำหนดอาจารย์นิเทศเรียบร้อย'
+        message: 'กำหนดอาจารย์นิเทศก์เรียบร้อย'
       };
     } else {
       return {
         success: false,
-        error: 'ไม่พบอาจารย์นิเทศที่เหมาะสม',
-        message: 'ไม่สามารถกำหนดอาจารย์นิเทศได้'
+        error: 'ไม่พบอาจารย์นิเทศก์ที่เหมาะสม',
+        message: 'ไม่สามารถกำหนดอาจารย์นิเทศก์ได้'
       };
     }
   } catch (error) {
     console.error('Error assigning supervisor:', error);
     return {
       success: false,
-      error: 'ไม่สามารถกำหนดอาจารย์นิเทศได้',
+      error: 'ไม่สามารถกำหนดอาจารย์นิเทศก์ได้',
       details: error instanceof Error ? error.message : 'Unknown error'
     };
   }
@@ -448,7 +448,7 @@ export async function getInstructorApplications(instructorId: string) {
 
 // Helper functions
 async function findSuitableSupervisor(applicationId: string) {
-  // Business logic สำหรับหาอาจารย์นิเทศที่เหมาะสม
+  // Business logic สำหรับหาอาจารย์นิเทศก์ที่เหมาะสม
   // อาจจะใช้ข้อมูลจาก application, student, internship, etc.
   return await prisma.user.findFirst({
     where: {

@@ -387,7 +387,7 @@ export default function ApplicationDetailsPage() {
               ) : (
                 <Send className="h-4 w-4 mr-2" />
               )}
-              {approvalStatus === 'approved' ? 'อนุมัติและมอบหมายอาจารย์นิเทศ' : 
+              {approvalStatus === 'approved' ? 'อนุมัติและมอบหมายอาจารย์นิเทศก์' : 
                approvalStatus === 'rejected' ? 'ปฏิเสธและส่งกลับ' : 'บันทึก'}
             </Button>
             <Button

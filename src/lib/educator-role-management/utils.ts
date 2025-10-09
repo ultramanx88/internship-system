@@ -304,7 +304,7 @@ export function createFilterOptions(
     })),
     roles: [
       { value: 'courseInstructor', label: 'อาจารย์ประจำวิชา' },
-      { value: 'supervisor', label: 'อาจารย์นิเทศ' },
+      { value: 'supervisor', label: 'อาจารย์นิเทศก์' },
       { value: 'committee', label: 'กรรมการ' },
       { value: 'visitor', label: 'ผู้เยี่ยมชม' }
     ],
@@ -334,7 +334,7 @@ export function getEducatorDisplayName(educator: Educator): string {
 export function getRoleDisplayName(role: string): string {
   const roleMap: Record<string, string> = {
     courseInstructor: 'อาจารย์ประจำวิชา',
-    supervisor: 'อาจารย์นิเทศ',
+    supervisor: 'อาจารย์นิเทศก์',
     committee: 'กรรมการ',
     visitor: 'ผู้เยี่ยมชม'
   };

@@ -233,7 +233,7 @@ export default function EducatorRolesPage() {
   const getRoleBadge = (role: string) => {
     const roleConfig = {
       courseInstructor: { label: 'อาจารย์ประจำวิชา', color: 'bg-blue-100 text-blue-800' },
-      supervisor: { label: 'อาจารย์นิเทศ', color: 'bg-green-100 text-green-800' },
+      supervisor: { label: 'อาจารย์นิเทศก์', color: 'bg-green-100 text-green-800' },
       committee: { label: 'กรรมการ', color: 'bg-purple-100 text-purple-800' },
       visitor: { label: 'ผู้เยี่ยมชม', color: 'bg-gray-100 text-gray-800' }
     };
@@ -346,7 +346,7 @@ export default function EducatorRolesPage() {
                     >
                       <option value="all">ทั้งหมด</option>
                       <option value="courseInstructor">อาจารย์ประจำวิชา</option>
-                      <option value="supervisor">อาจารย์นิเทศ</option>
+                      <option value="supervisor">อาจารย์นิเทศก์</option>
                       <option value="committee">กรรมการ</option>
                       <option value="visitor">ผู้เยี่ยมชม</option>
                     </select>

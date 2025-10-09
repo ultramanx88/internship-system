@@ -60,12 +60,12 @@ const navConfig = {
   courseInstructor: [
     { href: '/educator', icon: LayoutDashboard, label: 'แดชบอร์ด (อ.ประจำวิชา)' },
     { href: '/educator/applications', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร' },
-    { href: '/instructor/assign_visitor', icon: UserCheck, label: 'มอบหมายอาจารย์นิเทศ' },
+    { href: '/instructor/assign_visitor', icon: UserCheck, label: 'มอบหมายอาจารย์นิเทศก์' },
   ],
   'อาจารย์ประจำวิชา': [
     { href: '/educator', icon: LayoutDashboard, label: 'แดชบอร์ด (อ.ประจำวิชา)' },
     { href: '/educator/applications', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร' },
-    { href: '/instructor/assign_visitor', icon: UserCheck, label: 'มอบหมายอาจารย์นิเทศ' },
+    { href: '/instructor/assign_visitor', icon: UserCheck, label: 'มอบหมายอาจารย์นิเทศก์' },
   ],
   committee: [
     { href: '/educator/committee/applications', icon: CheckSquare, label: 'ตรวจสอบใบสมัคร (กก.)' },
@@ -77,7 +77,7 @@ const navConfig = {
      { href: '/visitor/schedule', icon: CalendarClock, label: 'ตารางนิเทศ' },
      { href: '/visitor/visits', icon: ClipboardList, label: 'รายงานผลนิเทศ' },
   ],
-  'อาจารย์นิเทศ': [
+  'อาจารย์นิเทศก์': [
      { href: '/visitor/schedule', icon: CalendarClock, label: 'ตารางนิเทศ' },
      { href: '/visitor/visits', icon: ClipboardList, label: 'รายงานผลนิเทศ' },
   ],

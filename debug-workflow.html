@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Workflow</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .step { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .completed { background-color: #d4edda; }
+        .current { background-color: #cce5ff; }
+        .locked { background-color: #f8d7da; }
+        .pending { background-color: #fff3cd; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Debug Workflow Status</h1>
+    <div id="debug-info"></div>
+
+    <script>
+        async function debugWorkflow() {
+            try {
+                // เรียก API เพื่อดึงข้อมูล workflow
+                const response = await fetch('/api/workflow/debug');
+                const data = await response.json();
+                
+                const debugDiv = document.getElementById('debug-info');
+                
+                if (data.error) {
+                    debugDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                    return;
+                }
+                
+                let html = `
+                    <h2>Profile Status</h2>
+                    <div class="step">
+                        <strong>Profile Validation:</strong> ${data.profileValidation.valid ? '<span class="success">Valid</span>' : '<span class="error">Invalid</span>'}
+                        ${data.profileValidation.errors.length > 0 ? `<br><strong>Errors:</strong> ${data.profileValidation.errors.join(', ')}` : ''}
+                        ${data.profileValidation.warnings.length > 0 ? `<br><strong>Warnings:</strong> ${data.profileValidation.warnings.join(', ')}` : ''}
+                    </div>
+                    
+                    <h2>Workflow Steps</h2>
+                `;
+                
+                data.steps.forEach(step => {
+                    const statusClass = step.status;
+                    html += `
+                        <div class="step ${statusClass}">
+                            <strong>Step ${step.id}:</strong> ${step.title}
+                            <br><strong>Status:</strong> ${step.status}
+                            <br><strong>Can Proceed:</strong> ${step.canProceed ? '<span class="success">Yes</span>' : '<span class="error">No</span>'}
+                            <br><strong>Route:</strong> ${step.route}
+                        </div>
+                    `;
+                });
+                
+                debugDiv.innerHTML = html;
+                
+            } catch (error) {
+                document.getElementById('debug-info').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        // รัน debug เมื่อโหลดหน้า
+        debugWorkflow();
+    </script>
+</body>
+</html>

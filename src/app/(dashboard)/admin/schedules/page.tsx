@@ -244,7 +244,7 @@ export default function AdminSchedulesPage() {
                                         onClick={() => handleSort('teacherName')}
                                     >
                                         <div className="flex items-center gap-1">
-                                            อาจารย์นิเทศ
+                                            อาจารย์นิเทศก์
                                             {getSortIcon('teacherName')}
                                         </div>
                                     </TableHead>

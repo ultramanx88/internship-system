@@ -15,7 +15,7 @@ const supervisorActionSchema = z.object({
   appointmentLocation: z.string().optional()
 });
 
-// POST - อาจารย์นิเทศดำเนินการตาม Workflow
+// POST - อาจารย์นิเทศก์ดำเนินการตาม Workflow
 export async function POST(request: NextRequest) {
   try {
     const authResult = await requireAuth(request, ['supervisor', 'admin', 'staff']);

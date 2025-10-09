@@ -15,7 +15,7 @@ async function seedEducatorSystem() {
         description: 'อาจารย์ที่รับผิดชอบการสอนวิชาเฉพาะ'
       },
       {
-        name: 'อาจารย์นิเทศ',
+        name: 'อาจารย์นิเทศก์',
         nameEn: 'Academic Advisor',
         description: 'อาจารย์ที่ดูแลและให้คำแนะนำนักศึกษาในการฝึกงาน'
       },

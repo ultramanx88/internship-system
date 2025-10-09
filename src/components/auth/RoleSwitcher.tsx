@@ -32,7 +32,7 @@ const roleConfig = {
     color: 'bg-purple-500'
   },
   visitor: {
-    label: 'อาจารย์นิเทศ',
+    label: 'อาจารย์นิเทศก์',
     icon: Eye,
     color: 'bg-orange-500'
   },

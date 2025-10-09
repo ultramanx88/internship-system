@@ -143,7 +143,7 @@ export default function AssignSupervisorPage() {
     if (!selectedSupervisor) {
       toast({
         title: 'เกิดข้อผิดพลาด',
-        description: 'กรุณาเลือกอาจารย์นิเทศ',
+        description: 'กรุณาเลือกอาจารย์นิเทศก์',
         variant: 'destructive'
       });
       return;
@@ -167,7 +167,7 @@ export default function AssignSupervisorPage() {
       if (data.success) {
         toast({
           title: 'สำเร็จ',
-          description: 'มอบหมายอาจารย์นิเทศแล้ว',
+          description: 'มอบหมายอาจารย์นิเทศก์แล้ว',
         });
         router.push('/educator/coop-requests');
       } else {
@@ -254,8 +254,8 @@ export default function AssignSupervisorPage() {
                 </Link>
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">มอบหมายอาจารย์นิเทศ</h1>
-                <p className="text-gray-600">เลือกอาจารย์นิเทศสำหรับการฝึกงาน</p>
+                <h1 className="text-2xl font-bold text-gray-900">มอบหมายอาจารย์นิเทศก์</h1>
+                <p className="text-gray-600">เลือกอาจารย์นิเทศก์สำหรับการฝึกงาน</p>
               </div>
             </div>
 
@@ -296,23 +296,23 @@ export default function AssignSupervisorPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-amber-600" />
-                  เลือกอาจารย์นิเทศ
+                  เลือกอาจารย์นิเทศก์
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <UserSelect
-                    label="อาจารย์นิเทศ"
+                    label="อาจารย์นิเทศก์"
                     roles={["courseInstructor"]}
                     value={selectedSupervisor}
                     onChange={setSelectedSupervisor}
-                    placeholder="เลือกอาจารย์นิเทศ"
+                    placeholder="เลือกอาจารย์นิเทศก์"
                     sort="new"
                   />
 
                   {selectedSupervisor && (
                     <div className="p-4 bg-amber-50 rounded-lg">
-                      <h4 className="font-medium text-amber-900 mb-2">ข้อมูลอาจารย์นิเทศ</h4>
+                      <h4 className="font-medium text-amber-900 mb-2">ข้อมูลอาจารย์นิเทศก์</h4>
                       {(() => {
                         const supervisor = supervisors.find(s => s.id === selectedSupervisor);
                         return supervisor ? (
@@ -344,7 +344,7 @@ export default function AssignSupervisorPage() {
                 className="bg-amber-600 hover:bg-amber-700 text-white"
               >
                 <Send className="h-4 w-4 mr-2" />
-                {submitting ? 'กำลังมอบหมาย...' : 'มอบหมายอาจารย์นิเทศ'}
+                {submitting ? 'กำลังมอบหมาย...' : 'มอบหมายอาจารย์นิเทศก์'}
               </Button>
             </div>
           </div>

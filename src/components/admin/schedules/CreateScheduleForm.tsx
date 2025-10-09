@@ -31,7 +31,7 @@ import { useEffect } from 'react';
 
 const formSchema = z.object({
   studentId: z.string({ required_error: 'กรุณาเลือกนักศึกษา' }),
-  visitorId: z.string({ required_error: 'กรุณาเลือกอาจารย์นิเทศ' }),
+  visitorId: z.string({ required_error: 'กรุณาเลือกอาจารย์นิเทศก์' }),
   visitDate: z.date({ required_error: 'กรุณาเลือกวันที่' }),
 });
 
@@ -129,7 +129,7 @@ export function CreateScheduleForm({ onSuccess, onCancel, schedule }: CreateSche
           name="visitorId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>อาจารย์นิเทศ</FormLabel>
+              <FormLabel>อาจารย์นิเทศก์</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>

@@ -7,29 +7,29 @@ async function createSupervisor() {
   try {
     console.log('🚀 Creating supervisor...');
 
-    // สร้างอาจารย์นิเทศ
+    // สร้างอาจารย์นิเทศก์
     const supervisor = await prisma.user.create({
       data: {
         id: 'supervisor_test_001',
-        name: 'อาจารย์นิเทศ ใจดี',
+        name: 'อาจารย์นิเทศก์ ใจดี',
         email: 'supervisor.test@university.ac.th',
         phone: '080-123-4567',
         password: await bcrypt.hash('password123', 10),
-        roles: '["อาจารย์นิเทศ"]'
+        roles: '["อาจารย์นิเทศก์"]'
       }
     });
 
     console.log('✅ Supervisor created:', supervisor);
 
-    // สร้างอาจารย์นิเทศเพิ่มเติม
+    // สร้างอาจารย์นิเทศก์เพิ่มเติม
     const supervisor2 = await prisma.user.create({
       data: {
         id: 'supervisor_test_002',
-        name: 'อาจารย์นิเทศ เก่งมาก',
+        name: 'อาจารย์นิเทศก์ เก่งมาก',
         email: 'supervisor2.test@university.ac.th',
         phone: '080-234-5678',
         password: await bcrypt.hash('password123', 10),
-        roles: '["อาจารย์นิเทศ"]'
+        roles: '["อาจารย์นิเทศก์"]'
       }
     });
 

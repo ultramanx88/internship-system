@@ -44,7 +44,7 @@ export async function POST(
     const isEducator = userRoles.includes('courseInstructor') ||
                        userRoles.includes('committee') ||
                        userRoles.includes('อาจารย์ประจำวิชา') ||
-                       userRoles.includes('อาจารย์นิเทศ') ||
+                       userRoles.includes('อาจารย์นิเทศก์') ||
                        userRoles.includes('กรรมการ');
 
     if (!isEducator) {
@@ -81,7 +81,7 @@ export async function POST(
       }
     }
 
-    // ตรวจสอบว่าอาจารย์นิเทศมีอยู่หรือไม่
+    // ตรวจสอบว่าอาจารย์นิเทศก์มีอยู่หรือไม่
     const supervisor = await prisma.user.findUnique({
       where: { id: supervisorId },
       select: { 
@@ -98,7 +98,7 @@ export async function POST(
       );
     }
 
-    // ตรวจสอบว่าเป็นอาจารย์นิเทศหรือไม่
+    // ตรวจสอบว่าเป็นอาจารย์นิเทศก์หรือไม่
     let supervisorRoles = supervisor.roles;
     if (typeof supervisorRoles === 'string') {
       try {
@@ -108,7 +108,7 @@ export async function POST(
       }
     }
 
-    if (!supervisorRoles.includes('อาจารย์นิเทศ')) {
+    if (!supervisorRoles.includes('อาจารย์นิเทศก์')) {
       return NextResponse.json(
         { error: 'Selected user is not a supervisor' },
         { status: 400 }
@@ -120,7 +120,7 @@ export async function POST(
       where: { id: applicationId },
       data: {
         status: 'approved',
-        // เพิ่มฟิลด์สำหรับอาจารย์นิเทศ (ถ้ามีใน schema)
+        // เพิ่มฟิลด์สำหรับอาจารย์นิเทศก์ (ถ้ามีใน schema)
         // supervisorId: supervisorId
       }
     });

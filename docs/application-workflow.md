@@ -16,8 +16,8 @@
 - **อนุมัติ**: ระบบจะดำเนินการขั้นตอนต่อไป
 - **ปฏิเสธ**: คำขอจะถูกยกเลิก (status = 'rejected')
 
-### 3. กำหนดอาจารย์นิเทศ (Supervisor Assignment)
-- ระบบกำหนดอาจารย์นิเทศที่เหมาะสมให้อัตโนมัติ
+### 3. กำหนดอาจารย์นิเทศก์ (Supervisor Assignment)
+- ระบบกำหนดอาจารย์นิเทศก์ที่เหมาะสมให้อัตโนมัติ
 - อัปเดต supervisor status = 'assigned'
 
 ### 4. กรรมการพิจารณา (Committee Review)
@@ -196,7 +196,7 @@ model CommitteeApproval {
 ### currentStep
 - `submitted`: ส่งคำขอแล้ว
 - `course_instructor_review`: รออาจารย์ประจำวิชาพิจารณา
-- `supervisor_assignment`: กำหนดอาจารย์นิเทศ
+- `supervisor_assignment`: กำหนดอาจารย์นิเทศก์
 - `committee_review`: รอกรรมการพิจารณา
 - `completed`: เสร็จสิ้น
 - `rejected`: ถูกปฏิเสธ
@@ -237,8 +237,8 @@ node test-workflow.js
 - ระบบจะหาอาจารย์ประจำวิชาที่เหมาะสมตาม business logic
 - อาจใช้ข้อมูลจาก student's major, faculty, etc.
 
-### การกำหนดอาจารย์นิเทศ
-- ระบบจะหาอาจารย์นิเทศที่เหมาะสมตาม business logic
+### การกำหนดอาจารย์นิเทศก์
+- ระบบจะหาอาจารย์นิเทศก์ที่เหมาะสมตาม business logic
 - อาจใช้ข้อมูลจาก project topic, company, etc.
 
 ### การกำหนดกรรมการ

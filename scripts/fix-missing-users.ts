@@ -14,7 +14,7 @@ async function fixMissingUsers() {
         email: 't6800006@smart-solutions.com',
         name: 'อาจารย์สมชาย ใจดี',
         password: '123456',
-        roles: '["อาจารย์นิเทศ"]'
+        roles: '["อาจารย์นิเทศก์"]'
       },
       {
         id: 'user_t6800007',
@@ -75,7 +75,7 @@ async function fixMissingUsers() {
         id: 'user_t6800002',
         email: 't6800002@smart-solutions.com',
         name: 'อาจารย์สมชาย ใจดี',
-        roles: '["อาจารย์นิเทศ"]'
+        roles: '["อาจารย์นิเทศก์"]'
       },
       {
         id: 'user_t6800003',

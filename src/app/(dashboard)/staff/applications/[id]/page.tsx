@@ -257,7 +257,7 @@ export default function StaffApplicationDetailsPage() {
                                         <div className="space-y-4">
                                             <InfoRow label="เลขทะเบียนพาณิชย์ (Registration no.)" value={(application as any)?.companyRegistrationNumber || (application as any)?.internship?.company?.registrationNumber || '-'} />
                                             <InfoRow label="ตำแหน่ง (Position)" value={application?.position || (application as any)?.internship?.title || '-'} />
-                                            <InfoRow label="อาจารย์นิเทศ (Academic advisor)" value={(application as any)?.academicAdvisor || '-'} />
+                                            <InfoRow label="อาจารย์นิเทศก์ (Academic advisor)" value={(application as any)?.academicAdvisor || '-'} />
                                             <InfoRow label="เบอร์ผู้ติดต่อ (Coordinator tel.)" value={(application as any)?.coordinatorTel || '-'} />
                                         </div>
                                     </div>

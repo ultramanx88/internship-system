@@ -128,14 +128,16 @@ export async function GET(
     }
 
     // ตรวจสอบสิทธิ์การเข้าถึง
-    if (userRoles.includes('courseInstructor') || userRoles.includes('อาจารย์ประจำวิชา')) {
-      // อาจารย์ประจำวิชาเห็นได้เฉพาะ applications ที่มอบหมายให้
-      if (application.courseInstructorId !== userId) {
-        return NextResponse.json(
-          { error: 'Access denied' },
-          { status: 403 }
-        );
-      }
+    // ปรับให้บทบาท educator ที่ได้รับอนุญาต (courseInstructor, committee, visitor)
+    // สามารถดูรายละเอียดใบสมัครได้เหมือนหน้า list เพื่อความสอดคล้องของ UX
+    const allowedEducatorRoles = ['courseInstructor', 'committee', 'visitor'];
+    const hasAllowedRole = Array.isArray(userRoles) && userRoles.some((r: string) => allowedEducatorRoles.includes(r));
+
+    if (!hasAllowedRole) {
+      return NextResponse.json(
+        { error: 'User is not an educator' },
+        { status: 403 }
+      );
     }
 
     return NextResponse.json({

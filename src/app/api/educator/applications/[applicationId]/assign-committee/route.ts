@@ -38,7 +38,7 @@ export async function POST(request: Request, { params }: { params: { application
     const isEducator = userRoles.includes('courseInstructor') ||
                        userRoles.includes('committee') ||
                        userRoles.includes('อาจารย์ประจำวิชา') ||
-                       userRoles.includes('อาจารย์นิเทศ') ||
+                       userRoles.includes('อาจารย์นิเทศก์') ||
                        userRoles.includes('กรรมการ');
 
     if (!isEducator) {

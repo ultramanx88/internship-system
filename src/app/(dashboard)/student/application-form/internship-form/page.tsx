@@ -94,7 +94,7 @@ export default function InternshipFormPage() {
         supervisorName: '',
         supervisorTel: '',
         supervisorEmail: '',
-        // เหตุผลและหัวข้อโครงการสำหรับคำร้อง
+        // เหตุผลและหัวข้อโครงการสำหรับคำร้อ
         studentReason: '',
         projectProposal: '',
         latitude: '',
@@ -328,19 +328,27 @@ export default function InternshipFormPage() {
         router.push('/student/application-form');
     };
 
-    const handleSaveAndSubmit = async () => {
+    const validateForm = () => {
         // ตรวจสอบค่า minimum ที่จำเป็น (ไม่บังคับเลือก internshipId ในหน้านี้)
         if (!formData.projectProposal || !formData.projectProposal.trim() || !formData.studentReason || !formData.studentReason.trim()) {
             const missing: string[] = [];
             if (!formData.projectProposal?.trim()) missing.push('projectProposal');
             if (!formData.studentReason?.trim()) missing.push('studentReason');
             setErrorFields(new Set(missing));
+            return false;
+        }
+        return true;
+    };
+
+    const handleSaveAndSubmit = async (): Promise<boolean> => {
+        // Validate form first
+        if (!validateForm()) {
             toast({
                 variant: 'destructive',
                 title: isEnglish ? 'Missing required fields' : 'กรอกข้อมูลไม่ครบ',
                 description: isEnglish ? 'Please provide project proposal and reason.' : 'กรุณากรอกหัวข้อโครงการและเหตุผลของคำร้อง',
             });
-            return;
+            return false;
         }
 
         setIsLoading(true);
@@ -352,7 +360,7 @@ export default function InternshipFormPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...(user?.id ? { 'x-user-id': user.id } : {}) },
                 body: JSON.stringify({
-                    internshipId: formData.internshipId || undefined,
+                    internshipId: undefined, // ไม่มี internshipId ในฟอร์มนี้
                     projectProposal: formData.projectProposal || '',
                     studentReason: formData.studentReason || '',
                     position: formData.position || undefined,
@@ -373,28 +381,42 @@ export default function InternshipFormPage() {
 
             const data = await resp.json();
             if (!resp.ok || !data.success) {
-                const msg = data?.error || (isEnglish ? 'Cannot create application' : 'ไม่สามารถสร้างคำขอได้');
+                const apiMessage = (data?.message || data?.error || '') as string;
+                const isProfileIncomplete = apiMessage.toUpperCase() === 'PROFILE_INCOMPLETE' || data?.code === 'PROFILE_INCOMPLETE';
                 if (data?.details?.required) {
                     setErrorFields(new Set(data.details.required as string[]));
                 }
-                toast({ variant: 'destructive', title: isEnglish ? 'Submit failed' : 'ส่งคำขอไม่สำเร็จ', description: msg });
-                // กรณีโปรไฟล์ไม่ครบ ให้พาไปหน้า settings
-                if (msg === 'PROFILE_INCOMPLETE') {
+                // แสดงรายละเอียดฟิลด์โปรไฟล์ที่ขาดหาย (ถ้ามี)
+                const missingFields = (data?.details?.missing as string[] | undefined)?.join(', ');
+                const description = isProfileIncomplete
+                    ? (isEnglish
+                        ? `Profile incomplete${missingFields ? `: ${missingFields}` : ''}`
+                        : `โปรไฟล์ไม่ครบ${missingFields ? `: ${missingFields}` : ''}`)
+                    : (apiMessage || (isEnglish ? 'Cannot create application' : 'ไม่สามารถสร้างคำขอได้'));
+
+                toast({
+                    variant: 'destructive',
+                    title: isEnglish ? 'Submit failed' : 'ส่งคำขอไม่สำเร็จ',
+                    description,
+                });
+
+                // กรณีโปรไฟล์ไม่ครบ ให้พาไปหน้า settings พร้อมไฮไลท์ฟิลด์
+                if (isProfileIncomplete) {
                     const q = data?.details?.missing ? `?highlight=${encodeURIComponent((data.details.missing as string[]).join(','))}` : '';
                     router.push('/student/settings' + q);
                 }
                 setIsLoading(false);
-                return;
+                return false;
             }
 
-            // ล้าง draft และไป Step 3 (ยื่นเอกสาร)
+            // ล้าง draft
             localStorage.removeItem('internship-form-draft');
             setHasDraftData(false);
             toast({
                 title: isEnglish ? 'Submitted' : 'ส่งคำขอแล้ว',
                 description: isEnglish ? 'Your application has been submitted.' : 'ระบบได้บันทึกและส่งคำขอของคุณแล้ว',
             });
-            router.push('/student/application-form');
+            return true;
         } catch (e) {
             console.error(e);
             toast({
@@ -402,6 +424,7 @@ export default function InternshipFormPage() {
                 title: isEnglish ? 'Submit failed' : 'ส่งคำขอไม่สำเร็จ',
                 description: isEnglish ? 'Please try again.' : 'กรุณาลองใหม่อีกครั้ง',
             });
+            return false;
         } finally {
             setIsLoading(false);
         }
@@ -431,7 +454,8 @@ export default function InternshipFormPage() {
     const handleClearDraft = () => {
         if (confirm(isEnglish ? 'Are you sure you want to clear all draft data?' : 'คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลแบบร่างทั้งหมด?')) {
             localStorage.removeItem('internship-form-draft');
-            setFormData({
+            setFormData(prev => ({
+                ...prev,
                 // ข้อมูลบริษัท
                 companyRegNumber: '',
                 companyName: '',
@@ -460,13 +484,18 @@ export default function InternshipFormPage() {
                 supervisorName: '',
                 supervisorTel: '',
                 supervisorEmail: '',
+                // เหตุผลและหัวข้อโครงการสำหรับคำร้อง
+                studentReason: '',
+                projectProposal: '',
+                latitude: '',
+                longitude: '',
                 
                 // ข้อมูลเพิ่มเติม
                 semester: '',
                 year: '',
                 selectedLanguage: 'thai',
                 selectedInternshipType: 'internship'
-            });
+            }));
             setHasDraftData(false);
             toast({
                 title: isEnglish ? 'Draft cleared' : 'ลบแบบร่างแล้ว',
@@ -491,6 +520,8 @@ export default function InternshipFormPage() {
                     </div>
                 </div>
             </div>
+
+			{/* Progress bar could be here (original simple form UI). Removed workflow timeline to restore original behavior. */}
 
             <div className="max-w-4xl mx-auto">
                 <Card className="bg-white shadow-sm">
@@ -979,6 +1010,22 @@ export default function InternshipFormPage() {
                                 </Button>
                             </div>
                         </div>
+                        
+			{/* Simple Next button to proceed after submit (restore original flow) */}
+			<div className="mt-6 pt-6 border-t flex justify-end">
+				<Button
+					className="bg-amber-600 hover:bg-amber-700"
+					onClick={async () => {
+						const success = await handleSaveAndSubmit();
+						if (success) {
+							router.push('/student/application-form');
+						}
+					}}
+					disabled={isLoading}
+				>
+					{isLoading ? (isEnglish ? 'Saving...' : 'กำลังบันทึก...') : (isEnglish ? 'Next' : 'ถัดไป')}
+				</Button>
+			</div>
                     </CardContent>
                 </Card>
             </div>

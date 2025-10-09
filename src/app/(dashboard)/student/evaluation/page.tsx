@@ -86,7 +86,7 @@ export default function StudentEvaluationPage() {
                 <span className="text-gray-900">IT</span>
               </div>
               <div>
-                <span className="text-amber-700 font-medium">อาจารย์นิเทศ (Academic advisor) : </span>
+                <span className="text-amber-700 font-medium">อาจารย์นิเทศก์ (Academic advisor) : </span>
                 <span className="text-gray-900">อาจารย์ A</span>
               </div>
               <div>

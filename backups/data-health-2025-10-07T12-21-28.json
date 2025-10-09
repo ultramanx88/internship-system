@@ -364,13 +364,13 @@
         },
         {
           "id": "supervisor_test_001",
-          "name": "อาจารย์นิเทศ ใจดี",
+          "name": "อาจารย์นิเทศก์ ใจดี",
           "facultyId": null,
           "majorId": null
         },
         {
           "id": "supervisor_test_002",
-          "name": "อาจารย์นิเทศ เก่งมาก",
+          "name": "อาจารย์นิเทศก์ เก่งมาก",
           "facultyId": null,
           "majorId": null
         },

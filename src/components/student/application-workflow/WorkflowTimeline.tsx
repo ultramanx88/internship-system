@@ -106,10 +106,10 @@ export function WorkflowTimeline({
                 </Button>
               </Link>
             )}
-            {step.status === 'current' && step.canProceed && (
+            {step.status === 'current' && (step.canProceed || step.id === 2) && (
               <Link href={step.route}>
                 <Button size="sm">
-                  {WorkflowUtils.getLocalizedMessage('proceed', currentLanguage)}
+                  {step.id === 2 ? WorkflowUtils.getLocalizedMessage('register', currentLanguage) : WorkflowUtils.getLocalizedMessage('proceed', currentLanguage)}
                 </Button>
               </Link>
             )}

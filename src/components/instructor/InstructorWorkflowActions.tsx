@@ -125,7 +125,7 @@ export default function InstructorWorkflowActions({
         return 'ยืนยันการรับคำขอฝึกงานจาก Student';
       case 'review_application':
         return reviewStatus === 'approved' 
-          ? 'อนุมัติคำขอฝึกงานและกำหนดอาจารย์นิเทศ'
+          ? 'อนุมัติคำขอฝึกงานและกำหนดอาจารย์นิเทศก์'
           : 'ปฏิเสธคำขอฝึกงานและส่งกลับให้ Student แก้ไข';
       default:
         return 'ดำเนินการตามขั้นตอน';

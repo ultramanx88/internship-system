@@ -5,7 +5,7 @@ export const modules = [
     { id: 'users', label: 'จัดการผู้ใช้', description: 'ดู, สร้าง, แก้ไข, และลบผู้ใช้ทั้งหมด' },
     { id: 'applications', label: 'เอกสารขอฝึกงาน', description: 'ดูและจัดการใบสมัครฝึกงานทั้งหมด' },
     { id: 'review-applications', label: 'ตรวจสอบใบสมัคร', description: 'ตรวจสอบและอนุมัติ/ปฏิเสธใบสมัคร' },
-    { id: 'assign-visitor', label: 'มอบหมายอาจารย์นิเทศ', description: 'มอบหมายอาจารย์นิเทศให้กับนักศึกษา' },
+    { id: 'assign-visitor', label: 'มอบหมายอาจารย์นิเทศก์', description: 'มอบหมายอาจารย์นิเทศก์ให้กับนักศึกษา' },
     { id: 'schedules', label: 'นัดหมายนิเทศ (Admin)', description: 'จัดการการนัดหมายนิเทศทั้งหมด' },
     { id: 'visitor-schedule', label: 'ตารางนิเทศ (Visitor)', description: 'ดูและจัดการตารางนิเทศของตนเอง' },
     { id: 'reports', label: 'รายงานผลการนิเทศ', description: 'ดูและดาวน์โหลดรายงานผลการนิเทศ' },
@@ -21,7 +21,7 @@ export const roles: { id: Role; label: string }[] = [
     { id: 'staff', label: 'เจ้าหน้าที่ธุรการ' },
     { id: 'courseInstructor', label: 'อาจารย์ประจำวิชา' },
     { id: 'committee', label: 'กรรมการ' },
-    { id: 'visitor', label: 'อาจารย์นิเทศ' },
+    { id: 'visitor', label: 'อาจารย์นิเทศก์' },
     { id: 'student', label: 'นักศึกษา' },
 ];
 

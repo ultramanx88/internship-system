@@ -67,7 +67,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       userRoles.includes('courseInstructor') || 
       userRoles.includes('อาจารย์ประจำวิชา') ||
       userRoles.includes('visitor') || 
-      userRoles.includes('อาจารย์นิเทศ') ||
+      userRoles.includes('อาจารย์นิเทศก์') ||
       userRoles.includes('committee') ||
       userRoles.includes('กรรมการ')
     ) {

@@ -40,7 +40,7 @@ export async function PUT(request: Request, { params }: { params: { applicationI
     const isEducator = userRoles.includes('courseInstructor') ||
                        userRoles.includes('committee') ||
                        userRoles.includes('อาจารย์ประจำวิชา') ||
-                       userRoles.includes('อาจารย์นิเทศ') ||
+                       userRoles.includes('อาจารย์นิเทศก์') ||
                        userRoles.includes('กรรมการ');
 
     if (!isEducator) {
@@ -96,7 +96,7 @@ export async function PUT(request: Request, { params }: { params: { applicationI
       return NextResponse.json({ error: 'Supervisor not found' }, { status: 404 });
     }
 
-    // ตรวจสอบว่าเป็นอาจารย์นิเทศจริงหรือไม่
+    // ตรวจสอบว่าเป็นอาจารย์นิเทศก์จริงหรือไม่
     let supervisorRoles = supervisor.roles;
     if (typeof supervisorRoles === 'string') {
       try {
@@ -106,7 +106,7 @@ export async function PUT(request: Request, { params }: { params: { applicationI
       }
     }
 
-    const isSupervisor = supervisorRoles.includes('อาจารย์นิเทศ') || supervisorRoles.includes('supervisor');
+    const isSupervisor = supervisorRoles.includes('อาจารย์นิเทศก์') || supervisorRoles.includes('supervisor');
     if (!isSupervisor) {
       return NextResponse.json({ error: 'Selected user is not a supervisor' }, { status: 400 });
     }
@@ -137,7 +137,7 @@ export async function PUT(request: Request, { params }: { params: { applicationI
 
     return NextResponse.json({ 
       success: true, 
-      message: `อัปเดตอาจารย์นิเทศสำหรับ ${application.student.name} เรียบร้อยแล้ว`,
+      message: `อัปเดตอาจารย์นิเทศก์สำหรับ ${application.student.name} เรียบร้อยแล้ว`,
       application: updatedApplication
     });
 

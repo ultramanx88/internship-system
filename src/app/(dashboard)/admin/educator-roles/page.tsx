@@ -290,7 +290,7 @@ export default function EducatorRolesPage() {
     const roleConfig = {
       educator: { label: 'อาจารย์', color: 'bg-indigo-100 text-indigo-800' },
       courseInstructor: { label: 'อาจารย์ประจำวิชา', color: 'bg-blue-100 text-blue-800' },
-      supervisor: { label: 'อาจารย์นิเทศ', color: 'bg-green-100 text-green-800' },
+      supervisor: { label: 'อาจารย์นิเทศก์', color: 'bg-green-100 text-green-800' },
       committee: { label: 'กรรมการ', color: 'bg-purple-100 text-purple-800' },
       visitor: { label: 'ผู้เยี่ยมชม', color: 'bg-gray-100 text-gray-800' }
     };

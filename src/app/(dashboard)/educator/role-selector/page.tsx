@@ -53,7 +53,7 @@ export default function RoleSelectorPage() {
     switch (roleName) {
       case 'อาจารย์ประจำวิชา':
         return GraduationCap;
-      case 'อาจารย์นิเทศ':
+      case 'อาจารย์นิเทศก์':
         return Users;
       case 'กรรมการ':
         return BarChart3;
@@ -66,7 +66,7 @@ export default function RoleSelectorPage() {
     switch (roleName) {
       case 'อาจารย์ประจำวิชา':
         return 'จัดการงานในฐานะอาจารย์ประจำวิชา รับผิดชอบการสอนและประเมินผลนักศึกษา';
-      case 'อาจารย์นิเทศ':
+      case 'อาจารย์นิเทศก์':
         return 'ดูแลและให้คำแนะนำนักศึกษาในการฝึกงานและสหกิจศึกษา';
       case 'กรรมการ':
         return 'ประเมินผลงานและตัดสินใจในคณะกรรมการ';

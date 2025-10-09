@@ -799,3 +799,16 @@ model EducatorRole {
   
   @@map("educator_roles")
 }
+
+model Holiday {
+  id          String   @id @default(cuid())
+  name        String
+  nameEn      String?
+  date        DateTime
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([name, date], name: "name_date")
+  @@map("holidays")
+}

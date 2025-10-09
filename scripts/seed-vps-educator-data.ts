@@ -50,10 +50,10 @@ async function seedVpsEducatorData() {
     });
 
     const advisorRole = await prisma.educatorRole.upsert({
-      where: { name: 'อาจารย์นิเทศ' },
+      where: { name: 'อาจารย์นิเทศก์' },
       update: {},
       create: {
-        name: 'อาจารย์นิเทศ',
+        name: 'อาจารย์นิเทศก์',
         nameEn: 'Academic Advisor',
         description: 'อาจารย์ที่ดูแลและให้คำแนะนำนักศึกษาในการฝึกงาน'
       }

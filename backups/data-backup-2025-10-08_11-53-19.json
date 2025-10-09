@@ -1395,7 +1395,7 @@
     },
     {
       "id": "supervisor_test_001",
-      "name": "อาจารย์นิเทศ ใจดี",
+      "name": "อาจารย์นิเทศก์ ใจดี",
       "email": "supervisor.test@university.ac.th",
       "password": "$2a$10$alZ.k1b3mLQ6ZHp/R1f2Xe26QWhb9l1NShDWtUlBLbZ/okh4PyBry",
       "roles": "[\"visitor\"]",
@@ -1795,7 +1795,7 @@
     },
     {
       "id": "supervisor_test_002",
-      "name": "อาจารย์นิเทศ เก่งมาก",
+      "name": "อาจารย์นิเทศก์ เก่งมาก",
       "email": "supervisor2.test@university.ac.th",
       "password": "$2a$10$fL1pUyK7PnOpKu7eM0Z33.0h34BPWW.z7Pg791gTAat5JB2B8ctWm",
       "roles": "[\"visitor\"]",

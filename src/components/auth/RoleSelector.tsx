@@ -51,14 +51,14 @@ const roleConfig = {
     route: '/educator'
   },
   visitor: {
-    label: 'อาจารย์นิเทศ',
+    label: 'อาจารย์นิเทศก์',
     description: 'นิเทศและติดตามนักศึกษาฝึกงาน',
     icon: Eye,
     color: 'bg-orange-500',
     route: '/educator'
   },
-  'อาจารย์นิเทศ': {
-    label: 'อาจารย์นิเทศ',
+  'อาจารย์นิเทศก์': {
+    label: 'อาจารย์นิเทศก์',
     description: 'นิเทศและติดตามนักศึกษาฝึกงาน',
     icon: Eye,
     color: 'bg-orange-500',

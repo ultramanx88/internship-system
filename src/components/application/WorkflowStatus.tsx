@@ -36,8 +36,8 @@ const steps = [
   },
   {
     id: 'supervisor_assignment',
-    title: 'กำหนดอาจารย์นิเทศ',
-    description: 'ระบบกำหนดอาจารย์นิเทศให้',
+    title: 'กำหนดอาจารย์นิเทศก์',
+    description: 'ระบบกำหนดอาจารย์นิเทศก์ให้',
     icon: User,
     color: 'bg-purple-500'
   },
@@ -249,7 +249,7 @@ export default function WorkflowStatus({ applicationId, onStatusChange }: Workfl
                 </span>
               </div>
               <div>
-                <span className="text-gray-500">อาจารย์นิเทศ:</span>
+                <span className="text-gray-500">อาจารย์นิเทศก์:</span>
                 <span className={`ml-2 ${
                   workflowStatus.supervisorStatus === 'assigned' || workflowStatus.supervisorStatus === 'completed' ? 'text-green-600' :
                   'text-yellow-600'

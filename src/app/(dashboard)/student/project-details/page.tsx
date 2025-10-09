@@ -53,7 +53,7 @@ export default function ProjectDetailsPage() {
                     if (instructorsResponse.ok) {
                         const instructors = await instructorsResponse.json();
                         const academicAdvisor = instructors.find((i: any) => 
-                            i.role.name === 'อาจารย์นิเทศ' && i.isActive
+                            i.role.name === 'อาจารย์นิเทศก์' && i.isActive
                         );
                         
                         if (academicAdvisor) {
@@ -193,7 +193,7 @@ export default function ProjectDetailsPage() {
                                 <span className="text-gray-900">15 มิ.ย. 2568 - 15 ต.ค. 2568</span>
                             </div>
                             <div>
-                                <span className="text-amber-700 font-medium">อาจารย์นิเทศ (Academic advisor) : </span>
+                                <span className="text-amber-700 font-medium">อาจารย์นิเทศก์ (Academic advisor) : </span>
                                 <span className="text-gray-900">{instructorName}</span>
                             </div>
                             <div className="md:col-span-2">

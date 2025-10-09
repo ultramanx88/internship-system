@@ -20,7 +20,7 @@ export default function EducatorDemoPage() {
 
   const educatorRoles = [
     { value: 'อาจารย์ประจำวิชา', label: 'อาจารย์ประจำวิชา' },
-    { value: 'อาจารย์นิเทศ', label: 'อาจารย์นิเทศ' },
+    { value: 'อาจารย์นิเทศก์', label: 'อาจารย์นิเทศก์' },
     { value: 'กรรมการ', label: 'กรรมการ' }
   ];
 
@@ -113,7 +113,7 @@ export default function EducatorDemoPage() {
                 <CardContent>
                   <ul className="text-sm space-y-1">
                     <li>• รายการขอสหกิจศึกษา / ฝึกงาน</li>
-                    <li>• มอบหมายอาจารย์นิเทศ</li>
+                    <li>• มอบหมายอาจารย์นิเทศก์</li>
                     <li>• รายงานผลการนิเทศ</li>
                     <li>• รายงานสรุปผลรวม</li>
                     <li>• บันทึกเกรด</li>
@@ -123,9 +123,9 @@ export default function EducatorDemoPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">อาจารย์นิเทศ</CardTitle>
+                  <CardTitle className="text-lg">อาจารย์นิเทศก์</CardTitle>
                   <CardDescription>
-                    เมนูสำหรับอาจารย์นิเทศ
+                    เมนูสำหรับอาจารย์นิเทศก์
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

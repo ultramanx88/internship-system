@@ -170,7 +170,7 @@ export default function AssignAdvisorPage() {
     setSelectedSupervisorId(application.supervisor?.id || '');
     setShowEditModal(true);
 
-    // โหลดรายชื่ออาจารย์นิเทศ
+    // โหลดรายชื่ออาจารย์นิเทศก์
     if (!user?.id) return;
     
     try {
@@ -199,7 +199,7 @@ export default function AssignAdvisorPage() {
     if (!editingApplication || !selectedSupervisorId) {
       toast({
         title: 'เกิดข้อผิดพลาด',
-        description: 'กรุณาเลือกอาจารย์นิเทศ',
+        description: 'กรุณาเลือกอาจารย์นิเทศก์',
         variant: 'destructive'
       });
       return;
@@ -240,7 +240,7 @@ export default function AssignAdvisorPage() {
       } else {
         toast({
           title: 'เกิดข้อผิดพลาด',
-          description: data.error || 'ไม่สามารถอัปเดตอาจารย์นิเทศได้',
+          description: data.error || 'ไม่สามารถอัปเดตอาจารย์นิเทศก์ได้',
           variant: 'destructive'
         });
       }
@@ -248,7 +248,7 @@ export default function AssignAdvisorPage() {
       console.error('Error updating supervisor:', error);
       toast({
         title: 'เกิดข้อผิดพลาด',
-        description: 'มีข้อผิดพลาดในการอัปเดตอาจารย์นิเทศ',
+        description: 'มีข้อผิดพลาดในการอัปเดตอาจารย์นิเทศก์',
         variant: 'destructive'
       });
     } finally {
@@ -337,7 +337,7 @@ export default function AssignAdvisorPage() {
     if (selectedApplications.length === 0) {
       toast({
         title: 'เกิดข้อผิดพลาด',
-        description: 'กรุณาเลือกการฝึกงานที่ต้องการมอบหมายอาจารย์นิเทศ',
+        description: 'กรุณาเลือกการฝึกงานที่ต้องการมอบหมายอาจารย์นิเทศก์',
         variant: 'destructive'
       });
       return;
@@ -362,7 +362,7 @@ export default function AssignAdvisorPage() {
       if (data.success) {
         toast({
           title: 'สำเร็จ',
-          description: `พร้อมสำหรับมอบหมายอาจารย์นิเทศ ${selectedApplications.length} รายการแล้ว`,
+          description: `พร้อมสำหรับมอบหมายอาจารย์นิเทศก์ ${selectedApplications.length} รายการแล้ว`,
         });
         setShowModal(false);
         setSelectedApplications([]);
@@ -435,8 +435,8 @@ export default function AssignAdvisorPage() {
                 </Link>
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">มอบหมายอาจารย์นิเทศ</h1>
-                <p className="text-gray-600">เลือกการฝึกงานที่ต้องการมอบหมายอาจารย์นิเทศ</p>
+                <h1 className="text-2xl font-bold text-gray-900">มอบหมายอาจารย์นิเทศก์</h1>
+                <p className="text-gray-600">เลือกการฝึกงานที่ต้องการมอบหมายอาจารย์นิเทศก์</p>
               </div>
             </div>
 
@@ -559,7 +559,7 @@ export default function AssignAdvisorPage() {
                       className="bg-amber-600 hover:bg-amber-700 text-white"
                     >
                       <Users className="h-4 w-4 mr-2" />
-                      กำหนดอาจารย์นิเทศ ({selectedApplications.length})
+                      กำหนดอาจารย์นิเทศก์ ({selectedApplications.length})
                     </Button>
                   </div>
                 </div>
@@ -577,7 +577,7 @@ export default function AssignAdvisorPage() {
                         <th className="px-4 py-3 text-left">สาขาวิชา</th>
                         <th className="px-4 py-3 text-left">ชื่อบริษัท</th>
                         <th className="px-4 py-3 text-left">ตำแหน่งงาน</th>
-                        <th className="px-4 py-3 text-left">อาจารย์นิเทศ</th>
+                        <th className="px-4 py-3 text-left">อาจารย์นิเทศก์</th>
                         <th className="px-4 py-3 text-left">ข้อมูลเพิ่มเติม</th>
                       </tr>
                     </thead>
@@ -738,7 +738,7 @@ export default function AssignAdvisorPage() {
                   className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-3 rounded-lg"
                 >
                   <Check className="h-4 w-4 mr-2" />
-                  {submitting ? 'กำลังดำเนินการ...' : 'ยืนยันการมอบหมายอาจารย์นิเทศ'}
+                  {submitting ? 'กำลังดำเนินการ...' : 'ยืนยันการมอบหมายอาจารย์นิเทศก์'}
                 </Button>
               </div>
             </div>
@@ -761,7 +761,7 @@ export default function AssignAdvisorPage() {
               </button>
               
               <div className="mb-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-2">แก้ไขอาจารย์นิเทศ</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">แก้ไขอาจารย์นิเทศก์</h2>
                 <p className="text-gray-600">สำหรับนักศึกษา: <span className="font-medium text-amber-600">{editingApplication.studentName}</span></p>
               </div>
 
@@ -800,9 +800,9 @@ export default function AssignAdvisorPage() {
                   </CardContent>
                 </Card>
 
-                {/* เลือกอาจารย์นิเทศ */}
+                {/* เลือกอาจารย์นิเทศก์ */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">อาจารย์นิเทศปัจจุบัน</label>
+                  <label className="text-sm font-medium text-gray-700">อาจารย์นิเทศก์ปัจจุบัน</label>
                   <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
                     {editingApplication.supervisor ? (
                       <>
@@ -817,10 +817,10 @@ export default function AssignAdvisorPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">เปลี่ยนเป็นอาจารย์นิเทศ</label>
+                  <label className="text-sm font-medium text-gray-700">เปลี่ยนเป็นอาจารย์นิเทศก์</label>
                   <Select value={selectedSupervisorId} onValueChange={setSelectedSupervisorId}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="เลือกอาจารย์นิเทศ" />
+                      <SelectValue placeholder="เลือกอาจารย์นิเทศก์" />
                     </SelectTrigger>
                     <SelectContent>
                       {supervisors.map(supervisor => (
@@ -850,7 +850,7 @@ export default function AssignAdvisorPage() {
                     ) : (
                       <>
                         <Edit className="h-4 w-4 mr-2" />
-                        อัปเดตอาจารย์นิเทศ
+                        อัปเดตอาจารย์นิเทศก์
                       </>
                     )}
                   </Button>

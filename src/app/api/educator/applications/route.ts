@@ -61,8 +61,8 @@ export async function GET(request: NextRequest) {
     // ดึงข้อมูล applications ตาม role
     let applications = [];
 
-    if (user.educatorRole.name === 'อาจารย์นิเทศ') {
-      // อาจารย์นิเทศเห็น applications ของนักศึกษาที่อยู่ในความดูแล
+    if (user.educatorRole.name === 'อาจารย์นิเทศก์') {
+      // อาจารย์นิเทศก์เห็น applications ของนักศึกษาที่อยู่ในความดูแล
       const supervisedStudentIds = user.courseInstructors
         .flatMap(ci => ci.supervisedStudents)
         .map(ss => ss.studentId);

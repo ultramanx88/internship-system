@@ -22,12 +22,12 @@ export async function GET(request: NextRequest) {
 
     switch (action) {
       case 'pending_assignments':
-        // รายการที่รออาจารย์นิเทศรับมอบหมาย
+        // รายการที่รออาจารย์นิเทศก์รับมอบหมาย
         const pendingAssignmentsResult = await getPendingSupervisorAssignments(supervisorId);
         return NextResponse.json(pendingAssignmentsResult);
 
       case 'my_assignments':
-        // รายการที่อาจารย์นิเทศรับแล้ว
+        // รายการที่อาจารย์นิเทศก์รับแล้ว
         const myAssignmentsResult = await getSupervisorAssignments(supervisorId);
         return NextResponse.json(myAssignmentsResult);
 

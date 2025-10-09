@@ -14,7 +14,12 @@ export class WorkflowManager {
    */
   static getCurrentStep(profile: UserProfile, application?: Application): WorkflowStep {
     const profileValidation = WorkflowValidator.validateProfile(profile);
-    
+
+    // หากถูกปฏิเสธ ให้ย้อนกลับไปเริ่มที่ขั้นตอนที่ 1 (แก้ไขโปรไฟล์/เริ่มใหม่)
+    if (application?.status === 'rejected') {
+      return this.getStepById(1);
+    }
+
     // ตรวจสอบขั้นตอนที่สามารถดำเนินการได้
     for (let i = 1; i <= WORKFLOW_STEPS.length; i++) {
       const canProceed = WorkflowValidator.canProceedToStep(i, profile, application as any);

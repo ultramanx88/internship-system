@@ -75,7 +75,7 @@ export function LoginForm() {
             // Navigate based on role
             if (loginResult.roles.includes('admin')) {
               router.push('/admin');
-            } else if (loginResult.roles.includes('courseInstructor') || loginResult.roles.includes('committee') || loginResult.roles.includes('อาจารย์ประจำวิชา') || loginResult.roles.includes('อาจารย์นิเทศ') || loginResult.roles.includes('กรรมการ')) {
+            } else if (loginResult.roles.includes('courseInstructor') || loginResult.roles.includes('committee') || loginResult.roles.includes('อาจารย์ประจำวิชา') || loginResult.roles.includes('อาจารย์นิเทศก์') || loginResult.roles.includes('กรรมการ')) {
               router.push('/educator');
             } else if (loginResult.roles.includes('student')) {
               router.push('/student');

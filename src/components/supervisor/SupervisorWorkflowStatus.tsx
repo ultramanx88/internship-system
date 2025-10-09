@@ -22,14 +22,14 @@ const steps = [
   {
     id: 'assignment_received',
     title: 'รับมอบหมาย',
-    description: 'อาจารย์นิเทศรับมอบหมายจากอาจารย์ประจำวิชา',
+    description: 'อาจารย์นิเทศก์รับมอบหมายจากอาจารย์ประจำวิชา',
     icon: UserCheck,
     color: 'bg-blue-500'
   },
   {
     id: 'supervisor_confirmed',
     title: 'ตรวจดูและยืนยัน',
-    description: 'อาจารย์นิเทศตรวจดูและยืนยันการรับมอบหมาย',
+    description: 'อาจารย์นิเทศก์ตรวจดูและยืนยันการรับมอบหมาย',
     icon: Eye,
     color: 'bg-yellow-500'
   },

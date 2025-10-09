@@ -50,7 +50,7 @@ export function EducatorMenu({ userRole, educatorRole, className }: EducatorMenu
         },
         {
           id: 'assign-advisor',
-          label: 'มอบหมายอาจารย์นิเทศ',
+          label: 'มอบหมายอาจารย์นิเทศก์',
           icon: User,
           href: '/educator/assign-advisor'
         },
@@ -75,11 +75,11 @@ export function EducatorMenu({ userRole, educatorRole, className }: EducatorMenu
       ];
     }
     
-    if (currentRole === 'อาจารย์นิเทศ' || currentRole === 'academicAdvisor' || currentRole === 'supervisor') {
+    if (currentRole === 'อาจารย์นิเทศก์' || currentRole === 'academicAdvisor' || currentRole === 'supervisor') {
       return [
         {
           id: 'supervisor-dashboard',
-          label: 'แดชบอร์ดอาจารย์นิเทศ',
+          label: 'แดชบอร์ดอาจารย์นิเทศก์',
           icon: Home,
           href: '/educator/supervisor'
         },
@@ -217,7 +217,7 @@ export function EducatorMenu({ userRole, educatorRole, className }: EducatorMenu
           <div className="px-4 py-3 bg-orange-100">
             <span className="font-medium text-orange-800">
               {currentRole === 'อาจารย์ประจำวิชา' || currentRole === 'courseInstructor' ? 'อาจารย์ประจำวิชา' :
-               currentRole === 'อาจารย์นิเทศ' || currentRole === 'academicAdvisor' || currentRole === 'supervisor' ? 'อาจารย์นิเทศ' :
+               currentRole === 'อาจารย์นิเทศก์' || currentRole === 'academicAdvisor' || currentRole === 'supervisor' ? 'อาจารย์นิเทศก์' :
                currentRole === 'กรรมการ' || currentRole === 'committee' ? 'กรรมการ' : 'เมนู'}
             </span>
           </div>

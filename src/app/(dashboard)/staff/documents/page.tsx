@@ -434,13 +434,13 @@ export default function DocumentsPage() {
                 </CardContent>
               </Card>
 
-              {/* ข้อมูลอาจารย์นิเทศ */}
+              {/* ข้อมูลอาจารย์นิเทศก์ */}
               {selectedApplication.supervisor && (
                 <Card className="border-l-4 border-green-500">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <User className="h-5 w-5 text-green-600" />
-                      อาจารย์นิเทศ
+                      อาจารย์นิเทศก์
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">

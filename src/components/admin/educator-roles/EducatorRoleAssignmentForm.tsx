@@ -60,7 +60,7 @@ interface EducatorRoleAssignmentFormProps {
 const ROLE_OPTIONS = [
   { value: 'educator', label: 'อาจารย์', description: 'บทบาทหลักของอาจารย์ในระบบ' },
   { value: 'courseInstructor', label: 'อาจารย์ประจำวิชา', description: 'รับผิดชอบการสอนและประเมินผล' },
-  { value: 'supervisor', label: 'อาจารย์นิเทศ', description: 'ดูแลและให้คำแนะนำนักศึกษา' },
+  { value: 'supervisor', label: 'อาจารย์นิเทศก์', description: 'ดูแลและให้คำแนะนำนักศึกษา' },
   { value: 'committee', label: 'กรรมการ', description: 'พิจารณาและอนุมัติใบสมัคร' },
   { value: 'visitor', label: 'ผู้เยี่ยมชม', description: 'เยี่ยมชมและประเมินสถานประกอบการ' }
 ];

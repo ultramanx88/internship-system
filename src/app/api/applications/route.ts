@@ -142,12 +142,13 @@ export async function POST(request: NextRequest) {
     if (!student) {
       return NextResponse.json({ success: false, error: 'Student not found' }, { status: 404 });
     }
+    // Relaxed requirement: allow submit even if facultyId/majorId are missing.
+    // Still require basic contact fields to avoid unreachable student records.
     const missingProfileFields: string[] = [];
     if (!student.name) missingProfileFields.push('name');
     if (!student.email) missingProfileFields.push('email');
     if (!student.phone) missingProfileFields.push('phone');
-    if (!student.facultyId) missingProfileFields.push('facultyId');
-    if (!student.majorId) missingProfileFields.push('majorId');
+    // NOTE: facultyId/majorId are optional for submission now. We will not block on these.
     if (missingProfileFields.length > 0) {
       return NextResponse.json(
         { success: false, error: 'PROFILE_INCOMPLETE', details: { missing: missingProfileFields } },

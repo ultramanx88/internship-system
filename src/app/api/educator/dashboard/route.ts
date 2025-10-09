@@ -165,7 +165,7 @@ async function getMyTasks(userId: string, role: string | null) {
   ];
 
   // เพิ่มงานตาม role
-  if (role === 'อาจารย์นิเทศ') {
+  if (role === 'อาจารย์นิเทศก์') {
     baseTasks.push({
       id: '3',
       title: 'ค้างการบันทึกผลนิเทศ',

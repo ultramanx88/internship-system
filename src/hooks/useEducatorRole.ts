@@ -128,7 +128,7 @@ export function useEducatorRole() {
       },
       {
         id: 'role_advisor',
-        name: 'อาจารย์นิเทศ',
+        name: 'อาจารย์นิเทศก์',
         nameEn: 'Academic Advisor',
         description: 'อาจารย์ที่ดูแลและให้คำแนะนำนักศึกษาในการฝึกงาน',
         isActive: true

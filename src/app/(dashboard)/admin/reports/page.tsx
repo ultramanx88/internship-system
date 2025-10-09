@@ -162,7 +162,7 @@ export default function AdminReportsPage() {
         const csvHeaders = [
             "ชื่อ-สกุล",
             "บริษัท",
-            "อาจารย์นิเทศ",
+            "อาจารย์นิเทศก์",
             "ความสำคัญ",
             "สถานะรายงาน"
         ];
@@ -238,7 +238,7 @@ export default function AdminReportsPage() {
                                     <SelectItem value="priority">ความสำคัญ</SelectItem>
                                     <SelectItem value="studentName">ชื่อนักศึกษา</SelectItem>
                                     <SelectItem value="companyName">บริษัท</SelectItem>
-                                    <SelectItem value="supervisorName">อาจารย์นิเทศ</SelectItem>
+                                    <SelectItem value="supervisorName">อาจารย์นิเทศก์</SelectItem>
                                     <SelectItem value="status">สถานะ</SelectItem>
                                 </SelectContent>
                             </Select>
@@ -294,7 +294,7 @@ export default function AdminReportsPage() {
                                         onClick={() => handleSort('supervisorName')}
                                     >
                                         <div className="flex items-center gap-1">
-                                            อาจารย์นิเทศ
+                                            อาจารย์นิเทศก์
                                             {getSortIcon('supervisorName')}
                                         </div>
                                     </TableHead>
