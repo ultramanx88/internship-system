@@ -6,6 +6,7 @@ import { PrismaClient, LogLevel, SystemLog, AuditLog } from '@prisma/client';
 import { NextRequest } from 'next/server';
 
 const prisma = new PrismaClient();
+const SKIP_DB_INIT = process.env.SKIP_DB_INIT === 'true';
 
 export enum LogLevelEnum {
   ERROR = 'ERROR',
@@ -44,7 +45,13 @@ class EnhancedLogger {
   private retentionDays: number = 90;
 
   private constructor() {
-    this.initializeRetentionPolicies();
+    // Avoid DB initialization during build or when explicitly skipped
+    if (!SKIP_DB_INIT) {
+      // Fire-and-forget; safe on cold start of server runtime only
+      this.initializeRetentionPolicies().catch((err) => {
+        console.error('Failed to initialize retention policies:', err);
+      });
+    }
   }
 
   public static getInstance(): EnhancedLogger {
@@ -55,6 +62,7 @@ class EnhancedLogger {
   }
 
   private async initializeRetentionPolicies() {
+    if (SKIP_DB_INIT) return; // explicit guard for build-time
     try {
       // Initialize default retention policies
       const policies = [
@@ -71,6 +79,7 @@ class EnhancedLogger {
         });
       }
     } catch (error) {
+      // Do not crash the process if DB isn't reachable at init time
       console.error('Failed to initialize retention policies:', error);
     }
   }
