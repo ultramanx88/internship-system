@@ -336,9 +336,13 @@ oneclick_prod_deploy() {
 
     # Build app with no cache to honor latest .env at build time
     log "Building app image (no cache)..."
+    # Skip DB init at build time to avoid Prisma connecting during Next build
+    export SKIP_DB_INIT=true
     if ! $COMPOSE_CMD build --no-cache app; then
+        unset SKIP_DB_INIT
         error "Docker build failed"
     fi
+    unset SKIP_DB_INIT
 
     # Start app and nginx
     log "Starting app and nginx..."
