@@ -68,8 +68,8 @@ export async function receiveApplication(data: {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
@@ -146,8 +146,8 @@ export async function reviewApplication(data: {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
@@ -246,8 +246,8 @@ export async function getPendingCommitteeReceipt(committeeId: string) {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
@@ -293,8 +293,8 @@ export async function getCommitteeApplications(committeeId: string) {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+                    t_name: true,
+                    e_name: true
           }
         },
         internship: {

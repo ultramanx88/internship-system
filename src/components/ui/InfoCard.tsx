@@ -337,8 +337,8 @@ export interface StudentInfoCardProps {
     major?: string;
     year?: number;
     gpa?: number;
-    tName?: string;
-    eName?: string;
+    t_name?: string;
+    e_name?: string;
   };
   showActions?: boolean;
   onEdit?: () => void;
@@ -363,7 +363,7 @@ export function StudentInfoCard({
     {
       key: 'name',
       label: 'ชื่อ-นามสกุล',
-      value: student.tName || student.eName || student.name,
+      value: student.t_name || student.e_name || student.name,
       icon: <User className="h-4 w-4" />,
     },
     {

@@ -16,8 +16,8 @@ interface DocumentPreviewProps {
       id: string;
       name: string;
       email: string;
-      tName?: string;
-      eName?: string;
+      t_name?: string;
+      e_name?: string;
     };
     internship: {
       id: string;
@@ -123,7 +123,7 @@ export default function DocumentPreview({ application, isOpen, onClose }: Docume
                 <div>
                   <Label className="text-sm font-medium text-gray-500">ชื่อ-นามสกุล</Label>
                   <p className="text-lg">
-                    {application.student.tName || application.student.eName || application.student.name}
+                    {application.student.t_name || application.student.e_name || application.student.name}
                   </p>
                 </div>
                 <div>
@@ -192,7 +192,7 @@ export default function DocumentPreview({ application, isOpen, onClose }: Docume
                   </p>
                   
                   <p>
-                    บัดนี้ นักศึกษา{application.student.tName || application.student.eName || application.student.name} 
+                    บัดนี้ นักศึกษา{application.student.t_name || application.student.e_name || application.student.name} 
                     รหัส {application.student.id} กำลังศึกษาอยู่ในชั้นปีที่ 4 
                     ต้องการฝึกงานในตำแหน่ง {application.internship.title} 
                     ณ {application.internship.company.name} 

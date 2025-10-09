@@ -31,8 +31,8 @@ interface Application {
     id: string;
     name: string;
     email: string;
-    tName?: string;
-    eName?: string;
+    t_name?: string;
+    e_name?: string;
   };
   internship: {
     id: string;
@@ -145,7 +145,7 @@ export default function SupervisorDashboard() {
               <TableCell>
                 <div>
                   <div className="font-medium">
-                    {application.student.tName || application.student.eName || application.student.name}
+                    {application.student.t_name || application.student.e_name || application.student.name}
                   </div>
                   <div className="text-sm text-gray-500">
                     {application.student.email}
@@ -263,7 +263,7 @@ export default function SupervisorDashboard() {
             <DialogHeader>
               <DialogTitle>จัดการมอบหมายนิเทศ</DialogTitle>
               <DialogDescription>
-                {selectedApplication.student.tName || selectedApplication.student.eName || selectedApplication.student.name} - {selectedApplication.internship.title}
+                {selectedApplication.student.t_name || selectedApplication.student.e_name || selectedApplication.student.name} - {selectedApplication.internship.title}
               </DialogDescription>
             </DialogHeader>
 

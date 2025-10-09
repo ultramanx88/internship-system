@@ -71,8 +71,8 @@ export async function receiveApplication(data: {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
@@ -156,8 +156,8 @@ export async function reviewApplication(data: {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
@@ -366,8 +366,8 @@ export async function getPendingInstructorReceipt() {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
@@ -414,8 +414,8 @@ export async function getInstructorApplications(instructorId: string) {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {

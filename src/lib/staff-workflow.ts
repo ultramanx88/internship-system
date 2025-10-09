@@ -59,8 +59,8 @@ export async function receiveDocument(data: {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
@@ -133,8 +133,8 @@ export async function reviewDocument(data: {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
@@ -207,8 +207,8 @@ export async function approveDocument(data: {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
@@ -281,8 +281,8 @@ export async function sendDocumentToCompany(data: {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
@@ -375,8 +375,8 @@ export async function getPendingDocumentReceipt() {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {

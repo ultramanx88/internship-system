@@ -70,8 +70,8 @@ export async function receiveAssignment(data: {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
@@ -152,8 +152,8 @@ export async function confirmAssignment(data: {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
@@ -236,8 +236,8 @@ export async function scheduleAppointment(data: {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
@@ -337,8 +337,8 @@ export async function getPendingSupervisorAssignments(supervisorId: string) {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
@@ -385,8 +385,8 @@ export async function getSupervisorAssignments(supervisorId: string) {
             id: true,
             name: true,
             email: true,
-            tName: true,
-            eName: true
+            t_name: true,
+            e_name: true
           }
         },
         internship: {
