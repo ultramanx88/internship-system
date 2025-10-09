@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { allocateDocumentNumber } from "@/lib/document-number-allocator";
 
 export async function GET() {
   try {
@@ -77,16 +78,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!documentNumber || !documentDate) {
+    // If client does not provide a document number, allocate one atomically
+    let finalDocumentNumber: string = documentNumber;
+    if (!finalDocumentNumber) {
+      const allocated = await allocateDocumentNumber({ digits: 5 });
+      finalDocumentNumber = allocated.formatted;
+    }
+    if (!documentDate) {
       return NextResponse.json(
-        { error: "กรุณากรอกเลขที่เอกสารและวันที่เอกสาร" },
+        { error: "กรุณากรอกวันที่เอกสาร" },
         { status: 400 }
       );
     }
 
     // Check if document number already exists
     const existingRecord = await prisma.printRecord.findFirst({
-      where: { documentNumber },
+      where: { documentNumber: finalDocumentNumber },
     });
 
     if (existingRecord) {
@@ -99,7 +106,7 @@ export async function POST(request: NextRequest) {
     // Create print record
     const printRecord = await prisma.printRecord.create({
       data: {
-        documentNumber,
+        documentNumber: finalDocumentNumber,
         documentDate: new Date(documentDate),
         printedAt: new Date(),
         applications: {

@@ -365,13 +365,79 @@ export async function getApplicationWorkflowStatus(applicationId: string): Promi
 
 // Helper functions
 async function findSuitableCourseInstructor(studentId: string) {
-  // Business logic สำหรับหาอาจารย์ประจำวิชาที่เหมาะสม
-  // อาจจะใช้ข้อมูลจาก student's major, faculty, etc.
-  return await prisma.user.findFirst({
-    where: {
-      roles: { contains: 'courseInstructor' }
-    }
+  // เลือกอาจารย์ประจำวิชาตามการ assign รายคณะ แยกปีการศึกษา/ภาคเรียนปัจจุบัน
+  // ขั้นตอน:
+  // 1) หา faculty ของนักศึกษา
+  // 2) หา AcademicYear และ Semester ที่ active (และอยู่ในช่วงวันที่ปัจจุบัน ถ้ามี)
+  // 3) ค้นหา FacultyInstructorAssignment ที่ active สำหรับ (faculty, year, semester)
+  // 4) คืนค่า instructor ที่ถูก assign
+  // 5) หากหาไม่พบ ให้ fallback ไปที่ผู้ใช้ที่มีบทบาท courseInstructor คนแรก
+
+  // 1) นักศึกษา + faculty
+  const student = await prisma.user.findUnique({
+    where: { id: studentId },
+    select: { facultyId: true }
   });
+
+  // หากไม่มี faculty ของนักศึกษา ให้ fallback ทันที
+  if (!student?.facultyId) {
+    return await prisma.user.findFirst({ where: { roles: { contains: 'courseInstructor' } } });
+  }
+
+  // 2) หา year/semester ปัจจุบัน (active + within date range ถ้ามี)
+  const now = new Date();
+  const currentAcademicYear = await prisma.academicYear.findFirst({
+    where: {
+      isActive: true,
+      OR: [
+        { AND: [{ startDate: { lte: now } }, { endDate: { gte: now } }] },
+        { AND: [{ startDate: null }, { endDate: null }] }
+      ]
+    },
+    orderBy: [{ year: 'desc' }]
+  });
+
+  if (!currentAcademicYear) {
+    // ไม่มีปีการศึกษาปัจจุบัน -> fallback
+    return await prisma.user.findFirst({ where: { roles: { contains: 'courseInstructor' } } });
+  }
+
+  const currentSemester = await prisma.semester.findFirst({
+    where: {
+      academicYearId: currentAcademicYear.id,
+      isActive: true,
+      OR: [
+        { AND: [{ startDate: { lte: now } }, { endDate: { gte: now } }] },
+        { AND: [{ startDate: null }, { endDate: null }] }
+      ]
+    },
+    orderBy: [{ startDate: 'desc' }]
+  });
+
+  if (!currentSemester) {
+    // ไม่มีภาคเรียนปัจจุบัน -> fallback
+    return await prisma.user.findFirst({ where: { roles: { contains: 'courseInstructor' } } });
+  }
+
+  // 3) หา assignment สำหรับคณะของนักศึกษาในปี/เทอมปัจจุบัน
+  const assignment = await prisma.facultyInstructorAssignment.findFirst({
+    where: {
+      facultyId: student.facultyId,
+      academicYearId: currentAcademicYear.id,
+      semesterId: currentSemester.id,
+      isActive: true
+    },
+    include: { instructor: true },
+    orderBy: [{ updatedAt: 'desc' }]
+  });
+
+  // 4) คืน instructor ถ้าพบ
+  if (assignment?.instructor) {
+    return assignment.instructor;
+  }
+
+  // 5) Fallback: หากยังไม่พบ ให้เลือกผู้ใช้ที่มีบทบาท courseInstructor คนแรก
+  return await prisma.user.findFirst({ where: { roles: { contains: 'courseInstructor' } } });
 }
 
 async function findSuitableSupervisor(applicationId: string) {

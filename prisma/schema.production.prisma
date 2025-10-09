@@ -59,6 +59,7 @@ model User {
   faculty       Faculty?      @relation(fields: [facultyId], references: [id])
   major         Major?        @relation(fields: [majorId], references: [id])
   educatorRoleAssignments EducatorRoleAssignment[]
+  facultyInstructorAssignments FacultyInstructorAssignment[]
 
   @@map("users")
 }
@@ -130,6 +131,7 @@ model Faculty {
   updatedAt   DateTime     @updatedAt
   departments Department[]
   users       User[]
+  facultyInstructorAssignments FacultyInstructorAssignment[]
 
   @@map("faculties")
 }
@@ -257,6 +259,7 @@ model AcademicYear {
   // Relations
   semesters     Semester[]
   roleAssignments EducatorRoleAssignment[]
+  facultyInstructorAssignments FacultyInstructorAssignment[]
 
   @@map("academic_years")
 }
@@ -274,6 +277,7 @@ model Semester {
   // Relations
   academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
   roleAssignments EducatorRoleAssignment[]
+  facultyInstructorAssignments FacultyInstructorAssignment[]
 
   @@unique([name, academicYearId])
   @@map("semesters")
@@ -299,6 +303,27 @@ model EducatorRoleAssignment {
   @@map("educator_role_assignments")
 }
 
+model FacultyInstructorAssignment {
+  id             String   @id @default(cuid())
+  facultyId      String
+  academicYearId String
+  semesterId     String
+  instructorId   String
+  isActive       Boolean  @default(true)
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  faculty       Faculty      @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  academicYear  AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  semester      Semester     @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  instructor    User         @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+
+  @@unique([facultyId, academicYearId, semesterId])
+  @@map("faculty_instructor_assignments")
+}
+
 enum DocumentType {
   cv
   transcript
@@ -314,4 +339,24 @@ enum DocumentStatus {
   pending
   approved
   rejected
+}
+
+// Sequential document number allocator (atomic counter)
+model DocumentSequence {
+  id          Int      @id @default(1)
+  nextNumber  BigInt   @default(1)
+  updatedAt   DateTime @updatedAt
+
+  @@map("document_sequences")
+}
+
+// Minimal archive to retain evidence that a document number was consumed
+model DocumentArchive {
+  id          String   @id @default(cuid())
+  documentNo  BigInt   @unique
+  deletedAt   DateTime @default(now())
+  reason      String?
+  metaHash    String?
+
+  @@map("document_archive")
 }
