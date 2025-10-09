@@ -347,14 +347,14 @@ export default function ApplicationFormTypePage() {
                     </SelectTrigger>
                     <SelectContent>
                       {isLoadingInternships ? (
-                        <SelectItem value="" disabled>
+                        <SelectItem value="none" disabled>
                           <div className="flex items-center gap-2">
                             <Loader2 className="h-4 w-4 animate-spin" />
                             กำลังโหลดข้อมูล...
                           </div>
                         </SelectItem>
                       ) : availableInternships.length === 0 ? (
-                        <SelectItem value="" disabled>
+                        <SelectItem value="none" disabled>
                           ไม่มีตำแหน่ง{currentType.title}ที่เปิดรับสมัคร
                         </SelectItem>
                       ) : (

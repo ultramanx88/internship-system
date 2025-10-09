@@ -7,15 +7,12 @@ export async function GET() {
   try {
     const courseInstructors = await prisma.courseInstructor.findMany({
       include: {
-        instructor: true,
-        role: true,
-        academicYear: true,
-        semester: true
+        course: true,
+        user: true
       },
       orderBy: [
-        { academicYear: { year: 'desc' } },
-        { semester: { semester: 'asc' } },
-        { courseId: 'asc' }
+        { course: { code: 'asc' } },
+        { user: { name: 'asc' } }
       ]
     });
 
@@ -31,22 +28,17 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { academicYearId, semesterId, courseId, instructorId, roleId, createdBy } = await request.json();
+    const { courseId, userId, role } = await request.json();
 
     const courseInstructor = await prisma.courseInstructor.create({
       data: {
-        academicYearId,
-        semesterId,
-        courseId: courseId || null,
-        instructorId,
-        roleId,
-        createdBy: createdBy || instructorId
+        courseId,
+        userId,
+        role: role || 'instructor'
       },
       include: {
-        instructor: true,
-        role: true,
-        academicYear: true,
-        semester: true
+        course: true,
+        user: true
       }
     });
 

@@ -11,15 +11,12 @@ export async function GET() {
       }),
       prisma.courseInstructor.findMany({
         include: {
-          instructor: true,
-          role: true,
-          academicYear: true,
-          semester: true
+          course: true,
+          user: true
         },
         orderBy: [
-          { academicYear: { year: 'desc' } },
-          { semester: { semester: 'asc' } },
-          { courseId: 'asc' }
+          { course: { code: 'asc' } },
+          { user: { name: 'asc' } }
         ]
       })
     ]);
@@ -73,13 +70,10 @@ export async function POST(request: NextRequest) {
         // Create new course instructor
         await prisma.courseInstructor.create({
           data: {
-            academicYearId: instructor.academicYearId,
-            semesterId: instructor.semesterId,
-            courseId: instructor.courseId || null,
-            instructorId: instructor.instructorId,
-            roleId: instructor.roleId,
-            isActive: instructor.isActive,
-            createdBy: instructor.createdBy || instructor.instructorId
+            courseId: instructor.courseId,
+            userId: instructor.userId,
+            role: instructor.role,
+            isActive: instructor.isActive
           }
         });
       } else {
@@ -87,11 +81,9 @@ export async function POST(request: NextRequest) {
         await prisma.courseInstructor.update({
           where: { id: instructor.id },
           data: {
-            academicYearId: instructor.academicYearId,
-            semesterId: instructor.semesterId,
-            courseId: instructor.courseId || null,
-            instructorId: instructor.instructorId,
-            roleId: instructor.roleId,
+            courseId: instructor.courseId,
+            userId: instructor.userId,
+            role: instructor.role,
             isActive: instructor.isActive
           }
         });

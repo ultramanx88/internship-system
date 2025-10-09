@@ -66,20 +66,72 @@ export default function AssignAdvisorPage() {
   const itemsPerPage = 5;
 
   useEffect(() => {
+    const isDev = process.env.NODE_ENV === 'development';
+    const shouldBypass = isDev && (!user?.id);
+    
+    if (shouldBypass) {
+      console.log('🔧 Development mode: Using bypass authentication for assign-advisor');
+      loadApplications();
+      return;
+    }
+    
     if (user?.id) {
+      loadApplications();
+    } else if (isDev) {
+      // In development mode, try to load even without user
+      console.log('🔧 Development mode: No user but trying to load applications');
       loadApplications();
     }
   }, [user?.id, currentPage]);
 
   const loadApplications = async () => {
+    // Development bypass check
+    const isDev = process.env.NODE_ENV === 'development';
+    const shouldBypass = isDev && (!user?.id);
+    
+    if (!user?.id && !shouldBypass) {
+      console.log('No user ID, skipping loadApplications');
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/educator/coop-requests?userId=${user?.id}&page=${currentPage}&limit=${itemsPerPage}&status=approved`);
+      setLoading(true);
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Add development bypass header if needed
+      if (shouldBypass) {
+        headers['x-dev-bypass'] = 'true';
+        console.log('🔧 Using development bypass for assign-advisor');
+      } else if (user?.id) {
+        headers['x-user-id'] = user.id;
+      }
+      
+      const response = await fetch(`/api/educator/coop-requests?page=${currentPage}&limit=${itemsPerPage}&status=approved`, {
+        headers
+      });
+      
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError);
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
+        console.error('API error:', errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (data.success) {
         setApplications(data.applications || []);
         setTotalPages(data.pagination?.totalPages || 1);
       } else {
+        console.error('API returned error:', data.error);
         toast({
           title: 'เกิดข้อผิดพลาด',
           description: data.error || 'ไม่สามารถโหลดข้อมูลได้',
@@ -90,7 +142,7 @@ export default function AssignAdvisorPage() {
       console.error('Error loading applications:', error);
       toast({
         title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถโหลดข้อมูลได้',
+        description: error instanceof Error ? error.message : 'ไม่สามารถโหลดข้อมูลได้',
         variant: 'destructive'
       });
     } finally {
@@ -119,8 +171,21 @@ export default function AssignAdvisorPage() {
     setShowEditModal(true);
 
     // โหลดรายชื่ออาจารย์นิเทศ
+    if (!user?.id) return;
+    
     try {
-      const response = await fetch(`/api/educator/supervisors?userId=${user?.id}`);
+      const response = await fetch(`/api/educator/supervisors`, {
+        headers: {
+          'x-user-id': user.id,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to load supervisors:', response.status);
+        return;
+      }
+      
       const data = await response.json();
       if (data.success) {
         setSupervisors(data.supervisors);
@@ -142,10 +207,11 @@ export default function AssignAdvisorPage() {
 
     setUpdatingSupervisor(true);
     try {
-      const response = await fetch(`/api/educator/applications/${editingApplication.id}/update-supervisor?userId=${user?.id}`, {
+      const response = await fetch(`/api/educator/applications/${editingApplication.id}/update-supervisor`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
+          'x-user-id': user?.id || '',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ supervisorId: selectedSupervisorId })
       });
@@ -222,10 +288,11 @@ export default function AssignAdvisorPage() {
 
     setAssigningCommittee(true);
     try {
-      const response = await fetch(`/api/educator/applications/${editingApplication.id}/assign-committee?userId=${user?.id}`, {
+      const response = await fetch(`/api/educator/applications/${editingApplication.id}/assign-committee`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'x-user-id': user?.id || '',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
           committeeIds: selectedCommitteeIds,
@@ -281,7 +348,8 @@ export default function AssignAdvisorPage() {
       const response = await fetch('/api/educator/applications/bulk-approve', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'x-user-id': user?.id || '',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           applicationIds: selectedApplications,
@@ -328,7 +396,11 @@ export default function AssignAdvisorPage() {
 
   const selectedApplicationsData = applications.filter(app => selectedApplications.includes(app.id));
 
-  if (loading) {
+  // Development bypass - skip auth checks in dev mode
+  const isDev = process.env.NODE_ENV === 'development';
+  const shouldBypass = isDev && (!user?.id);
+
+  if (loading && !shouldBypass) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -342,6 +414,19 @@ export default function AssignAdvisorPage() {
   return (
     <div className="space-y-6">
           <div className="max-w-7xl mx-auto space-y-6">
+            {/* Development Mode Indicator */}
+            {shouldBypass && (
+              <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-md">
+                <div className="flex items-center">
+                  <div className="text-yellow-500 mr-2">🔧</div>
+                  <div>
+                    <strong>Development Mode:</strong> Authentication bypass is active for assign-advisor page. 
+                    This will only work in development environment.
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Header */}
             <div className="flex items-center gap-4">
               <Button variant="outline" size="icon" asChild>

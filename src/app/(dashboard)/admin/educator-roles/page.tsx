@@ -6,17 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Search, 
-  Filter, 
   Plus, 
   Edit, 
   Trash2, 
   Users, 
   Calendar,
   BookOpen,
-  Eye,
   CheckCircle,
   XCircle
 } from 'lucide-react';
@@ -75,17 +72,10 @@ export default function EducatorRolesPage() {
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('all');
-  const [selectedSemester, setSelectedSemester] = useState<string>('all');
-  const [selectedRole, setSelectedRole] = useState<string>('all');
-  const [isActiveFilter, setIsActiveFilter] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<EducatorRoleAssignment | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const limit = 10;
 
   // Fetch educators
   const fetchEducators = useCallback(async () => {
@@ -107,12 +97,20 @@ export default function EducatorRolesPage() {
   const fetchAcademicYears = useCallback(async () => {
     if (!user?.id) return;
     try {
+      console.log('Fetching academic years for user:', user.id);
       const response = await fetch('/api/academic-years', {
         headers: { 'x-user-id': user.id }
       });
+      console.log('Academic years response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
-        setAcademicYears(data.academicYears || []);
+        console.log('Academic years data received:', data);
+        setAcademicYears(data.academicYears || data || []);
+      } else {
+        console.error('Failed to fetch academic years:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
       }
     } catch (error) {
       console.error('Error fetching academic years:', error);
@@ -123,33 +121,75 @@ export default function EducatorRolesPage() {
   const fetchSemesters = useCallback(async () => {
     if (!user?.id) return;
     try {
+      console.log('Fetching semesters for user:', user.id);
       const response = await fetch('/api/semesters', {
         headers: { 'x-user-id': user.id }
       });
+      console.log('Semesters response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
-        setSemesters(data.semesters || []);
+        console.log('Semesters data received:', data);
+        setSemesters(data.semesters || data || []);
+      } else {
+        console.error('Failed to fetch semesters:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
       }
     } catch (error) {
       console.error('Error fetching semesters:', error);
     }
   }, [user?.id]);
 
+  // Fetch academic years without authentication (fallback)
+  const fetchAcademicYearsWithoutAuth = useCallback(async () => {
+    try {
+      console.log('Fetching academic years without auth...');
+      const response = await fetch('/api/academic-years');
+      console.log('Academic years (no auth) response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Academic years (no auth) data received:', data);
+        setAcademicYears(data.academicYears || data || []);
+      } else {
+        console.error('Failed to fetch academic years without auth:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+      }
+    } catch (error) {
+      console.error('Error fetching academic years without auth:', error);
+    }
+  }, []);
+
+  // Fetch semesters without authentication (fallback)
+  const fetchSemestersWithoutAuth = useCallback(async () => {
+    try {
+      console.log('Fetching semesters without auth...');
+      const response = await fetch('/api/semesters');
+      console.log('Semesters (no auth) response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Semesters (no auth) data received:', data);
+        setSemesters(data.semesters || data || []);
+      } else {
+        console.error('Failed to fetch semesters without auth:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+      }
+    } catch (error) {
+      console.error('Error fetching semesters without auth:', error);
+    }
+  }, []);
+
   // Fetch assignments
   const fetchAssignments = useCallback(async () => {
     if (!user?.id) return;
     setIsLoading(true);
     try {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: limit.toString()
-      });
-
+      const params = new URLSearchParams();
       if (debouncedSearchTerm) params.append('search', debouncedSearchTerm);
-      if (selectedAcademicYear !== 'all') params.append('academicYearId', selectedAcademicYear);
-      if (selectedSemester !== 'all') params.append('semesterId', selectedSemester);
-      if (selectedRole !== 'all') params.append('role', selectedRole);
-      if (isActiveFilter !== 'all') params.append('isActive', isActiveFilter);
 
       const response = await fetch(`/api/educator-role-assignments?${params}`, {
         headers: { 'x-user-id': user.id }
@@ -158,7 +198,6 @@ export default function EducatorRolesPage() {
 
       if (data.success) {
         setAssignments(data.assignments || []);
-        setTotalPages(data.totalPages || 1);
       } else {
         toast({
           variant: 'destructive',
@@ -176,13 +215,23 @@ export default function EducatorRolesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearchTerm, selectedAcademicYear, selectedSemester, selectedRole, isActiveFilter, currentPage, toast, user?.id]);
+  }, [debouncedSearchTerm, toast, user?.id]);
 
   useEffect(() => {
-    fetchEducators();
-    fetchAcademicYears();
-    fetchSemesters();
-  }, [fetchEducators, fetchAcademicYears, fetchSemesters]);
+    console.log('User ID:', user?.id);
+    console.log('User object:', user);
+    
+    // Always try to fetch academic years and semesters
+    fetchAcademicYearsWithoutAuth();
+    fetchSemestersWithoutAuth();
+    
+    if (user?.id) {
+      fetchEducators();
+      // Also try with auth as backup
+      fetchAcademicYears();
+      fetchSemesters();
+    }
+  }, [fetchEducators, fetchAcademicYears, fetchSemesters, fetchAcademicYearsWithoutAuth, fetchSemestersWithoutAuth, user?.id]);
 
   useEffect(() => {
     fetchAssignments();
@@ -239,6 +288,7 @@ export default function EducatorRolesPage() {
 
   const getRoleBadge = (role: string) => {
     const roleConfig = {
+      educator: { label: 'อาจารย์', color: 'bg-indigo-100 text-indigo-800' },
       courseInstructor: { label: 'อาจารย์ประจำวิชา', color: 'bg-blue-100 text-blue-800' },
       supervisor: { label: 'อาจารย์นิเทศ', color: 'bg-green-100 text-green-800' },
       committee: { label: 'กรรมการ', color: 'bg-purple-100 text-purple-800' },
@@ -264,19 +314,13 @@ export default function EducatorRolesPage() {
     return educator.name;
   };
 
-  const filteredSemesters = semesters.filter(semester => 
-    selectedAcademicYear === 'all' || semester.academicYearId === selectedAcademicYear
-  );
-
   return (
     <PermissionGuard requiredRoles={['admin', 'staff']}>
       <div className="flex h-screen bg-gray-50">
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="bg-white shadow-sm border-b">
             <div className="px-6 py-4">
-              <h1 className="text-2xl font-bold text-gray-900">จัดการบทบาท บุคลากรทา
-                การศึกษา
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900">จัดการบทบาทบุคลากรทางการศึกษา</h1>
               <p className="text-gray-600">กำหนดบทบาทให้ educator ตามเทอมและปีการศึกษา</p>
             </div>
           </div>
@@ -286,9 +330,9 @@ export default function EducatorRolesPage() {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle>รายการการกำหนดบทบาท</CardTitle>
+                    <CardTitle>รายชื่อ Educator และการกำหนดบทบาท</CardTitle>
                     <CardDescription>
-                      จัดการบทบาทของ educator ในแต่ละเทอมและปีการศึกษา
+                      จัดการบทบาทของ educator ตามปีการศึกษาและภาคเรียน
                     </CardDescription>
                   </div>
                   <Button onClick={handleCreateAssignment} className="bg-blue-600 hover:bg-blue-700">
@@ -298,80 +342,18 @@ export default function EducatorRolesPage() {
                 </div>
               </CardHeader>
 
-              <CardContent>
-                {/* Filters */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">ค้นหา</label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <Input
-                        placeholder="ค้นหาตามชื่อ educator..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">ปีการศึกษา</label>
-                    <select
-                      value={selectedAcademicYear}
-                      onChange={(e) => setSelectedAcademicYear(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="all">ทั้งหมด</option>
-                      {academicYears.map((year) => (
-                        <option key={year.id} value={year.id}>
-                          {year.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">ภาคเรียน</label>
-                    <select
-                      value={selectedSemester}
-                      onChange={(e) => setSelectedSemester(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="all">ทั้งหมด</option>
-                      {filteredSemesters.map((semester) => (
-                        <option key={semester.id} value={semester.id}>
-                          {semester.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">บทบาท</label>
-                    <select
-                      value={selectedRole}
-                      onChange={(e) => setSelectedRole(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="all">ทั้งหมด</option>
-                      <option value="courseInstructor">อาจารย์ประจำวิชา</option>
-                      <option value="supervisor">อาจารย์นิเทศ</option>
-                      <option value="committee">กรรมการ</option>
-                      <option value="visitor">ผู้เยี่ยมชม</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">สถานะ</label>
-                    <select
-                      value={isActiveFilter}
-                      onChange={(e) => setIsActiveFilter(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="all">ทั้งหมด</option>
-                      <option value="true">ใช้งาน</option>
-                      <option value="false">ไม่ใช้งาน</option>
-                    </select>
+              <CardContent className="space-y-4">
+                {/* Search */}
+                <div className="mb-6">
+                  <label className="text-sm font-medium text-gray-700 mb-1 block">ค้นหา Educator</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="ค้นหาตามชื่อ educator..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
                 </div>
 
@@ -429,11 +411,13 @@ export default function EducatorRolesPage() {
                             </td>
                             <td className="py-3 px-4">
                               <div className="flex flex-wrap gap-1">
-                                {assignment.roles.map((role) => (
-                                  <div key={role}>
-                                    {getRoleBadge(role)}
+                                {assignment.roles.length > 0 ? (
+                                  <div>
+                                    {getRoleBadge(assignment.roles[0])}
                                   </div>
-                                ))}
+                                ) : (
+                                  <span className="text-gray-500">ไม่ระบุบทบาท</span>
+                                )}
                               </div>
                             </td>
                             <td className="py-3 px-4">
@@ -478,32 +462,6 @@ export default function EducatorRolesPage() {
                   </table>
                 </div>
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex justify-center mt-6">
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                        disabled={currentPage === 1}
-                      >
-                        ก่อนหน้า
-                      </Button>
-                      <span className="px-3 py-2 text-sm text-gray-700">
-                        หน้า {currentPage} จาก {totalPages}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                        disabled={currentPage === totalPages}
-                      >
-                        ถัดไป
-                      </Button>
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>
@@ -523,6 +481,15 @@ export default function EducatorRolesPage() {
             setEditingAssignment(null);
           }}
         />
+      )}
+      
+      {/* Debug Info - Remove in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-4 right-4 bg-gray-800 text-white p-4 rounded-lg text-xs">
+          <div>Academic Years: {academicYears.length}</div>
+          <div>Semesters: {semesters.length}</div>
+          <div>Educators: {educators.length}</div>
+        </div>
       )}
     </PermissionGuard>
   );

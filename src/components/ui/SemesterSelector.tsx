@@ -152,11 +152,11 @@ export default function SemesterSelector({
         </SelectTrigger>
         <SelectContent>
           {!academicYearId ? (
-            <SelectItem value="" disabled>
+            <SelectItem value="none" disabled>
               {lang === 'en' ? 'Please select academic year first' : 'กรุณาเลือกปีการศึกษาก่อน'}
             </SelectItem>
           ) : semesters.length === 0 ? (
-            <SelectItem value="" disabled>
+            <SelectItem value="none" disabled>
               {lang === 'en' ? 'No semesters found' : 'ไม่พบภาคเรียน'}
             </SelectItem>
           ) : (

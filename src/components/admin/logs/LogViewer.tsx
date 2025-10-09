@@ -177,16 +177,16 @@ export function LogViewer() {
             <div>
               <label className="text-sm font-medium">ระดับ</label>
               <Select
-                value={filters.level || ''}
+                value={filters.level || 'all'}
                 onValueChange={(value) => 
-                  setFilters(prev => ({ ...prev, level: value || undefined, offset: 0 }))
+                  setFilters(prev => ({ ...prev, level: value === 'all' ? undefined : value, offset: 0 }))
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="ทั้งหมด" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">ทั้งหมด</SelectItem>
+                  <SelectItem value="all">ทั้งหมด</SelectItem>
                   <SelectItem value="ERROR">ERROR</SelectItem>
                   <SelectItem value="WARN">WARN</SelectItem>
                   <SelectItem value="INFO">INFO</SelectItem>

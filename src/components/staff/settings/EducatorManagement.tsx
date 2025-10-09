@@ -28,23 +28,30 @@ interface User {
   educatorRole?: EducatorRole;
 }
 
+interface Course {
+  id: string;
+  code: string;
+  name: string;
+}
+
 interface CourseInstructor {
   id: string;
-  academicYearId: string;
-  semesterId: string;
-  courseId?: string;
-  instructorId: string;
-  roleId: string;
+  courseId: string;
+  userId: string;
+  role: string;
   isActive: boolean;
-  instructor: User;
-  role: EducatorRole;
-  academicYear: { year: string };
-  semester: { name: string };
+  course: Course;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export function EducatorManagement() {
   const [educatorRoles, setEducatorRoles] = useState<EducatorRole[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [courseInstructors, setCourseInstructors] = useState<CourseInstructor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -57,9 +64,10 @@ export function EducatorManagement() {
   const loadEducatorData = async () => {
     setIsLoading(true);
     try {
-      const [rolesResponse, usersResponse, instructorsResponse] = await Promise.all([
+      const [rolesResponse, usersResponse, coursesResponse, instructorsResponse] = await Promise.all([
         fetch('/api/educator-roles'),
         fetch('/api/users?role=instructor'),
+        fetch('/api/courses'),
         fetch('/api/course-instructors')
       ]);
 
@@ -77,6 +85,14 @@ export function EducatorManagement() {
         console.log('Loaded users:', usersData.length);
       } else {
         console.error('Failed to load users:', usersResponse.status);
+      }
+
+      if (coursesResponse.ok) {
+        const coursesData = await coursesResponse.json();
+        setCourses(coursesData);
+        console.log('Loaded courses:', coursesData.length);
+      } else {
+        console.error('Failed to load courses:', coursesResponse.status);
       }
 
       if (instructorsResponse.ok) {
@@ -116,16 +132,12 @@ export function EducatorManagement() {
       ...courseInstructors,
       {
         id: `new-${Date.now()}`,
-        academicYearId: '',
-        semesterId: '',
         courseId: '',
-        instructorId: '',
-        roleId: '',
+        userId: '',
+        role: 'instructor',
         isActive: true,
-        instructor: { id: '', name: '', email: '', roles: '' },
-        role: { id: '', name: '', nameEn: '', description: '', isActive: true },
-        academicYear: { year: '' },
-        semester: { name: '' }
+        course: { id: '', code: '', name: '' },
+        user: { id: '', name: '', email: '' }
       }
     ]);
   };
@@ -168,9 +180,21 @@ export function EducatorManagement() {
   };
 
   const handleInstructorChange = (id: string, field: string, value: string | boolean) => {
-    setCourseInstructors(prev => prev.map(instructor => 
-      instructor.id === id ? { ...instructor, [field]: value } : instructor
-    ));
+    setCourseInstructors(prev => prev.map(instructor => {
+      if (instructor.id === id) {
+        if (field === 'courseId') {
+          const selectedCourse = courses.find(c => c.id === value);
+          return {
+            ...instructor,
+            courseId: value as string,
+            course: selectedCourse || instructor.course
+          };
+        } else {
+          return { ...instructor, [field]: value };
+        }
+      }
+      return instructor;
+    }));
   };
 
   if (isLoading) {
@@ -290,9 +314,8 @@ export function EducatorManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ปีการศึกษา</TableHead>
-                    <TableHead>ภาคเรียน</TableHead>
                     <TableHead>รหัสวิชา</TableHead>
+                    <TableHead>ชื่อวิชา</TableHead>
                     <TableHead>อาจารย์</TableHead>
                     <TableHead>บทบาท</TableHead>
                     <TableHead>สถานะ</TableHead>
@@ -302,47 +325,63 @@ export function EducatorManagement() {
                 <TableBody>
                   {courseInstructors.map((instructor) => (
                     <TableRow key={instructor.id}>
-                      <TableCell>{instructor.academicYear.year}</TableCell>
-                      <TableCell>{instructor.semester.name}</TableCell>
                       <TableCell>
-                        <Input
-                          value={instructor.courseId || ''}
-                          onChange={(e) => handleInstructorChange(instructor.id, 'courseId', e.target.value)}
-                          placeholder="เช่น CS101"
-                          className="w-24"
-                        />
+                        <Select
+                          value={instructor.courseId}
+                          onValueChange={(value) => handleInstructorChange(instructor.id, 'courseId', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="เลือกวิชา" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {courses && courses.length > 0 ? courses.map((course) => (
+                              <SelectItem key={course.id} value={course.id}>
+                                {course.code} - {course.name}
+                              </SelectItem>
+                            )) : (
+                              <SelectItem value="" disabled>
+                                ไม่พบวิชา
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        {instructor.course?.name || '-'}
                       </TableCell>
                       <TableCell>
                         <Select
-                          value={instructor.instructorId}
-                          onValueChange={(value) => handleInstructorChange(instructor.id, 'instructorId', value)}
+                          value={instructor.userId}
+                          onValueChange={(value) => handleInstructorChange(instructor.id, 'userId', value)}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="เลือกอาจารย์" />
                           </SelectTrigger>
                           <SelectContent>
-                            {users.map((user) => (
+                            {users && users.length > 0 ? users.map((user) => (
                               <SelectItem key={user.id} value={user.id}>
                                 {user.name}
                               </SelectItem>
-                            ))}
+                            )) : (
+                              <SelectItem value="" disabled>
+                                ไม่พบผู้ใช้
+                              </SelectItem>
+                            )}
                           </SelectContent>
                         </Select>
                       </TableCell>
                       <TableCell>
                         <Select
-                          value={instructor.roleId}
-                          onValueChange={(value) => handleInstructorChange(instructor.id, 'roleId', value)}
+                          value={instructor.role}
+                          onValueChange={(value) => handleInstructorChange(instructor.id, 'role', value)}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="เลือกบทบาท" />
                           </SelectTrigger>
                           <SelectContent>
-                            {educatorRoles.map((role) => (
-                              <SelectItem key={role.id} value={role.id}>
-                                {role.name}
-                              </SelectItem>
-                            ))}
+                            <SelectItem value="instructor">อาจารย์ประจำวิชา</SelectItem>
+                            <SelectItem value="assistant">ผู้ช่วยสอน</SelectItem>
+                            <SelectItem value="coordinator">ผู้ประสานงาน</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>

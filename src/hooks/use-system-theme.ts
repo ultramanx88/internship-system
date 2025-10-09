@@ -12,35 +12,7 @@ export function useSystemTheme() {
   const [background, setBackground] = useState<string>(DEFAULT_BACKGROUND);
   const [favicon, setFavicon] = useState<string>('/favicon.ico');
   const [isLoading, setIsLoading] = useState(true);
-
-  // Load system theme from database
-  const loadSystemTheme = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      await fetchActiveSystemMedia();
-      
-      // Get active media
-      const activeLogo = getActiveMediaByType('logo');
-      const activeBackground = getActiveMediaByType('background');
-      const activeFavicon = getActiveMediaByType('favicon');
-
-      // Update states
-      if (activeLogo) {
-        setLogo(activeLogo.filePath);
-      }
-      if (activeBackground) {
-        setBackground(activeBackground.filePath);
-      }
-      if (activeFavicon) {
-        setFavicon(activeFavicon.filePath);
-        updateFavicon(activeFavicon.filePath);
-      }
-    } catch (error) {
-      console.error('Error loading system theme:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fetchActiveSystemMedia, getActiveMediaByType]);
+  const [isLoadingTheme, setIsLoadingTheme] = useState(false);
 
   // Update favicon
   const updateFavicon = useCallback((faviconUrl: string) => {
@@ -55,10 +27,51 @@ export function useSystemTheme() {
     }
   }, []);
 
-  // Load theme on mount
+  // Load system theme from database
+  const loadSystemTheme = useCallback(async () => {
+    if (isLoadingTheme) {
+      console.log('Already loading theme, skipping...');
+      return;
+    }
+
+    try {
+      setIsLoadingTheme(true);
+      setIsLoading(true);
+      
+      // Get active media directly from the API
+      // This prevents infinite loop caused by dependency on systemMedia state
+      const response = await fetch('/api/system-media/active');
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        const activeLogo = result.data.find((media: any) => media.type === 'logo' && media.isActive);
+        const activeBackground = result.data.find((media: any) => media.type === 'background' && media.isActive);
+        const activeFavicon = result.data.find((media: any) => media.type === 'favicon' && media.isActive);
+
+        // Update states
+        if (activeLogo) {
+          setLogo(activeLogo.filePath);
+        }
+        if (activeBackground) {
+          setBackground(activeBackground.filePath);
+        }
+        if (activeFavicon) {
+          setFavicon(activeFavicon.filePath);
+          updateFavicon(activeFavicon.filePath);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading system theme:', error);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingTheme(false);
+    }
+  }, [updateFavicon, isLoadingTheme]);
+
+  // Load theme on mount - only once
   useEffect(() => {
     loadSystemTheme();
-  }, [loadSystemTheme]);
+  }, []); // Empty dependency array to run only once
 
   // Listen for theme changes (for real-time updates)
   useEffect(() => {

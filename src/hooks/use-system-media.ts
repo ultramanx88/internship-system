@@ -28,6 +28,7 @@ export function useSystemMedia() {
   const [systemMedia, setSystemMedia] = useState<SystemMedia[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
 
   // ดึงข้อมูลไฟล์ระบบทั้งหมด
   const fetchSystemMedia = useCallback(async (type?: string, activeOnly: boolean = false) => {
@@ -57,7 +58,13 @@ export function useSystemMedia() {
 
   // ดึงข้อมูลไฟล์ระบบที่ใช้งานอยู่
   const fetchActiveSystemMedia = useCallback(async (type?: string) => {
+    if (isFetching) {
+      console.log('Already fetching active system media, skipping...');
+      return;
+    }
+
     try {
+      setIsFetching(true);
       setIsLoading(true);
       setError(null);
 
@@ -77,8 +84,9 @@ export function useSystemMedia() {
       console.error('Fetch active system media error:', err);
     } finally {
       setIsLoading(false);
+      setIsFetching(false);
     }
-  }, []);
+  }, [isFetching]);
 
   // อัปโหลดไฟล์ระบบ
   const uploadSystemMedia = useCallback(async (
@@ -189,10 +197,10 @@ export function useSystemMedia() {
     return systemMedia.filter(media => media.type === type);
   }, [systemMedia]);
 
-  // Load data on mount
+  // Load data on mount - only once
   useEffect(() => {
     fetchSystemMedia();
-  }, [fetchSystemMedia]);
+  }, []); // Empty dependency array to run only once
 
   return {
     systemMedia,

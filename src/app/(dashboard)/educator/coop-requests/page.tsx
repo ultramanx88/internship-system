@@ -79,8 +79,13 @@ export default function CoopRequestsPage() {
   // ดึงข้อมูลจาก API
   const fetchRequests = async () => {
     console.log('fetchRequests called, user:', user);
+    console.log('educatorRole:', educatorRole);
     
-    if (!user?.id) {
+    // Development bypass check
+    const isDev = process.env.NODE_ENV === 'development';
+    const shouldBypass = isDev && (!user?.id || !educatorRole);
+    
+    if (!user?.id && !shouldBypass) {
       console.log('No user ID, skipping fetch');
       return;
     }
@@ -88,7 +93,6 @@ export default function CoopRequestsPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        userId: user.id,
         page: currentPage.toString(),
         limit: '10'
       });
@@ -98,16 +102,54 @@ export default function CoopRequestsPage() {
       if (selectedStatus && selectedStatus !== 'all') params.append('status', selectedStatus);
 
       console.log('Fetching with params:', params.toString());
-      const response = await fetch(`/api/educator/coop-requests?${params}`);
-      const data: ApiResponse = await response.json();
-
-      console.log('API response:', data);
+      console.log('User ID being sent:', user?.id || 'dev-bypass');
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Add development bypass header if needed
+      if (shouldBypass) {
+        headers['x-dev-bypass'] = 'true';
+        console.log('🔧 Using development bypass');
+      } else if (user?.id) {
+        headers['x-user-id'] = user.id;
+      }
+      
+      const response = await fetch(`/api/educator/coop-requests?${params}`, {
+        headers
+      });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError);
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
+        console.error('API error:', errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      
+      let data: ApiResponse;
+      try {
+        data = await response.json();
+        console.log('API response:', data);
+      } catch (parseError) {
+        console.error('Failed to parse success response:', parseError);
+        throw new Error('ไม่สามารถอ่านข้อมูลจากเซิร์ฟเวอร์ได้');
+      }
 
       if (data.success && data.applications && data.pagination) {
         setRequests(data.applications);
         setTotalPages(data.pagination!.totalPages);
       } else {
         const errorMessage = data.error || 'ไม่สามารถดึงข้อมูลได้';
+        console.error('API returned error:', errorMessage);
         toast({
           title: 'เกิดข้อผิดพลาด',
           description: errorMessage,
@@ -118,7 +160,7 @@ export default function CoopRequestsPage() {
       console.error('Error fetching requests:', error);
       toast({
         title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+        description: error instanceof Error ? error.message : 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
         variant: 'destructive'
       });
     } finally {
@@ -128,6 +170,15 @@ export default function CoopRequestsPage() {
 
   // ดึงข้อมูลเมื่อ component mount หรือ filter เปลี่ยน
   useEffect(() => {
+    const isDev = process.env.NODE_ENV === 'development';
+    const shouldBypass = isDev && (!user?.id || !educatorRole);
+    
+    if (shouldBypass) {
+      console.log('🔧 Development mode: Using bypass authentication');
+      fetchRequests();
+      return;
+    }
+    
     // สำหรับการทดสอบ ถ้าไม่มี user ให้ใช้ test user
     if (!user?.id) {
       console.log('No user found, using test user for demo');
@@ -263,8 +314,12 @@ export default function CoopRequestsPage() {
   // ใช้ข้อมูลจาก API โดยตรง (ไม่ต้อง filter อีกครั้งเพราะ API ทำแล้ว)
   const filteredRequests = requests;
 
-  // แสดง loading state
-  if (isLoading) {
+  // Development bypass - skip auth checks in dev mode
+  const isDev = process.env.NODE_ENV === 'development';
+  const shouldBypass = isDev && (!user?.id || !educatorRole);
+
+  // แสดง loading state (skip in dev bypass mode)
+  if (isLoading && !shouldBypass) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <div className="text-center">
@@ -275,8 +330,8 @@ export default function CoopRequestsPage() {
     );
   }
 
-  // แสดง error state
-  if (error) {
+  // แสดง error state (skip in dev bypass mode)
+  if (error && !shouldBypass) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <div className="text-center">
@@ -302,6 +357,19 @@ export default function CoopRequestsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Development Mode Indicator */}
+      {shouldBypass && (
+        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-md">
+          <div className="flex items-center">
+            <div className="text-yellow-500 mr-2">🔧</div>
+            <div>
+              <strong>Development Mode:</strong> Authentication bypass is active. 
+              This will only work in development environment.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">รายการขอฝึกงาน / สหกิจศึกษา</h1>

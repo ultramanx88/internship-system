@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { useAuth } from '@/hooks/use-auth';
+import { AuthContext } from '@/hooks/use-auth-provider';
 import { useToast } from '@/hooks/use-toast';
 
 interface RealtimeContextType {
@@ -18,7 +18,8 @@ const RealtimeContext = createContext<RealtimeContextType | undefined>(undefined
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const { user } = useAuth();
+  const authContext = useContext(AuthContext);
+  const user = authContext?.user;
   const { toast } = useToast();
 
   useEffect(() => {

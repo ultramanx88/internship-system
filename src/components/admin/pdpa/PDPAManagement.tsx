@@ -58,7 +58,7 @@ export function PDPAManagement() {
   // Consent filters
   const [consentFilters, setConsentFilters] = useState({
     userId: '',
-    consentType: '',
+    consentType: 'all',
   });
 
   const fetchConsents = async () => {
@@ -71,12 +71,22 @@ export function PDPAManagement() {
       const data = await response.json();
       
       if (consentFilters.userId) {
-        setConsents(data);
+        setConsents(Array.isArray(data) ? data : []);
       } else {
-        setStats(data);
+        // Ensure data has the expected structure
+        setStats({
+          totalUsers: data?.totalUsers || 0,
+          consentBreakdown: data?.consentBreakdown || {}
+        });
       }
     } catch (error) {
       console.error('Failed to fetch consents:', error);
+      // Set safe defaults on error
+      if (consentFilters.userId) {
+        setConsents([]);
+      } else {
+        setStats({ totalUsers: 0, consentBreakdown: {} });
+      }
     } finally {
       setLoading(false);
     }
@@ -86,9 +96,10 @@ export function PDPAManagement() {
     try {
       const response = await fetch('/api/admin/pdpa/anonymization');
       const data = await response.json();
-      setRules(data);
+      setRules(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch rules:', error);
+      setRules([]);
     }
   };
 
@@ -203,7 +214,7 @@ export function PDPAManagement() {
                       <SelectValue placeholder="ทั้งหมด" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">ทั้งหมด</SelectItem>
+                      <SelectItem value="all">ทั้งหมด</SelectItem>
                       <SelectItem value="data_collection">การเก็บรวบรวมข้อมูล</SelectItem>
                       <SelectItem value="data_processing">การประมวลผลข้อมูล</SelectItem>
                       <SelectItem value="data_sharing">การแชร์ข้อมูล</SelectItem>
@@ -373,7 +384,7 @@ export function PDPAManagement() {
                   </CardContent>
                 </Card>
 
-                {Object.entries(stats.consentBreakdown).map(([key, value]) => {
+                {Object.entries(stats.consentBreakdown || {}).map(([key, value]) => {
                   const [type, status] = key.split('_');
                   const isConsented = status === 'consented';
                   

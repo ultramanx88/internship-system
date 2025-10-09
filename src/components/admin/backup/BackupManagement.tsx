@@ -72,9 +72,21 @@ export function BackupManagement() {
     try {
       const response = await fetch('/api/admin/backup');
       const data = await response.json();
-      setBackups(data);
+      
+      // Check if response is an array, if not set empty array
+      if (Array.isArray(data)) {
+        setBackups(data);
+      } else {
+        console.error('API response is not an array:', data);
+        setBackups([]);
+        if (data.error) {
+          alert(`เกิดข้อผิดพลาด: ${data.error}`);
+        }
+      }
     } catch (error) {
       console.error('Failed to fetch backups:', error);
+      setBackups([]);
+      alert('ไม่สามารถโหลดข้อมูล Backup ได้');
     } finally {
       setLoading(false);
     }
@@ -301,10 +313,10 @@ export function BackupManagement() {
                     กำลังโหลด...
                   </TableCell>
                 </TableRow>
-              ) : backups.length === 0 ? (
+              ) : !Array.isArray(backups) || backups.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-4 text-gray-500">
-                    ไม่พบ Backup
+                    {!Array.isArray(backups) ? 'เกิดข้อผิดพลาดในการโหลดข้อมูล' : 'ไม่พบ Backup'}
                   </TableCell>
                 </TableRow>
               ) : (

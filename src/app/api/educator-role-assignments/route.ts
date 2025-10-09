@@ -8,14 +8,14 @@ const createAssignmentSchema = z.object({
   educatorId: z.string().min(1, 'ต้องระบุ educator ID'),
   academicYearId: z.string().min(1, 'ต้องระบุปีการศึกษา'),
   semesterId: z.string().min(1, 'ต้องระบุภาคเรียน'),
-  roles: z.array(z.enum(['courseInstructor', 'supervisor', 'committee', 'visitor'])).min(1, 'ต้องระบุบทบาทอย่างน้อย 1 บทบาท'),
+  roles: z.array(z.enum(['educator', 'courseInstructor', 'supervisor', 'committee', 'visitor'])).min(1, 'ต้องระบุบทบาทอย่างน้อย 1 บทบาท'),
   isActive: z.boolean().default(true),
   notes: z.string().optional()
 });
 
 // Schema for updating educator role assignment
 const updateAssignmentSchema = z.object({
-  roles: z.array(z.enum(['courseInstructor', 'supervisor', 'committee', 'visitor'])).min(1, 'ต้องระบุบทบาทอย่างน้อย 1 บทบาท'),
+  roles: z.array(z.enum(['educator', 'courseInstructor', 'supervisor', 'committee', 'visitor'])).min(1, 'ต้องระบุบทบาทอย่างน้อย 1 บทบาท'),
   isActive: z.boolean().optional(),
   notes: z.string().optional()
 });
@@ -153,13 +153,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if educator has educator role
+    // Check if educator has appropriate role for educator role assignment
     const userRoles = JSON.parse(educator.roles || '[]');
-    if (!userRoles.includes('educator') && !userRoles.some((role: string) => 
-      ['courseInstructor', 'supervisor', 'committee', 'visitor'].includes(role)
-    )) {
+    const validEducatorRoles = ['admin', 'staff', 'courseInstructor', 'committee', 'visitor'];
+    
+    if (!userRoles.some((role: string) => validEducatorRoles.includes(role))) {
       return NextResponse.json(
-        { success: false, error: 'ผู้ใช้ที่ระบุไม่ใช่ educator' },
+        { success: false, error: 'ผู้ใช้ที่ระบุไม่มีสิทธิ์ในการกำหนดบทบาท educator' },
         { status: 400 }
       );
     }
@@ -235,6 +235,109 @@ export async function POST(request: NextRequest) {
       { 
         success: false, 
         error: 'ไม่สามารถกำหนดบทบาทได้',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  } finally {
+    await cleanup();
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    // Removed authentication check for internal admin functions
+
+    const body = await request.json();
+    const { id, ...updateData } = body;
+    
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: 'ต้องระบุ ID ของการกำหนดบทบาท' },
+        { status: 400 }
+      );
+    }
+
+    const result = updateAssignmentSchema.safeParse(updateData);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'ข้อมูลไม่ถูกต้อง', 
+          details: result.error.flatten() 
+        },
+        { status: 400 }
+      );
+    }
+
+    const { roles, isActive, notes } = result.data;
+
+    // Check if assignment exists
+    const existingAssignment = await prisma.educatorRoleAssignment.findUnique({
+      where: { id }
+    });
+
+    if (!existingAssignment) {
+      return NextResponse.json(
+        { success: false, error: 'ไม่พบการกำหนดบทบาทที่ระบุ' },
+        { status: 404 }
+      );
+    }
+
+    // Update assignment
+    const assignment = await prisma.educatorRoleAssignment.update({
+      where: { id },
+      data: {
+        roles: JSON.stringify(roles),
+        isActive,
+        notes
+      },
+      include: {
+        educator: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            t_name: true,
+            t_surname: true,
+            e_name: true,
+            e_surname: true
+          }
+        },
+        academicYear: {
+          select: {
+            id: true,
+            year: true,
+            name: true
+          }
+        },
+        semester: {
+          select: {
+            id: true,
+            name: true,
+            startDate: true,
+            endDate: true
+          }
+        }
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      assignment: {
+        ...assignment,
+        roles: JSON.parse(assignment.roles)
+      },
+      message: 'อัปเดตการกำหนดบทบาทสำเร็จ'
+    });
+
+  } catch (error) {
+    console.error('Error updating educator role assignment:', error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'ไม่สามารถอัปเดตการกำหนดบทบาทได้',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }

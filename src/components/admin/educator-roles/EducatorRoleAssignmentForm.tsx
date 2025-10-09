@@ -58,6 +58,7 @@ interface EducatorRoleAssignmentFormProps {
 }
 
 const ROLE_OPTIONS = [
+  { value: 'educator', label: 'อาจารย์', description: 'บทบาทหลักของอาจารย์ในระบบ' },
   { value: 'courseInstructor', label: 'อาจารย์ประจำวิชา', description: 'รับผิดชอบการสอนและประเมินผล' },
   { value: 'supervisor', label: 'อาจารย์นิเทศ', description: 'ดูแลและให้คำแนะนำนักศึกษา' },
   { value: 'committee', label: 'กรรมการ', description: 'พิจารณาและอนุมัติใบสมัคร' },
@@ -78,7 +79,7 @@ export function EducatorRoleAssignmentForm({
     educatorId: '',
     academicYearId: '',
     semesterId: '',
-    roles: [] as string[],
+    role: '', // Changed from roles array to single role
     isActive: true,
     notes: ''
   });
@@ -91,7 +92,7 @@ export function EducatorRoleAssignmentForm({
         educatorId: assignment.educatorId,
         academicYearId: assignment.academicYearId,
         semesterId: assignment.semesterId,
-        roles: assignment.roles,
+        role: assignment.roles.length > 0 ? assignment.roles[0] : '', // Take first role for single-role
         isActive: assignment.isActive,
         notes: assignment.notes || ''
       });
@@ -110,16 +111,24 @@ export function EducatorRoleAssignmentForm({
         setFormData(prev => ({ ...prev, semesterId: '' }));
       }
     } else {
-      setFilteredSemesters(semesters);
+      setFilteredSemesters([]);
     }
-  }, [formData.academicYearId, semesters, formData.semesterId]);
+  }, [formData.academicYearId, semesters]);
 
-  const handleRoleChange = (role: string, checked: boolean) => {
+  // Debug effect to log data changes
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Form data changed:', formData);
+      console.log('Academic years available:', academicYears);
+      console.log('Semesters available:', semesters);
+      console.log('Filtered semesters:', filteredSemesters);
+    }
+  }, [formData, academicYears, semesters, filteredSemesters]);
+
+  const handleRoleChange = (role: string) => {
     setFormData(prev => ({
       ...prev,
-      roles: checked 
-        ? [...prev.roles, role]
-        : prev.roles.filter(r => r !== role)
+      role: role
     }));
   };
 
@@ -135,11 +144,11 @@ export function EducatorRoleAssignmentForm({
       return;
     }
 
-    if (formData.roles.length === 0) {
+    if (!formData.role) {
       toast({
         variant: 'destructive',
         title: 'ต้องเลือกบทบาท',
-        description: 'กรุณาเลือกบทบาทอย่างน้อย 1 บทบาท'
+        description: 'กรุณาเลือกบทบาท'
       });
       return;
     }
@@ -153,12 +162,23 @@ export function EducatorRoleAssignmentForm({
       
       const method = assignment ? 'PUT' : 'POST';
 
+      const requestBody = assignment 
+        ? {
+            roles: [formData.role], // Convert single role to array for API compatibility
+            isActive: formData.isActive,
+            notes: formData.notes
+          }
+        : {
+            ...formData,
+            roles: [formData.role] // Convert single role to array for API compatibility
+          };
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(requestBody)
       });
 
       const data = await response.json();
@@ -209,6 +229,16 @@ export function EducatorRoleAssignmentForm({
             กำหนดบทบาทให้ educator ในเทอมและปีการศึกษาที่เลือก
           </DialogDescription>
         </DialogHeader>
+        
+        {/* Debug Info - Remove in production */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs">
+            <div>Academic Years: {academicYears.length}</div>
+            <div>Semesters: {semesters.length}</div>
+            <div>Filtered Semesters: {filteredSemesters.length}</div>
+            <div>Selected Academic Year: {formData.academicYearId}</div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -267,7 +297,14 @@ export function EducatorRoleAssignmentForm({
                 required
                 disabled={!formData.academicYearId}
               >
-                <option value="">เลือกภาคเรียน</option>
+                <option value="">
+                  {!formData.academicYearId 
+                    ? 'กรุณาเลือกปีการศึกษาก่อน' 
+                    : filteredSemesters.length === 0 
+                      ? 'ไม่พบภาคเรียนสำหรับปีการศึกษานี้' 
+                      : 'เลือกภาคเรียน'
+                  }
+                </option>
                 {filteredSemesters.map((semester) => (
                   <option key={semester.id} value={semester.id}>
                     {semester.name}
@@ -300,10 +337,14 @@ export function EducatorRoleAssignmentForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {ROLE_OPTIONS.map((role) => (
                 <div key={role.value} className="flex items-start space-x-3 p-3 border rounded-lg">
-                  <Checkbox
+                  <input
+                    type="radio"
                     id={role.value}
-                    checked={formData.roles.includes(role.value)}
-                    onCheckedChange={(checked) => handleRoleChange(role.value, checked as boolean)}
+                    name="role"
+                    value={role.value}
+                    checked={formData.role === role.value}
+                    onChange={(e) => handleRoleChange(e.target.value)}
+                    className="mt-1"
                   />
                   <div className="flex-1">
                     <Label htmlFor={role.value} className="font-medium cursor-pointer">

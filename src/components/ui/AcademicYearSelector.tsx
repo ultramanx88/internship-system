@@ -138,7 +138,7 @@ export default function AcademicYearSelector({
         </SelectTrigger>
         <SelectContent>
           {academicYears.length === 0 ? (
-            <SelectItem value="" disabled>
+            <SelectItem value="none" disabled>
               {lang === 'en' ? 'No academic years found' : 'ไม่พบปีการศึกษา'}
             </SelectItem>
           ) : (

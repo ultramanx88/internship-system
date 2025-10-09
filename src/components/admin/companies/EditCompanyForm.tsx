@@ -51,9 +51,9 @@ export function EditCompanyForm({ companyId }: EditCompanyFormProps) {
         name: '',
         nameEn: '',
         address: '',
-        province: '',
-        district: '',
-        subdistrict: '',
+        provinceId: '',
+        districtId: '',
+        subdistrictId: '',
         postalCode: '',
         phone: '',
         email: '',
@@ -88,9 +88,9 @@ export function EditCompanyForm({ companyId }: EditCompanyFormProps) {
                 name: companyData.name || '',
                 nameEn: companyData.nameEn || '',
                 address: companyData.address || '',
-                province: companyData.province || '',
-                district: companyData.district || '',
-                subdistrict: companyData.subdistrict || '',
+                provinceId: companyData.provinceId || '',
+                districtId: companyData.districtId || '',
+                subdistrictId: companyData.subdistrictId || '',
                 postalCode: companyData.postalCode || '',
                 phone: companyData.phone || '',
                 email: companyData.email || '',
@@ -142,6 +142,10 @@ export function EditCompanyForm({ companyId }: EditCompanyFormProps) {
                 body: JSON.stringify({
                     ...formData,
                     size: formData.size || null,
+                    // ส่งข้อมูล ID แทนชื่อ
+                    provinceId: formData.provinceId || null,
+                    districtId: formData.districtId || null,
+                    subdistrictId: formData.subdistrictId || null,
                 }),
             });
 
@@ -281,18 +285,17 @@ export function EditCompanyForm({ companyId }: EditCompanyFormProps) {
 
                         <AddressSelector
                             value={{
-                                provinceId: (company as any)?.provinceId || '',
-                                districtId: (company as any)?.districtId || '',
-                                subdistrictId: (company as any)?.subdistrictId || '',
-                                postalCode: formData.postalCode || ''
+                                provinceId: formData.provinceId,
+                                districtId: formData.districtId,
+                                subdistrictId: formData.subdistrictId,
+                                postalCode: formData.postalCode
                             }}
                             onChange={(v) => {
                                 setFormData(prev => ({
                                     ...prev,
-                                    // เก็บเป็นชื่อเขต/จังหวัดแบบเดิมสำหรับ back-compat ถ้ายังใช้ฟิลด์ text
-                                    province: prev.province,
-                                    district: prev.district,
-                                    subdistrict: prev.subdistrict,
+                                    provinceId: v.provinceId,
+                                    districtId: v.districtId,
+                                    subdistrictId: v.subdistrictId,
                                     postalCode: v.postalCode || prev.postalCode
                                 }));
                             }}
