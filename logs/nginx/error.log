@@ -594,3 +594,4 @@
 2025/10/10 14:14:20 [emerg] 1#1: host not found in upstream "app:8080" in /etc/nginx/nginx.conf:51
 2025/10/10 14:15:21 [emerg] 1#1: host not found in upstream "app:8080" in /etc/nginx/nginx.conf:51
 2025/10/10 14:16:21 [emerg] 1#1: host not found in upstream "app:8080" in /etc/nginx/nginx.conf:51
+2025/10/10 14:17:22 [emerg] 1#1: host not found in upstream "app:8080" in /etc/nginx/nginx.conf:51
