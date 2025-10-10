@@ -1,4 +1,3 @@
-// Production Schema (PostgreSQL)
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,204 +8,203 @@ datasource db {
 }
 
 model User {
-  id            String        @id @default(cuid())
-  name          String
-  email         String        @unique
-  password      String
-  roles         String
-  skills        String?
-  statement     String?
-  t_title       String?
-  t_name        String?
-  t_middle_name String?
-  t_surname     String?
-  e_title       String?
-  e_name        String?
-  e_middle_name String?
-  e_surname     String?
-  facultyId     String?
-  departmentId  String?
-  curriculumId  String?
-  majorId       String?
-  studentYear   Int?
-  // เพิ่ม fields สำหรับ settings
-  phone         String?
-  campus        String?
-  gpa           String?
-  nationality   String?
-  passportId    String?
-  visaType      String?
-  profileImage  String?
-  internshipPhoto1 String?  // รูปฝึกงานรูปที่ 1
-  internshipPhoto2 String?  // รูปฝึกงานรูปที่ 2
-  // การตั้งค่าการแจ้งเตือน
-  notifyEmail   Boolean       @default(true)
-  notifyPush    Boolean       @default(false)
-  notifySms     Boolean       @default(false)
-  notifyAppUpdates Boolean    @default(true)
-  notifyDeadlines Boolean     @default(true)
-  notifyNews    Boolean       @default(false)
-  // การตั้งค่าทั่วไป
-  language      String        @default("th")
-  theme         String        @default("light")
-  dateFormat    String        @default("thai")
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  applications  Application[]
-  documents     Document[]
-  printRecords  PrintRecord[]
-  curriculum    Curriculum?   @relation(fields: [curriculumId], references: [id])
-  department    Department?   @relation(fields: [departmentId], references: [id])
-  faculty       Faculty?      @relation(fields: [facultyId], references: [id])
-  major         Major?        @relation(fields: [majorId], references: [id])
-  educatorRoleAssignments EducatorRoleAssignment[]
+  id                           String                        @id @default(cuid())
+  name                         String
+  email                        String                        @unique
+  password                     String
+  roles                        String
+  skills                       String?
+  statement                    String?
+  t_title                      String?
+  t_name                       String?
+  t_middle_name                String?
+  t_surname                    String?
+  e_title                      String?
+  e_name                       String?
+  e_middle_name                String?
+  e_surname                    String?
+  facultyId                    String?
+  departmentId                 String?
+  curriculumId                 String?
+  majorId                      String?
+  studentYear                  Int?
+  phone                        String?
+  campus                       String?
+  gpa                          String?
+  nationality                  String?
+  passportId                   String?
+  visaType                     String?
+  profileImage                 String?
+  internshipPhoto1             String?
+  internshipPhoto2             String?
+  notifyEmail                  Boolean                       @default(true)
+  notifyPush                   Boolean                       @default(false)
+  notifySms                    Boolean                       @default(false)
+  notifyAppUpdates             Boolean                       @default(true)
+  notifyDeadlines              Boolean                       @default(true)
+  notifyNews                   Boolean                       @default(false)
+  language                     String                        @default("th")
+  theme                        String                        @default("light")
+  dateFormat                   String                        @default("thai")
+  createdAt                    DateTime                      @default(now())
+  updatedAt                    DateTime                      @updatedAt
+  courseInstructorApplications Application[]                 @relation("CourseInstructorApplications")
+  applications                 Application[]
+  supervisorApplications       Application[]                 @relation("SupervisorApplications")
+  auditLogs                    AuditLog[]
+  backupRecords                BackupRecord[]
+  committeeMembers             CommitteeMember[]
+  courseInstructors            CourseInstructor[]
+  dataProcessingConsents       DataProcessingConsent[]
+  documents                    Document[]
+  educatorRoleAssignments      EducatorRoleAssignment[]
+  evaluations                  Evaluation[]
   facultyInstructorAssignments FacultyInstructorAssignment[]
-  
-  // Application relations
-  courseInstructorApplications Application[] @relation("CourseInstructorApplications")
-  supervisorApplications Application[] @relation("SupervisorApplications")
-  
-  // Committee relations
-  committeeMembers CommitteeMember[]
-  
-  // Course relations
-  courseInstructors CourseInstructor[]
-  
-  // Evaluation relations
-  evaluations Evaluation[]
-  
-  // Logging relations
-  systemLogs    SystemLog[]
-  auditLogs     AuditLog[]
-  dataProcessingConsents DataProcessingConsent[]
-  backupRecords BackupRecord[]
+  printRecords                 PrintRecord[]
+  systemLogs                   SystemLog[]
+  generatedDocuments          InternshipDocument[]
+  supervisorAppointments       SupervisorAppointment[]
+  notifications               Notification[]
+  curriculum                   Curriculum?                   @relation(fields: [curriculumId], references: [id])
+  department                   Department?                   @relation(fields: [departmentId], references: [id])
+  faculty                      Faculty?                      @relation(fields: [facultyId], references: [id])
+  major                        Major?                        @relation(fields: [majorId], references: [id])
+
   @@map("users")
 }
 
-model Internship {
-  id           String         @id @default(cuid())
-  title        String
-  titleEn      String?
-  companyId    String
-  location     String
-  description  String
-  descriptionEn String?
-  type         InternshipType
-  applications Application[]
-  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  // Timestamps
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+/// Honorific titles/prefixes (คำนำหน้า)
+model Title {
+  id           String   @id @default(cuid())
+  nameTh       String
+  nameEn       String?
+  applicableTo String[]
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  @@map("internships")
+  @@map("titles")
 }
 
-model Application {
-  id            String            @id @default(cuid())
-  studentId     String
-  internshipId  String
-  status        ApplicationStatus
-  dateApplied   DateTime          @default(now())
-  feedback      String?
-  projectTopic  String?
-  projectTopicEn String?
-  printRecordId String?
-  
-  // Workflow fields
-  projectProposal String?
-  preferredStartDate DateTime?
-  availableDuration Int?
-  
-  // Staff workflow fields
-  staffReviewed Boolean @default(false)
-  staffReviewedAt DateTime?
-  documentReceived Boolean @default(false)
-  documentReceivedAt DateTime?
-  documentReviewed Boolean @default(false)
-  documentReviewedAt DateTime?
-  documentApproved Boolean @default(false)
-  documentApprovedAt DateTime?
-  documentSentToCompany Boolean @default(false)
-  documentSentAt DateTime?
-  staffWorkflowNotes String?
-  
-  // Instructor workflow fields
-  courseInstructorId String?
-  instructorReceived Boolean @default(false)
-  instructorReceivedAt DateTime?
-  instructorReviewed Boolean @default(false)
-  instructorReviewedAt DateTime?
-  instructorWorkflowNotes String?
-  
-  // Supervisor workflow fields
-  supervisorId String?
-  supervisorAssigned Boolean @default(false)
-  supervisorAssignedAt DateTime?
-  supervisorReceived Boolean @default(false)
-  supervisorReceivedAt DateTime?
-  supervisorConfirmed Boolean @default(false)
-  supervisorConfirmedAt DateTime?
-  appointmentScheduled Boolean @default(false)
-  appointmentScheduledAt DateTime?
-  supervisorWorkflowNotes String?
-  
-  // Committee workflow fields
-  committeeReceived Boolean @default(false)
-  committeeReceivedAt DateTime?
-  committeeReviewed Boolean @default(false)
-  committeeReviewedAt DateTime?
-  committeeApproved Boolean @default(false)
-  committeeApprovedAt DateTime?
-  committeeWorkflowNotes String?
-  
-  // Student workflow
-  studentWorkflowStep Int @default(1)
-  staffFeedback String?
-  
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  internship    Internship        @relation(fields: [internshipId], references: [id], onDelete: Cascade)
-  printRecord   PrintRecord?      @relation(fields: [printRecordId], references: [id])
-  student       User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  courseInstructor User?          @relation("CourseInstructorApplications", fields: [courseInstructorId], references: [id])
-  supervisor    User?             @relation("SupervisorApplications", fields: [supervisorId], references: [id])
-  
-  // Committee relations
-  committees    ApplicationCommittee[]
-  
-  // Evaluation relations
-  evaluations   Evaluation[]
+// Removed external-facing Internship model for internal-only flow
 
-  // Constraints & Indexes
-  @@unique([studentId, internshipId])
+model Application {
+  id                      String                 @id @default(cuid())
+  studentId               String
+  status                  ApplicationStatus
+  dateApplied             DateTime               @default(now())
+  feedback                String?
+  projectTopic            String?
+  projectTopicEn          String?
+  printRecordId           String?
+  projectProposal         String?
+  preferredStartDate      DateTime?
+  availableDuration       Int?
+  staffReviewed           Boolean                @default(false)
+  staffReviewedAt         DateTime?
+  documentReceived        Boolean                @default(false)
+  documentReceivedAt      DateTime?
+  documentReviewed        Boolean                @default(false)
+  documentReviewedAt      DateTime?
+  documentApproved        Boolean                @default(false)
+  documentApprovedAt      DateTime?
+  documentsPrepared       Boolean                @default(false)
+  documentsPreparedAt     DateTime?
+  staffWorkflowNotes      String?
+  courseInstructorId      String?
+  instructorReceived      Boolean                @default(false)
+  instructorReceivedAt    DateTime?
+  instructorReviewed      Boolean                @default(false)
+  instructorReviewedAt    DateTime?
+  instructorWorkflowNotes String?
+  supervisorId            String?
+  supervisorAssigned      Boolean                @default(false)
+  supervisorAssignedAt    DateTime?
+  supervisorReceived      Boolean                @default(false)
+  supervisorReceivedAt    DateTime?
+  supervisorConfirmed     Boolean                @default(false)
+  supervisorConfirmedAt   DateTime?
+  appointmentScheduled    Boolean                @default(false)
+  appointmentScheduledAt  DateTime?
+  supervisorWorkflowNotes String?
+  committeeReceived       Boolean                @default(false)
+  committeeReceivedAt     DateTime?
+  committeeReviewed       Boolean                @default(false)
+  committeeReviewedAt     DateTime?
+  committeeApproved       Boolean                @default(false)
+  committeeApprovedAt     DateTime?
+  committeeWorkflowNotes  String?
+  studentWorkflowStep     Int                    @default(1)
+  staffFeedback           String?
+  courseInstructorApprovedAt    DateTime?
+  courseInstructorRejectedAt    DateTime?
+  courseInstructorRejectionNote String?
+  supervisorAppointmentDate     DateTime?
+  supervisorAppointmentLocation String?
+  supervisorAppointmentNotes    String?
+  // Embedded company details from student (internal-only)
+  companyRegNumber        String?
+  companyName             String?
+  companyPhone            String?
+  businessType            String?
+  addressNumber           String?
+  building                String?
+  floor                   String?
+  soi                     String?
+  road                    String?
+  provinceId              String?
+  districtId              String?
+  subdistrictId           String?
+  postalCode              String?
+  mapUrl                  String?
+  latitude                Float?
+  longitude               Float?
+  coordinatorName         String?
+  coordinatorTel          String?
+  coordinatorEmail        String?
+  department              String?
+  position                String?
+  jobDescription          String?
+  supervisorName          String?
+  supervisorTel           String?
+  supervisorEmail         String?
+  studentReason           String?
+  externalResponseStatus  ExternalResponseStatus @default(pending)
+  externalResponseAt      DateTime?
+  externalResponseNote    String?
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  committees              ApplicationCommittee[]
+  courseInstructor        User?                  @relation("CourseInstructorApplications", fields: [courseInstructorId], references: [id])
+  printRecord             PrintRecord?           @relation(fields: [printRecordId], references: [id])
+  student                 User                   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  supervisor              User?                  @relation("SupervisorApplications", fields: [supervisorId], references: [id])
+  evaluations             Evaluation[]
+  internshipDocuments     InternshipDocument[]
+  weeklyReports           WeeklyReport[]
+  supervisorAppointments  SupervisorAppointment[]
+
   @@index([status])
   @@index([studentId])
-  @@index([internshipId])
   @@index([createdAt])
-
   @@map("applications")
 }
 
-// ระบบจัดการไฟล์ระบบ (Logo, Background, Favicon)
 model SystemMedia {
-  id          String   @id @default(cuid())
-  type        String   // 'logo', 'background', 'favicon'
-  name        String   // ชื่อไฟล์
-  originalName String  // ชื่อไฟล์เดิม
-  filePath    String   // path ของไฟล์
-  fileSize    Int      // ขนาดไฟล์ (bytes)
-  mimeType    String   // MIME type
-  width       Int?     // ความกว้าง (สำหรับรูปภาพ)
-  height      Int?     // ความสูง (สำหรับรูปภาพ)
-  isActive    Boolean  @default(true) // ไฟล์ที่ใช้งานอยู่
-  uploadedBy  String   // ID ของผู้ที่อัปโหลด
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id           String   @id @default(cuid())
+  type         String
+  name         String
+  originalName String
+  filePath     String
+  fileSize     Int
+  mimeType     String
+  width        Int?
+  height       Int?
+  isActive     Boolean  @default(true)
+  uploadedBy   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
   @@map("system_media")
 }
 
@@ -240,17 +238,17 @@ model PrintRecord {
 }
 
 model Faculty {
-  id          String       @id @default(cuid())
-  nameTh      String
-  nameEn      String?
-  code        String?
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  departments Department[]
-  users       User[]
+  id                           String                        @id @default(cuid())
+  nameTh                       String
+  nameEn                       String?
+  code                         String?
+  isActive                     Boolean                       @default(true)
+  createdAt                    DateTime                      @default(now())
+  updatedAt                    DateTime                      @updatedAt
+  courses                      Course[]
+  departments                  Department[]
   facultyInstructorAssignments FacultyInstructorAssignment[]
-  courses     Course[]
+  users                        User[]
 
   @@map("faculties")
 }
@@ -264,10 +262,10 @@ model Department {
   isActive    Boolean      @default(true)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  courses     Course[]
   curriculums Curriculum[]
   faculty     Faculty      @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   users       User[]
-  courses     Course[]
 
   @@map("departments")
 }
@@ -282,10 +280,10 @@ model Curriculum {
   isActive     Boolean    @default(true)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+  courses      Course[]
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   majors       Major[]
   users        User[]
-  courses      Course[]
 
   @@map("curriculums")
 }
@@ -299,88 +297,484 @@ model Major {
   isActive     Boolean    @default(true)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+  courses      Course[]
   curriculum   Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
   users        User[]
-  courses      Course[]
 
   @@map("majors")
 }
 
-model Company {
-  id          String       @id @default(cuid())
-  name        String
-  nameEn      String?
-  address     String?
-  addressEn   String?
-  province    String?
-  district    String?
-  subdistrict String?
-  postalCode  String?
-  phone       String?
-  email       String?
-  website     String?
-  description String?
-  descriptionEn String?
-  industry    String?
-  industryEn  String?
-  // Geo & address linkage
-  latitude    Float?
-  longitude   Float?
-  provinceIdRef   String?
-  districtIdRef   String?
-  subdistrictIdRef String?
-  size        CompanySize?
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  internships Internship[]
+// Removed external-facing Company model for internal-only flow
 
-  provinceRef   Province?   @relation(fields: [provinceIdRef], references: [id])
-  districtRef   District?   @relation(fields: [districtIdRef], references: [id])
-  subdistrictRef Subdistrict? @relation(fields: [subdistrictIdRef], references: [id])
-
-  @@map("companies")
-}
-
-// Address Models (for real API)
 model Province {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   nameTh    String
   nameEn    String?
-  code      String?  @unique
-  isActive  Boolean  @default(true)
+  code      String?    @unique
+  isActive  Boolean    @default(true)
   districts District[]
-  companies Company[]
 
   @@map("provinces")
 }
 
 model District {
-  id         String     @id @default(cuid())
-  nameTh     String
-  nameEn     String?
-  code       String?    @unique
-  isActive   Boolean    @default(true)
-  provinceId String
-  province   Province   @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  id           String        @id @default(cuid())
+  nameTh       String
+  nameEn       String?
+  code         String?       @unique
+  isActive     Boolean       @default(true)
+  provinceId   String
+  province     Province      @relation(fields: [provinceId], references: [id], onDelete: Cascade)
   subdistricts Subdistrict[]
-  companies Company[]
 
   @@map("districts")
 }
 
 model Subdistrict {
-  id          String   @id @default(cuid())
-  nameTh      String
-  nameEn      String?
-  code        String?  @unique
-  postalCode  String?
-  isActive    Boolean  @default(true)
-  districtId  String
-  district    District @relation(fields: [districtId], references: [id], onDelete: Cascade)
-  companies   Company[]
+  id         String    @id @default(cuid())
+  nameTh     String
+  nameEn     String?
+  code       String?   @unique
+  postalCode String?
+  isActive   Boolean   @default(true)
+  districtId String
+  district   District  @relation(fields: [districtId], references: [id], onDelete: Cascade)
 
   @@map("subdistricts")
+}
+
+model AcademicYear {
+  id                           String                        @id @default(cuid())
+  year                         Int                           @unique
+  name                         String
+  nameEn                       String?
+  isActive                     Boolean                       @default(false)
+  startDate                    DateTime?
+  endDate                      DateTime?
+  createdAt                    DateTime                      @default(now())
+  updatedAt                    DateTime                      @updatedAt
+  roleAssignments              EducatorRoleAssignment[]
+  facultyInstructorAssignments FacultyInstructorAssignment[]
+  semesters                    Semester[]
+
+  @@map("academic_years")
+}
+
+model Semester {
+  id                           String                        @id @default(cuid())
+  name                         String
+  nameEn                       String?
+  academicYearId               String
+  startDate                    DateTime?
+  endDate                      DateTime?
+  isActive                     Boolean                       @default(false)
+  createdAt                    DateTime                      @default(now())
+  updatedAt                    DateTime                      @updatedAt
+  roleAssignments              EducatorRoleAssignment[]
+  facultyInstructorAssignments FacultyInstructorAssignment[]
+  academicYear                 AcademicYear                  @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  @@unique([name, academicYearId])
+  @@map("semesters")
+}
+
+model EducatorRoleAssignment {
+  id             String        @id @default(cuid())
+  educatorId     String
+  academicYearId String
+  semesterId     String
+  educatorRoleId String?
+  roles          String
+  isActive       Boolean       @default(true)
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  academicYear   AcademicYear  @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  educator       User          @relation(fields: [educatorId], references: [id], onDelete: Cascade)
+  educatorRole   EducatorRole? @relation(fields: [educatorRoleId], references: [id], onDelete: Cascade)
+  semester       Semester      @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+
+  @@unique([educatorId, academicYearId, semesterId])
+  @@map("educator_role_assignments")
+}
+
+model FacultyInstructorAssignment {
+  id             String       @id @default(cuid())
+  facultyId      String
+  academicYearId String
+  semesterId     String
+  instructorId   String
+  isActive       Boolean      @default(true)
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  faculty        Faculty      @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  instructor     User         @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  semester       Semester     @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+
+  @@unique([facultyId, academicYearId, semesterId])
+  @@map("faculty_instructor_assignments")
+}
+
+model SystemLog {
+  id         String   @id @default(cuid())
+  level      LogLevel
+  message    String
+  context    Json?
+  userId     String?
+  sessionId  String?
+  ipAddress  String?
+  userAgent  String?
+  endpoint   String?
+  method     String?
+  statusCode Int?
+  duration   Int?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@map("system_logs")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String
+  entityId   String?
+  oldValues  Json?
+  newValues  Json?
+  userId     String?
+  sessionId  String?
+  ipAddress  String?
+  userAgent  String?
+  reason     String?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model LogRetentionPolicy {
+  id            String    @id @default(cuid())
+  logType       String    @unique
+  retentionDays Int       @default(90)
+  isActive      Boolean   @default(true)
+  lastCleanup   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("log_retention_policies")
+}
+
+model DataProcessingConsent {
+  id             String    @id @default(cuid())
+  userId         String
+  consentType    String
+  isConsented    Boolean
+  consentDate    DateTime  @default(now())
+  withdrawalDate DateTime?
+  consentVersion String    @default("1.0")
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("data_processing_consents")
+}
+
+model DataAnonymizationRule {
+  id                String   @id @default(cuid())
+  tableName         String
+  columnName        String
+  anonymizationType String
+  maskPattern       String?
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([tableName, columnName])
+  @@map("data_anonymization_rules")
+}
+
+model BackupRecord {
+  id            String       @id @default(cuid())
+  filename      String
+  filePath      String
+  fileSize      BigInt
+  backupType    BackupType
+  status        BackupStatus @default(IN_PROGRESS)
+  errorMessage  String?
+  metadata      Json?
+  createdBy     String?
+  createdAt     DateTime     @default(now())
+  completedAt   DateTime?
+  createdByUser User?        @relation(fields: [createdBy], references: [id])
+
+  @@map("backup_records")
+}
+
+model Committee {
+  id           String                 @id @default(cuid())
+  name         String
+  description  String?
+  isActive     Boolean                @default(true)
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  applications ApplicationCommittee[]
+  members      CommitteeMember[]
+
+  @@map("committees")
+}
+
+model CommitteeMember {
+  id          String    @id @default(cuid())
+  committeeId String
+  userId      String
+  role        String
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  committee   Committee @relation(fields: [committeeId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([committeeId, userId])
+  @@map("committee_members")
+}
+
+model ApplicationCommittee {
+  id            String      @id @default(cuid())
+  applicationId String
+  committeeId   String
+  status        String
+  notes         String?
+  reviewedAt    DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  committee     Committee   @relation(fields: [committeeId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, committeeId])
+  @@map("application_committees")
+}
+
+model Course {
+  id            String             @id @default(cuid())
+  code          String             @unique
+  name          String
+  nameEn        String?
+  description   String?
+  descriptionEn String?
+  credits       Int
+  categoryId    String?
+  facultyId     String?
+  departmentId  String?
+  curriculumId  String?
+  majorId       String?
+  isActive      Boolean            @default(true)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  instructors   CourseInstructor[]
+  category      CourseCategory?    @relation(fields: [categoryId], references: [id])
+  curriculum    Curriculum?        @relation(fields: [curriculumId], references: [id])
+  department    Department?        @relation(fields: [departmentId], references: [id])
+  faculty       Faculty?           @relation(fields: [facultyId], references: [id])
+  major         Major?             @relation(fields: [majorId], references: [id])
+
+  @@map("courses")
+}
+
+model CourseCategory {
+  id          String   @id @default(cuid())
+  name        String
+  nameEn      String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  courses     Course[]
+
+  @@map("course_categories")
+}
+
+model CourseInstructor {
+  id        String   @id @default(cuid())
+  courseId  String
+  userId    String
+  role      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, userId])
+  @@map("course_instructors")
+}
+
+model EvaluationForm {
+  id            String       @id @default(cuid())
+  name          String
+  nameEn        String?
+  description   String?
+  descriptionEn String?
+  type          String
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  evaluations   Evaluation[]
+
+  @@map("evaluation_forms")
+}
+
+model Evaluation {
+  id            String         @id @default(cuid())
+  formId        String
+  applicationId String
+  evaluatorId   String
+  evaluatorType String
+  score         Int
+  comments      String?
+  submittedAt   DateTime       @default(now())
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  application   Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  evaluator     User           @relation(fields: [evaluatorId], references: [id], onDelete: Cascade)
+  form          EvaluationForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@map("evaluations")
+}
+
+model DocumentTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  nameEn    String?
+  type      String
+  template  String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("document_templates")
+}
+
+model EducatorRole {
+  id            String                   @id @default(cuid())
+  name          String
+  nameEn        String?
+  description   String?
+  descriptionEn String?
+  permissions   Json?
+  isActive      Boolean                  @default(true)
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+  assignments   EducatorRoleAssignment[]
+
+  @@map("educator_roles")
+}
+
+model Holiday {
+  id        String   @id @default(cuid())
+  name      String
+  nameEn    String?
+  date      DateTime
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, date], name: "name_date")
+  @@map("holidays")
+}
+
+model DocumentSequence {
+  id         Int      @id @default(1)
+  nextNumber BigInt   @default(1)
+  updatedAt  DateTime @updatedAt
+
+  @@map("document_sequences")
+}
+
+model DocumentArchive {
+  id         String   @id @default(cuid())
+  documentNo BigInt   @unique
+  deletedAt  DateTime @default(now())
+  reason     String?
+  metaHash   String?
+
+  @@map("document_archive")
+}
+
+// Removed CompanyResponse model; replaced by fields in Application
+
+model InternshipDocument {
+  id            String                @id @default(cuid())
+  applicationId String
+  type          InternshipDocumentType
+  title         String
+  titleEn       String?
+  content       String?
+  fileUrl       String?
+  generatedAt   DateTime              @default(now())
+  generatedBy   String?
+  status        DocumentStatus        @default(pending)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  application   Application           @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  generatedByUser User?               @relation(fields: [generatedBy], references: [id])
+
+  @@map("internship_documents")
+}
+
+model WeeklyReport {
+  id            String   @id @default(cuid())
+  applicationId String
+  weekNumber    Int
+  reportDate    DateTime
+  content       String
+  attachments   String[] // Array of file URLs
+  submittedAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, weekNumber])
+  @@map("weekly_reports")
+}
+
+model SupervisorAppointment {
+  id            String   @id @default(cuid())
+  applicationId String
+  supervisorId  String
+  appointmentDate DateTime
+  location      String?
+  notes         String?
+  status        AppointmentStatus @default(scheduled)
+  completedAt   DateTime?
+  reportContent String?
+  attachments   String[] // Array of file URLs
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  supervisor    User       @relation(fields: [supervisorId], references: [id], onDelete: Cascade)
+
+  @@map("supervisor_appointments")
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String
+  type        NotificationType
+  title       String
+  message     String
+  isRead      Boolean          @default(false)
+  readAt      DateTime?
+  actionUrl   String?
+  metadata    Json?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
 }
 
 enum Role {
@@ -393,113 +787,25 @@ enum Role {
 }
 
 enum ApplicationStatus {
-  pending
-  approved
-  rejected
   submitted
-  documents_ready
-  documents_delivered
-  assigned_supervisor
-  assigned_committee
+  course_instructor_pending
+  course_instructor_approved
+  course_instructor_rejected
+  committee_pending
+  committee_partially_approved
   committee_approved
-  supervisor_approved
-  completed
+  documents_prepared
+  awaiting_external_response
+  company_accepted
+  company_rejected
+  internship_started
+  internship_ongoing
+  internship_completed
 }
 
-enum InternshipType {
-  internship
-  co_op
-}
+// Removed InternshipType enum
 
-enum CompanySize {
-  startup
-  small
-  medium
-  large
-  enterprise
-}
-
-model AcademicYear {
-  id            String   @id @default(cuid())
-  year          Int      @unique
-  name          String
-  nameEn        String?
-  isActive      Boolean  @default(false)
-  startDate     DateTime?
-  endDate       DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // Relations
-  semesters     Semester[]
-  roleAssignments EducatorRoleAssignment[]
-  facultyInstructorAssignments FacultyInstructorAssignment[]
-
-  @@map("academic_years")
-}
-
-model Semester {
-  id             String   @id @default(cuid())
-  name           String
-  nameEn         String?
-  academicYearId String
-  startDate      DateTime?
-  endDate        DateTime?
-  isActive       Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Relations
-  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
-  roleAssignments EducatorRoleAssignment[]
-  facultyInstructorAssignments FacultyInstructorAssignment[]
-
-  @@unique([name, academicYearId])
-  @@map("semesters")
-}
-
-model EducatorRoleAssignment {
-  id             String   @id @default(cuid())
-  educatorId     String
-  academicYearId String
-  semesterId     String
-  educatorRoleId String?
-  roles          String   // JSON array of roles stored as string
-  isActive       Boolean  @default(true)
-  notes          String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Relations
-  educator       User         @relation(fields: [educatorId], references: [id], onDelete: Cascade)
-  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
-  semester       Semester     @relation(fields: [semesterId], references: [id], onDelete: Cascade)
-  educatorRole   EducatorRole? @relation(fields: [educatorRoleId], references: [id], onDelete: Cascade)
-
-  @@unique([educatorId, academicYearId, semesterId])
-  @@map("educator_role_assignments")
-}
-
-model FacultyInstructorAssignment {
-  id             String   @id @default(cuid())
-  facultyId      String
-  academicYearId String
-  semesterId     String
-  instructorId   String
-  isActive       Boolean  @default(true)
-  notes          String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Relations
-  faculty       Faculty      @relation(fields: [facultyId], references: [id], onDelete: Cascade)
-  academicYear  AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
-  semester      Semester     @relation(fields: [semesterId], references: [id], onDelete: Cascade)
-  instructor    User         @relation(fields: [instructorId], references: [id], onDelete: Cascade)
-
-  @@unique([facultyId, academicYearId, semesterId])
-  @@map("faculty_instructor_assignments")
-}
+// Removed CompanySize enum
 
 enum DocumentType {
   cv
@@ -525,114 +831,6 @@ enum DocumentStatus {
   under_review
 }
 
-// System Logging Models
-model SystemLog {
-  id          String   @id @default(cuid())
-  level       LogLevel
-  message     String
-  context     Json?
-  userId      String?
-  sessionId   String?
-  ipAddress   String?
-  userAgent   String?
-  endpoint    String?
-  method      String?
-  statusCode  Int?
-  duration    Int?     // milliseconds
-  createdAt   DateTime @default(now())
-  
-  // Relations
-  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  
-  @@map("system_logs")
-}
-
-model AuditLog {
-  id          String      @id @default(cuid())
-  action      String      // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, etc.
-  entityType  String      // User, Application, Company, etc.
-  entityId    String?
-  oldValues   Json?
-  newValues   Json?
-  userId      String?
-  sessionId   String?
-  ipAddress   String?
-  userAgent   String?
-  reason      String?     // Reason for the action
-  createdAt   DateTime    @default(now())
-  
-  // Relations
-  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  
-  @@map("audit_logs")
-}
-
-model LogRetentionPolicy {
-  id              String   @id @default(cuid())
-  logType         String   // system_logs, audit_logs, error_logs
-  retentionDays   Int      @default(90)
-  isActive        Boolean  @default(true)
-  lastCleanup     DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  @@unique([logType])
-  @@map("log_retention_policies")
-}
-
-// PDPA Compliance Models
-model DataProcessingConsent {
-  id              String   @id @default(cuid())
-  userId          String
-  consentType     String   // data_collection, data_processing, data_sharing, marketing
-  isConsented     Boolean
-  consentDate     DateTime @default(now())
-  withdrawalDate  DateTime?
-  consentVersion  String   @default("1.0")
-  ipAddress       String?
-  userAgent       String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Relations
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@map("data_processing_consents")
-}
-
-model DataAnonymizationRule {
-  id              String   @id @default(cuid())
-  tableName       String
-  columnName      String
-  anonymizationType String // MASK, HASH, REMOVE, PSEUDONYMIZE
-  maskPattern     String?  // For MASK type
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  @@unique([tableName, columnName])
-  @@map("data_anonymization_rules")
-}
-
-model BackupRecord {
-  id              String      @id @default(cuid())
-  filename        String
-  filePath        String
-  fileSize        BigInt
-  backupType      BackupType
-  status          BackupStatus @default(IN_PROGRESS)
-  errorMessage    String?
-  metadata        Json?
-  createdBy       String?
-  createdAt       DateTime    @default(now())
-  completedAt     DateTime?
-  
-  // Relations
-  createdByUser   User?       @relation(fields: [createdBy], references: [id], onDelete: SetNull)
-  
-  @@map("backup_records")
-}
-
 enum LogLevel {
   ERROR
   WARN
@@ -654,213 +852,33 @@ enum BackupStatus {
   EXPIRED
 }
 
-// Missing models for API compatibility
-model Committee {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  members     CommitteeMember[]
-  applications ApplicationCommittee[]
-  
-  @@map("committees")
+// Replaced CompanyResponseStatus with ExternalResponseStatus
+enum ExternalResponseStatus {
+  pending
+  accepted
+  rejected
 }
 
-model CommitteeMember {
-  id          String   @id @default(cuid())
-  committeeId String
-  userId      String
-  role        String   // 'chair', 'member', 'secretary'
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  committee   Committee @relation(fields: [committeeId], references: [id], onDelete: Cascade)
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([committeeId, userId])
-  @@map("committee_members")
+enum InternshipDocumentType {
+  student_introduction_letter
+  company_acceptance_letter
+  internship_certificate
+  final_report
+  evaluation_form
 }
 
-model ApplicationCommittee {
-  id             String   @id @default(cuid())
-  applicationId  String
-  committeeId    String
-  status         String   // 'assigned', 'reviewed', 'approved', 'rejected'
-  notes          String?
-  reviewedAt     DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  
-  // Relations
-  application    Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  committee      Committee   @relation(fields: [committeeId], references: [id], onDelete: Cascade)
-  
-  @@unique([applicationId, committeeId])
-  @@map("application_committees")
+enum AppointmentStatus {
+  scheduled
+  completed
+  cancelled
+  rescheduled
 }
 
-model Course {
-  id           String   @id @default(cuid())
-  code         String   @unique
-  name         String
-  nameEn       String?
-  description  String?
-  descriptionEn String?
-  credits      Int
-  categoryId   String?
-  facultyId    String?
-  departmentId String?
-  curriculumId String?
-  majorId      String?
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  // Relations
-  category     CourseCategory? @relation(fields: [categoryId], references: [id])
-  faculty      Faculty?        @relation(fields: [facultyId], references: [id])
-  department   Department?     @relation(fields: [departmentId], references: [id])
-  curriculum   Curriculum?     @relation(fields: [curriculumId], references: [id])
-  major        Major?          @relation(fields: [majorId], references: [id])
-  instructors  CourseInstructor[]
-  
-  @@map("courses")
-}
-
-model CourseCategory {
-  id          String   @id @default(cuid())
-  name        String
-  nameEn      String?
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  courses     Course[]
-  
-  @@map("course_categories")
-}
-
-model CourseInstructor {
-  id         String   @id @default(cuid())
-  courseId   String
-  userId     String
-  role       String   // 'instructor', 'assistant', 'coordinator'
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  
-  // Relations
-  course     Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([courseId, userId])
-  @@map("course_instructors")
-}
-
-model EvaluationForm {
-  id          String   @id @default(cuid())
-  name        String
-  nameEn      String?
-  description String?
-  descriptionEn String?
-  type        String   // 'student', 'company', 'supervisor'
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  evaluations Evaluation[]
-  
-  @@map("evaluation_forms")
-}
-
-model Evaluation {
-  id               String   @id @default(cuid())
-  formId           String
-  applicationId    String
-  evaluatorId      String
-  evaluatorType    String   // 'student', 'company', 'supervisor'
-  score            Int
-  comments         String?
-  submittedAt      DateTime @default(now())
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  
-  // Relations
-  form             EvaluationForm @relation(fields: [formId], references: [id], onDelete: Cascade)
-  application      Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  evaluator        User           @relation(fields: [evaluatorId], references: [id], onDelete: Cascade)
-  
-  @@map("evaluations")
-}
-
-model DocumentTemplate {
-  id          String   @id @default(cuid())
-  name        String
-  nameEn      String?
-  type        String   // 'application', 'contract', 'report'
-  template    String   // HTML or PDF template content
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@map("document_templates")
-}
-
-model EducatorRole {
-  id          String   @id @default(cuid())
-  name        String
-  nameEn      String?
-  description String?
-  descriptionEn String?
-  permissions Json?    // JSON array of permissions
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  assignments EducatorRoleAssignment[]
-  
-  @@map("educator_roles")
-}
-
-model Holiday {
-  id          String   @id @default(cuid())
-  name        String
-  nameEn      String?
-  date        DateTime
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@unique([name, date], name: "name_date")
-  @@map("holidays")
-}
-
-// Sequential document number allocator (atomic counter)
-model DocumentSequence {
-  id          Int      @id @default(1)
-  nextNumber  BigInt   @default(1)
-  updatedAt   DateTime @updatedAt
-
-  @@map("document_sequences")
-}
-
-// Minimal archive to retain evidence that a document number was consumed
-model DocumentArchive {
-  id          String   @id @default(cuid())
-  documentNo  BigInt   @unique
-  deletedAt   DateTime @default(now())
-  reason      String?
-  metaHash    String?
-
-  @@map("document_archive")
+enum NotificationType {
+  application_status_change
+  document_ready
+  appointment_scheduled
+  report_due
+  evaluation_due
+  system_announcement
 }

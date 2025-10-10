@@ -1,19 +1,71 @@
 import { prisma } from '@/lib/prisma';
 
+// Helper function to create notifications
+async function createNotification(data: {
+  userId: string;
+  type: 'application_status_change' | 'document_ready' | 'appointment_scheduled' | 'report_due' | 'evaluation_due' | 'system_announcement';
+  title: string;
+  message: string;
+  actionUrl?: string;
+  metadata?: any;
+}) {
+  try {
+    // หาก userId เป็น 'staff' ให้ส่งไปยัง staff ทุกคน
+    if (data.userId === 'staff') {
+      const staffUsers = await prisma.user.findMany({
+        where: {
+          roles: {
+            contains: 'staff'
+          }
+        },
+        select: {
+          id: true
+        }
+      });
+
+      const notifications = staffUsers.map(staff => ({
+        userId: staff.id,
+        type: data.type,
+        title: data.title,
+        message: data.message,
+        actionUrl: data.actionUrl,
+        metadata: data.metadata
+      }));
+
+      await prisma.notification.createMany({
+        data: notifications
+      });
+    } else {
+      await prisma.notification.create({
+        data: {
+          userId: data.userId,
+          type: data.type,
+          title: data.title,
+          message: data.message,
+          actionUrl: data.actionUrl,
+          metadata: data.metadata
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error creating notification:', error);
+  }
+}
+
 export interface ApplicationWorkflowData {
   applicationId: string;
   studentId: string;
-  internshipId: string;
   courseInstructorId?: string;
   supervisorId?: string;
   committeeIds?: string[];
 }
 
 export interface WorkflowStatus {
-  currentStep: 'submitted' | 'course_instructor_review' | 'supervisor_assignment' | 'committee_review' | 'completed' | 'rejected';
+  currentStep: 'submitted' | 'course_instructor_review' | 'supervisor_assignment' | 'committee_review' | 'awaiting_external_response' | 'company_accepted' | 'internship_started' | 'internship_ongoing' | 'internship_completed' | 'completed' | 'rejected';
   courseInstructorStatus: 'pending' | 'approved' | 'rejected';
   supervisorStatus: 'pending' | 'assigned' | 'completed';
   committeeStatus: 'pending' | 'approved' | 'rejected';
+  externalResponseStatus?: 'pending' | 'accepted' | 'rejected';
   isCompleted: boolean;
   isRejected: boolean;
 }
@@ -24,9 +76,10 @@ export interface WorkflowStatus {
  */
 export async function createApplication(data: {
   studentId: string;
-  internshipId: string;
   projectTopic?: string;
   feedback?: string;
+  companyName?: string;
+  position?: string;
 }) {
   try {
     // หาอาจารย์ประจำวิชาที่เหมาะสม (ตาม business logic)
@@ -35,23 +88,19 @@ export async function createApplication(data: {
     const application = await prisma.application.create({
       data: {
         studentId: data.studentId,
-        internshipId: data.internshipId,
-        status: 'pending',
+        status: 'submitted',
         dateApplied: new Date(),
-        projectTopic: data.projectTopic,
-        feedback: data.feedback,
+        projectTopic: data.projectTopic || null,
+        feedback: data.feedback || null,
         courseInstructorId: courseInstructor?.id,
         courseInstructorStatus: 'pending',
         supervisorStatus: 'pending',
-        committeeStatus: 'pending'
+        committeeStatus: 'pending',
+        companyName: data.companyName || null,
+        position: data.position || null
       },
       include: {
         student: true,
-        internship: {
-          include: {
-            company: true
-          }
-        },
         courseInstructor: true
       }
     });
@@ -79,11 +128,12 @@ export async function courseInstructorReview(data: {
   courseInstructorId: string;
   status: 'approved' | 'rejected';
   feedback?: string;
+  rejectionNote?: string;
 }) {
   try {
     const application = await prisma.application.findUnique({
       where: { id: data.applicationId },
-      include: { student: true, internship: true }
+      include: { student: true }
     });
 
     if (!application) {
@@ -107,26 +157,24 @@ export async function courseInstructorReview(data: {
         courseInstructorStatus: data.status,
         courseInstructorFeedback: data.feedback,
         courseInstructorApprovedAt: data.status === 'approved' ? new Date() : null,
-        status: data.status === 'approved' ? 'pending' : 'rejected' // เปลี่ยน status หลัก
+        courseInstructorRejectedAt: data.status === 'rejected' ? new Date() : null,
+        courseInstructorRejectionNote: data.status === 'rejected' ? data.rejectionNote : null,
+        status: data.status === 'approved' ? 'course_instructor_approved' : 'course_instructor_rejected'
       },
       include: {
         student: true,
-        internship: {
-          include: {
-            company: true
-          }
-        },
         courseInstructor: true
       }
     });
 
-    // หากอนุมัติ ให้ดำเนินการขั้นตอนต่อไป
+    // หากอนุมัติ ให้เปลี่ยนสถานะเป็นรอมอบหมายอาจารย์นิเทศก์
     if (data.status === 'approved') {
-      // กำหนดอาจารย์นิเทศก์ (ขั้นตอนที่ 3)
-      await assignSupervisor(data.applicationId);
-      
-      // ส่งไปยังกรรมการ (ขั้นตอนที่ 4)
-      await sendToCommittee(data.applicationId);
+      await prisma.application.update({
+        where: { id: data.applicationId },
+        data: {
+          status: 'supervisor_assignment_pending'
+        }
+      });
     }
 
     return {
@@ -175,6 +223,91 @@ export async function assignSupervisor(applicationId: string) {
     return {
       success: false,
       error: 'ไม่สามารถกำหนดอาจารย์นิเทศก์ได้',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * 3.1 มอบหมายอาจารย์นิเทศก์แบบ Manual (สำหรับอาจารย์ประจำวิชาเลือกเอง)
+ */
+export async function assignSupervisorManually(data: {
+  applicationId: string;
+  supervisorId: string;
+  courseInstructorId: string;
+}) {
+  try {
+    const application = await prisma.application.findUnique({
+      where: { id: data.applicationId }
+    });
+
+    if (!application) {
+      return {
+        success: false,
+        error: 'ไม่พบคำขอฝึกงานที่ระบุ'
+      };
+    }
+
+    if (application.courseInstructorId !== data.courseInstructorId) {
+      return {
+        success: false,
+        error: 'คุณไม่มีสิทธิ์ในการมอบหมายคำขอนี้'
+      };
+    }
+
+    // ตรวจสอบว่าอาจารย์นิเทศก์มี role visitor
+    const supervisor = await prisma.user.findUnique({
+      where: { id: data.supervisorId },
+      select: { id: true, name: true, roles: true }
+    });
+
+    if (!supervisor || !supervisor.roles.includes('visitor')) {
+      return {
+        success: false,
+        error: 'ผู้ใช้ที่เลือกไม่ใช่อาจารย์นิเทศก์'
+      };
+    }
+
+    // อัปเดต Application
+    const updatedApplication = await prisma.application.update({
+      where: { id: data.applicationId },
+      data: {
+        supervisorId: data.supervisorId,
+        supervisorStatus: 'assigned',
+        supervisorAssignedAt: new Date(),
+        status: 'assigned_supervisor'
+      },
+      include: {
+        student: true,
+        internship: {
+          include: {
+            company: true
+          }
+        },
+        supervisor: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    // ส่งไปยังกรรมการ
+    await sendToCommittee(data.applicationId);
+
+    return {
+      success: true,
+      application: updatedApplication,
+      supervisor,
+      message: 'มอบหมายอาจารย์นิเทศก์เรียบร้อย'
+    };
+  } catch (error) {
+    console.error('Error assigning supervisor manually:', error);
+    return {
+      success: false,
+      error: 'ไม่สามารถมอบหมายอาจารย์นิเทศก์ได้',
       details: error instanceof Error ? error.message : 'Unknown error'
     };
   }
@@ -260,8 +393,7 @@ export async function committeeReview(data: {
         committee: true,
         application: {
           include: {
-            student: true,
-            internship: true
+            student: true
           }
         }
       }
@@ -277,22 +409,46 @@ export async function committeeReview(data: {
     const totalCount = allCommitteeApprovals.length;
 
     let finalStatus = 'pending';
-    if (rejectedCount > 0) {
-      finalStatus = 'rejected';
-    } else if (approvedCount === totalCount) {
+    const approvalThreshold = Math.ceil(totalCount / 2); // >50%
+    
+    if (approvedCount >= approvalThreshold) {
       finalStatus = 'approved';
+    } else if (rejectedCount >= approvalThreshold) {
+      finalStatus = 'rejected';
     }
 
     // อัปเดตสถานะรวมของ Application
-    await prisma.application.update({
+    const updatedApplication = await prisma.application.update({
       where: { id: data.applicationId },
       data: {
         committeeStatus: finalStatus,
-        status: finalStatus === 'approved' ? 'approved' : 
-                finalStatus === 'rejected' ? 'rejected' : 'pending',
+        status: finalStatus === 'approved' ? 'documents_prepared' : 
+                finalStatus === 'rejected' ? 'course_instructor_rejected' : 'committee_pending',
         committeeApprovedAt: finalStatus === 'approved' ? new Date() : null
-      }
+      },
+      include: { student: true }
     });
+
+    // หากกรรมการอนุมัติครบ ให้สร้าง CompanyResponse record และแจ้งเตือนฝ่ายธุรการ
+    if (finalStatus === 'approved') {
+      // ส่งการแจ้งเตือนไปยังฝ่ายธุรการ
+      await createNotification({
+        userId: 'staff', // ระบบจะส่งไปยัง staff ทุกคน
+        type: 'application_status_change',
+        title: 'คำขอฝึกงานรอการเตรียมเอกสาร',
+        message: `คำขอฝึกงานของ ${updatedApplication.student.name} ได้รับการอนุมัติจากกรรมการแล้ว โปรดเตรียมเอกสารเพื่อส่งภายนอก`,
+        actionUrl: `/admin/applications/post-approval`
+      });
+
+      // ส่งการแจ้งเตือนไปยังนักศึกษา
+      await createNotification({
+        userId: updatedApplication.studentId,
+        type: 'application_status_change',
+        title: 'คำขอฝึกงานได้รับการอนุมัติจากกรรมการ',
+        message: `คำขอฝึกงานของคุณได้รับการอนุมัติจากกรรมการแล้ว กำลังรอฝ่ายธุรการเตรียมเอกสาร`,
+        actionUrl: `/student/applications`
+      });
+    }
 
     return {
       success: true,
@@ -308,6 +464,58 @@ export async function committeeReview(data: {
     return {
       success: false,
       error: 'ไม่สามารถบันทึกการพิจารณาได้',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * คำนวณสถานะการอนุมัติของกรรมการ
+ */
+export async function calculateCommitteeApprovalStatus(applicationId: string) {
+  try {
+    const allCommitteeApprovals = await prisma.applicationCommittee.findMany({
+      where: { applicationId },
+      include: {
+        committee: {
+          include: {
+            members: true
+          }
+        }
+      }
+    });
+
+    const approvedCount = allCommitteeApprovals.filter(ca => ca.status === 'approved').length;
+    const rejectedCount = allCommitteeApprovals.filter(ca => ca.status === 'rejected').length;
+    const totalCount = allCommitteeApprovals.length;
+    const pendingCount = totalCount - approvedCount - rejectedCount;
+
+    const approvalThreshold = 3; // internal rule: at least 3 approvals
+    
+    let finalStatus = 'pending';
+    if (approvedCount >= approvalThreshold) {
+      finalStatus = 'approved';
+    } else if (rejectedCount >= approvalThreshold) {
+      finalStatus = 'rejected';
+    }
+
+    return {
+      success: true,
+      approvedCount,
+      rejectedCount,
+      pendingCount,
+      totalCount,
+      approvalThreshold,
+      finalStatus,
+      isApproved: finalStatus === 'approved',
+      isRejected: finalStatus === 'rejected',
+      isPending: finalStatus === 'pending'
+    };
+  } catch (error) {
+    console.error('Error calculating committee approval status:', error);
+    return {
+      success: false,
+      error: 'ไม่สามารถคำนวณสถานะการอนุมัติได้',
       details: error instanceof Error ? error.message : 'Unknown error'
     };
   }
@@ -332,6 +540,9 @@ export async function getApplicationWorkflowStatus(applicationId: string): Promi
     const courseInstructorStatus = application.courseInstructorStatus as 'pending' | 'approved' | 'rejected';
     const supervisorStatus = application.supervisorStatus as 'pending' | 'assigned' | 'completed';
     const committeeStatus = application.committeeStatus as 'pending' | 'approved' | 'rejected';
+    
+    // ตรวจสอบสถานะการตอบรับภายนอก (บันทึกโดย staff)
+    const externalResponseStatus = (application.externalResponseStatus as any) || 'pending';
 
     let currentStep: WorkflowStatus['currentStep'] = 'submitted';
     
@@ -343,9 +554,19 @@ export async function getApplicationWorkflowStatus(applicationId: string): Promi
       currentStep = 'supervisor_assignment';
     } else if (supervisorStatus === 'assigned' && committeeStatus === 'pending') {
       currentStep = 'committee_review';
-    } else if (committeeStatus === 'approved') {
+    } else if (committeeStatus === 'approved' && externalResponseStatus === 'pending') {
+      currentStep = 'awaiting_external_response';
+    } else if (externalResponseStatus === 'accepted' && application.status === 'company_accepted') {
+      currentStep = 'company_accepted';
+    } else if (application.status === 'internship_started') {
+      currentStep = 'internship_started';
+    } else if (application.status === 'internship_ongoing') {
+      currentStep = 'internship_ongoing';
+    } else if (application.status === 'internship_completed') {
+      currentStep = 'internship_completed';
+    } else if (application.status === 'completed') {
       currentStep = 'completed';
-    } else if (committeeStatus === 'rejected') {
+    } else if (committeeStatus === 'rejected' || externalResponseStatus === 'rejected') {
       currentStep = 'rejected';
     }
 
@@ -354,6 +575,7 @@ export async function getApplicationWorkflowStatus(applicationId: string): Promi
       courseInstructorStatus,
       supervisorStatus,
       committeeStatus,
+      externalResponseStatus,
       isCompleted: currentStep === 'completed',
       isRejected: currentStep === 'rejected'
     };
@@ -494,3 +716,280 @@ async function getActiveCommittees() {
 
   return committeeAssignments.map(assignment => assignment.educator);
 }
+
+/**
+ * 6. เมื่อกรรมการอนุมัติครบ ให้เปลี่ยนสถานะเป็น "รอการตอบรับจากสถานประกอบการ"
+ */
+export async function sendToCompany(applicationId: string) {
+  try {
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        student: true,
+        internship: {
+          include: {
+            company: true
+          }
+        }
+      }
+    });
+
+    if (!application) {
+      return {
+        success: false,
+        error: 'ไม่พบคำขอฝึกงานที่ระบุ'
+      };
+    }
+
+    // ตรวจสอบว่าคำขอได้รับการอนุมัติจากกรรมการแล้ว
+    if (application.committeeStatus !== 'approved') {
+      return {
+        success: false,
+        error: 'คำขอยังไม่ได้รับการอนุมัติจากกรรมการ'
+      };
+    }
+
+    // สร้าง CompanyResponse record
+    const companyResponse = await prisma.companyResponse.create({
+      data: {
+        applicationId,
+        companyId: application.internship.companyId,
+        status: 'pending'
+      }
+    });
+
+    // อัปเดตสถานะ Application
+    const updatedApplication = await prisma.application.update({
+      where: { id: applicationId },
+      data: {
+        status: 'waiting_company_response'
+      }
+    });
+
+    // ส่งการแจ้งเตือนไปยังฝ่ายธุรการ
+    await createNotification({
+      userId: 'staff', // จะต้องหาผู้ใช้ที่มีบทบาท staff
+      type: 'application_status_change',
+      title: 'คำขอฝึกงานรอการส่งไปยังสถานประกอบการ',
+      message: `คำขอฝึกงานของ ${application.student.name} รอการส่งไปยัง ${application.internship.company.name}`,
+      actionUrl: `/admin/applications/${applicationId}`
+    });
+
+    return {
+      success: true,
+      application: updatedApplication,
+      companyResponse,
+      message: 'ส่งคำขอไปยังสถานประกอบการเรียบร้อย'
+    };
+  } catch (error) {
+    console.error('Error sending to company:', error);
+    return {
+      success: false,
+      error: 'ไม่สามารถส่งคำขอไปยังสถานประกอบการได้',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * 7. สถานประกอบการตอบรับ/ปฏิเสธ
+ */
+export async function companyResponse(data: {
+  applicationId: string;
+  companyId: string;
+  status: 'accepted' | 'rejected';
+  responseNote?: string;
+  documentUrl?: string;
+}) {
+  try {
+    const companyResponse = await prisma.companyResponse.update({
+      where: {
+        applicationId_companyId: {
+          applicationId: data.applicationId,
+          companyId: data.companyId
+        }
+      },
+      data: {
+        status: data.status,
+        responseDate: new Date(),
+        responseNote: data.responseNote,
+        documentUrl: data.documentUrl
+      },
+      include: {
+        application: {
+          include: {
+            student: true,
+            internship: {
+              include: {
+                company: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // อัปเดตสถานะ Application
+    const newStatus = data.status === 'accepted' ? 'company_accepted' : 'rejected';
+    const updatedApplication = await prisma.application.update({
+      where: { id: data.applicationId },
+      data: {
+        status: newStatus
+      }
+    });
+
+    // ส่งการแจ้งเตือน
+    const notificationMessage = data.status === 'accepted' 
+      ? `สถานประกอบการ ${companyResponse.application.internship.company.name} ตอบรับคำขอฝึกงานของ ${companyResponse.application.student.name}`
+      : `สถานประกอบการ ${companyResponse.application.internship.company.name} ปฏิเสธคำขอฝึกงานของ ${companyResponse.application.student.name}`;
+
+    await createNotification({
+      userId: companyResponse.application.studentId,
+      type: 'application_status_change',
+      title: 'การตอบรับจากสถานประกอบการ',
+      message: notificationMessage,
+      actionUrl: `/student/applications/${data.applicationId}`
+    });
+
+    // หากตอบรับ ให้สร้างเอกสารหนังสือส่งตัว
+    if (data.status === 'accepted') {
+      await generateStudentIntroductionLetter(data.applicationId);
+    }
+
+    return {
+      success: true,
+      companyResponse,
+      application: updatedApplication,
+      message: data.status === 'accepted' ? 'สถานประกอบการตอบรับคำขอเรียบร้อย' : 'สถานประกอบการปฏิเสธคำขอเรียบร้อย'
+    };
+  } catch (error) {
+    console.error('Error processing company response:', error);
+    return {
+      success: false,
+      error: 'ไม่สามารถประมวลผลการตอบรับจากสถานประกอบการได้',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * 8. นักศึกษาเริ่มฝึกงาน
+ */
+export async function startInternship(data: {
+  applicationId: string;
+  studentId: string;
+  startDate: Date;
+}) {
+  try {
+    const application = await prisma.application.findUnique({
+      where: { id: data.applicationId }
+    });
+
+    if (!application) {
+      return {
+        success: false,
+        error: 'ไม่พบคำขอฝึกงานที่ระบุ'
+      };
+    }
+
+    if (application.studentId !== data.studentId) {
+      return {
+        success: false,
+        error: 'คุณไม่มีสิทธิ์ในการดำเนินการนี้'
+      };
+    }
+
+    if (application.status !== 'company_accepted') {
+      return {
+        success: false,
+        error: 'คำขอยังไม่ได้รับการตอบรับจากสถานประกอบการ'
+      };
+    }
+
+    // อัปเดตสถานะ Application
+    const updatedApplication = await prisma.application.update({
+      where: { id: data.applicationId },
+      data: {
+        status: 'internship_started',
+        preferredStartDate: data.startDate
+      }
+    });
+
+    // ส่งการแจ้งเตือนไปยังอาจารย์นิเทศก์
+    if (application.supervisorId) {
+      await createNotification({
+        userId: application.supervisorId,
+        type: 'application_status_change',
+        title: 'นักศึกษาเริ่มฝึกงาน',
+        message: `นักศึกษา ${application.student?.name} เริ่มฝึกงานแล้ว`,
+        actionUrl: `/supervisor/applications/${data.applicationId}`
+      });
+    }
+
+    return {
+      success: true,
+      application: updatedApplication,
+      message: 'บันทึกการเริ่มฝึกงานเรียบร้อย'
+    };
+  } catch (error) {
+    console.error('Error starting internship:', error);
+    return {
+      success: false,
+      error: 'ไม่สามารถบันทึกการเริ่มฝึกงานได้',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * 9. สร้างเอกสารหนังสือส่งตัว
+ */
+export async function generateStudentIntroductionLetter(applicationId: string) {
+  try {
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        student: true,
+        internship: {
+          include: {
+            company: true
+          }
+        }
+      }
+    });
+
+    if (!application) {
+      return {
+        success: false,
+        error: 'ไม่พบคำขอฝึกงานที่ระบุ'
+      };
+    }
+
+    // สร้างเอกสารหนังสือส่งตัว
+    const document = await prisma.internshipDocument.create({
+      data: {
+        applicationId,
+        type: 'student_introduction_letter',
+        title: 'หนังสือส่งตัวนักศึกษา',
+        titleEn: 'Student Introduction Letter',
+        content: `หนังสือส่งตัวนักศึกษา ${application.student.name} ไปยัง ${application.internship.company.name}`,
+        status: 'approved'
+      }
+    });
+
+    return {
+      success: true,
+      document,
+      message: 'สร้างหนังสือส่งตัวเรียบร้อย'
+    };
+  } catch (error) {
+    console.error('Error generating student introduction letter:', error);
+    return {
+      success: false,
+      error: 'ไม่สามารถสร้างหนังสือส่งตัวได้',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+// Function createNotification is already defined at the top of the file

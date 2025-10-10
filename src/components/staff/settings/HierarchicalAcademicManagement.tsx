@@ -60,24 +60,22 @@ export default function StaffHierarchicalAcademicManagement() {
     const loadAcademicData = async () => {
       setIsLoading(true);
       try {
-        const [facultiesRes, departmentsRes, curriculumsRes, majorsRes] = await Promise.all([
-          fetch('/api/faculties'),
-          fetch('/api/departments'),
-          fetch('/api/curriculums'),
-          fetch('/api/majors')
-        ]);
+        // Single-source hydration: fetch faculties with nested relations
+        const res = await fetch('/api/faculties?include=true');
+        const payload = await res.json();
 
-        const [facultiesData, departmentsData, curriculumsData, majorsData] = await Promise.all([
-          facultiesRes.json(),
-          departmentsRes.json(),
-          curriculumsRes.json(),
-          majorsRes.json()
-        ]);
+        const facultiesList = payload?.faculties || [];
+        setFaculties(facultiesList);
 
-        setFaculties(facultiesData.faculties || []);
-        setDepartments(departmentsData.departments || []);
-        setCurriculums(curriculumsData.curriculums || []);
-        setMajors(majorsData.majors || []);
+        // Flatten nested structures
+        const departmentsList = facultiesList.flatMap((f: any) => f.departments || []);
+        setDepartments(departmentsList);
+
+        const curriculumsList = departmentsList.flatMap((d: any) => d.curriculums || []);
+        setCurriculums(curriculumsList);
+
+        const majorsList = curriculumsList.flatMap((c: any) => c.majors || []);
+        setMajors(majorsList);
       } catch (error) {
         console.error('Error loading academic data:', error);
         toast({

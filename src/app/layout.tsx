@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/use-auth-provider';
 import { RealtimeProvider } from '@/contexts/RealtimeContext';
+import ServiceWorkerRegistrar from '@/components/ServiceWorkerRegistrar';
 
 // Development helpers
 if (process.env.NODE_ENV === 'development') {
@@ -12,6 +13,16 @@ if (process.env.NODE_ENV === 'development') {
 export const metadata: Metadata = {
   title: 'Internship',
   description: 'ระบบจัดการการฝึกงานและสหกิจศึกษา',
+  applicationName: 'Internship System',
+  themeColor: '#ffffff',
+  icons: {
+    icon: '/assets/images/garuda-logo.png',
+    apple: '/assets/images/garuda-logo.png',
+    other: [
+      { rel: 'mask-icon', url: '/assets/images/garuda-logo.svg', color: '#5bbad5' }
+    ]
+  },
+  manifest: '/site.webmanifest'
 };
 
 export default function RootLayout({
@@ -39,6 +50,7 @@ export default function RootLayout({
             {children}
           </RealtimeProvider>
         </AuthProvider>
+        <ServiceWorkerRegistrar />
         <Toaster />
       </body>
     </html>

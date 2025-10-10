@@ -5,9 +5,11 @@ import { z } from 'zod';
 
 const createApplicationSchema = z.object({
   studentId: z.string().min(1, 'ต้องระบุรหัสนักศึกษา'),
-  internshipId: z.string().min(1, 'ต้องระบุรหัสการฝึกงาน'),
   projectTopic: z.string().optional(),
-  feedback: z.string().optional()
+  feedback: z.string().optional(),
+  // embedded company fields (subset)
+  companyName: z.string().min(1, 'ต้องระบุชื่อสถานประกอบการ'),
+  position: z.string().optional()
 });
 
 export async function POST(request: NextRequest) {
@@ -31,7 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { studentId, internshipId, projectTopic, feedback } = result.data;
+    const { studentId, projectTopic, feedback, companyName, position } = result.data;
 
     // ตรวจสอบว่า student มีสิทธิ์สร้าง application นี้
     if (authResult.user.roles.includes('student') && authResult.user.id !== studentId) {
@@ -43,9 +45,10 @@ export async function POST(request: NextRequest) {
 
     const result_data = await createApplication({
       studentId,
-      internshipId,
       projectTopic,
-      feedback
+      feedback,
+      companyName,
+      position
     });
 
     if (result_data.success) {

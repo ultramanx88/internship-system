@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import SupervisorWorkflowStatus from './SupervisorWorkflowStatus';
 import SupervisorWorkflowActions from './SupervisorWorkflowActions';
+import AppointmentScheduler from './AppointmentScheduler';
 
 interface Application {
   id: string;
@@ -50,6 +51,7 @@ export default function SupervisorDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [activeTab, setActiveTab] = useState('pending_assignments');
+  const [showAppointmentScheduler, setShowAppointmentScheduler] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -182,6 +184,17 @@ export default function SupervisorDashboard() {
                   <Button
                     size="sm"
                     variant="outline"
+                    onClick={() => {
+                      setSelectedApplication(application);
+                      setShowAppointmentScheduler(true);
+                    }}
+                  >
+                    <Calendar className="h-4 w-4 mr-1" />
+                    นัดหมาย
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
                     onClick={() => setSelectedApplication(application)}
                   >
                     <UserCheck className="h-4 w-4 mr-1" />
@@ -287,6 +300,22 @@ export default function SupervisorDashboard() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* Appointment Scheduler Modal */}
+      {selectedApplication && showAppointmentScheduler && (
+        <AppointmentScheduler
+          application={selectedApplication}
+          onClose={() => {
+            setShowAppointmentScheduler(false);
+            setSelectedApplication(null);
+          }}
+          onActionComplete={() => {
+            fetchApplications();
+            setShowAppointmentScheduler(false);
+            setSelectedApplication(null);
+          }}
+        />
       )}
     </div>
   );

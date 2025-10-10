@@ -791,25 +791,7 @@ ${type === 'co_op' ? `       อาจารย์ที่รับผิดช
                 >
                   {useBetterTemplate ? 'Better' : useRealTemplate ? 'Real PDF' : useHtmlTemplate ? 'HTML' : 'Text'}
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="text-xs mr-2"
-                  onClick={handleDownload}
-                  disabled={isDownloading}
-                >
-                  <Download className="h-3 w-3 mr-1" />
-                  {isDownloading ? 'กำลังดาวน์โหลด...' : 'ดาวน์โหลด PDF'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="text-xs"
-                  onClick={handlePrint}
-                  title="พิมพ์เอกสาร"
-                >
-                  🖨️ พิมพ์
-                </Button>
+                {/* Printing/Download disabled per new flow */}
               </div>
             </div>
             
@@ -921,7 +903,6 @@ ${type === 'co_op' ? `       อาจารย์ที่รับผิดช
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose}>ปิด</Button>
-            <Button variant="outline" onClick={handlePrint}>พิมพ์</Button>
             {onReject && (
               <Button variant="destructive" onClick={() => onReject(application.id)}>ไม่อนุมัติ</Button>
             )}

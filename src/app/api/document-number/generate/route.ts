@@ -11,51 +11,11 @@ export async function POST(request: NextRequest) {
       return authResult.error;
     }
 
-    const body = await request.json();
-    const { language = 'thai' } = body;
-
-    // Get document template
-    const template = await (prisma as any).documentTemplate.findFirst({
-      where: { type: 'DOCUMENT_NUMBER' }
-    });
-
-    if (!template) {
-      return NextResponse.json(
-        { success: false, message: 'ไม่พบการตั้งค่าเลขเอกสาร' },
-        { status: 404 }
-      );
-    }
-
-    const config = JSON.parse(template.config);
-    const templateConfig = config[language] || config.thai;
-
-    // Generate document number
-    const currentNumber = templateConfig.currentNumber;
-    const paddedNumber = currentNumber.toString().padStart(templateConfig.digits, '0');
-    const documentNumber = `${templateConfig.prefix}${paddedNumber}${templateConfig.suffix}`;
-
-    // Update current number
-    const newConfig = {
-      ...config,
-      [language]: {
-        ...templateConfig,
-        currentNumber: currentNumber + 1
-      }
-    };
-
-    await (prisma as any).documentTemplate.update({
-      where: { type: 'DOCUMENT_NUMBER' },
-      data: { config: JSON.stringify(newConfig) }
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        documentNumber,
-        language,
-        nextNumber: currentNumber + 1
-      }
-    });
+    // Numbering is disabled in the current flow
+    return NextResponse.json(
+      { success: false, message: 'ปิดการใช้งานการสร้างเลขที่เอกสาร' },
+      { status: 410 }
+    );
 
   } catch (error) {
     console.error('Document number generation error:', error);

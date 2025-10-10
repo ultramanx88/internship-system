@@ -1,143 +1,150 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireAuth, cleanup } from '@/lib/auth-utils';
 
 export async function GET(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request, ['committee']);
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+    const { user } = authResult;
+
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-    const type = searchParams.get('type');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const skip = (page - 1) * limit;
+    const action = searchParams.get('action') || 'pending_receipt';
 
-    // Build where clause
-    const where: any = {};
-    
-    if (status && status !== 'all') {
-      if (status === 'pending') {
-        where.pendingCommitteeReview = true;
-      } else {
-        where.status = status;
-      }
-    }
-    
-    if (type && type !== 'all') {
-      where.type = type;
+    console.log('Committee Applications API - Fetching data for user:', user.id, 'action:', action);
+
+    let whereClause: any = {};
+
+    switch (action) {
+      case 'pending_receipt':
+        // คำขอที่รอการพิจารณา (ส่งไปยังกรรมการแล้ว)
+        whereClause = {
+          status: 'assigned_committee'
+        };
+        break;
+      case 'my_applications':
+        // คำขอที่กรรมการนี้เกี่ยวข้อง
+        whereClause = {
+          committees: {
+            some: {
+              committee: {
+                members: {
+                  some: {
+                    userId: user.id
+                  }
+                }
+              }
+            }
+          }
+        };
+        break;
+      case 'approvals':
+        // คำขอที่กรรมการนี้พิจารณาแล้ว
+        whereClause = {
+          committees: {
+            some: {
+              committee: {
+                members: {
+                  some: {
+                    userId: user.id
+                  }
+                }
+              },
+              status: {
+                in: ['approved', 'rejected']
+              }
+            }
+          }
+        };
+        break;
+      default:
+        whereClause = {
+          status: 'assigned_committee'
+        };
     }
 
-    // Fetch applications with related data
     const applications = await prisma.application.findMany({
-      where,
+      where: whereClause,
       include: {
         student: {
           select: {
             id: true,
             name: true,
             email: true,
-            phone: true,
-            faculty: {
-              select: {
-                name: true,
-                nameEn: true
-              }
-            },
-            department: {
-              select: {
-                name: true,
-                nameEn: true
-              }
-            },
+            t_name: true,
+            t_surname: true,
+            e_name: true,
+            e_surname: true,
             major: {
               select: {
-                name: true,
+                id: true,
+                nameTh: true,
                 nameEn: true
               }
             }
           }
         },
         internship: {
-          select: {
+          include: {
             company: {
               select: {
+                id: true,
                 name: true,
-                nameEn: true,
-                address: true,
-                phone: true
-              }
-            },
-            position: true,
-            type: true
-          }
-        },
-        committeeApprovals: {
-          include: {
-            committee: {
-              select: {
-                name: true,
-                email: true
+                address: true
               }
             }
+          }
+        },
+        committees: {
+          include: {
+            committee: {
+              include: {
+                members: {
+                  include: {
+                    user: {
+                      select: {
+                        id: true,
+                        name: true,
+                        email: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        supervisor: {
+          select: {
+            id: true,
+            name: true,
+            email: true
           }
         }
       },
       orderBy: {
         dateApplied: 'desc'
-      },
-      skip,
-      take: limit
-    });
-
-    // Transform data for frontend
-    const transformedApplications = applications.map(app => ({
-      id: app.id,
-      studentId: app.student.id,
-      studentName: app.student.name,
-      studentEmail: app.student.email,
-      studentPhone: app.student.phone,
-      companyName: app.internship?.company?.name || 'ไม่ระบุ',
-      companyAddress: app.internship?.company?.address,
-      companyPhone: app.internship?.company?.phone,
-      position: app.internship?.position || 'ไม่ระบุ',
-      type: app.internship?.type || 'internship',
-      status: app.status,
-      dateApplied: app.dateApplied.toISOString(),
-      currentApprovals: app.committeeApprovals?.length || 0,
-      requiredApprovals: 3, // Default required approvals
-      pendingCommitteeReview: app.pendingCommitteeReview,
-      studentReason: app.studentReason,
-      expectedSkills: app.expectedSkills,
-      projectProposal: app.projectProposal,
-      preferredStartDate: app.preferredStartDate?.toISOString(),
-      availableDuration: app.availableDuration,
-      feedback: app.feedback,
-      faculty: app.student.faculty?.name,
-      department: app.student.department?.name,
-      major: app.student.major?.name
-    }));
-
-    // Get total count for pagination
-    const totalCount = await prisma.application.count({ where });
-
-    return NextResponse.json({
-      applications: transformedApplications,
-      pagination: {
-        page,
-        limit,
-        total: totalCount,
-        totalPages: Math.ceil(totalCount / limit)
       }
     });
 
+    return NextResponse.json({
+      success: true,
+      applications,
+      count: applications.length
+    });
   } catch (error) {
-    console.error('Error fetching committee applications:', error);
+    console.error('Committee Applications API Error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch applications' },
+      { 
+        success: false, 
+        error: 'Failed to fetch applications',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    await cleanup();
   }
 }
-

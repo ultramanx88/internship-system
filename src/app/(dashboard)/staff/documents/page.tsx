@@ -135,26 +135,20 @@ export default function DocumentsPage() {
     }
 
     try {
-      // สร้างเลขที่เอกสารและวันที่
-      const documentNumber = `DOC-${Date.now()}`;
-      const documentDate = new Date().toISOString().split('T')[0];
-
       const response = await fetch('/api/applications/print', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          applicationIds: selectedApplications,
-          documentNumber: documentNumber,
-          documentDate: documentDate
+          applicationIds: selectedApplications
         })
       });
 
       const data = await response.json();
 
       if (data.success) {
-        // อัปเดตสถานะใน UI
+        // อัปเดตสถานะใน UI เป็นเสร็จสิ้นโดยไม่ต้องพิมพ์/ออกเลขที่เอกสาร
         const updatedApplications = applications.map(app => 
           selectedApplications.includes(app.id) 
             ? { ...app, documentStatus: 'printed' as const, status: 'documents_ready' as const }
@@ -165,7 +159,7 @@ export default function DocumentsPage() {
         setFilteredApplications(updatedApplications);
         setSelectedApplications([]);
         
-        alert(`พิมพ์เอกสาร ${getDocumentTypeName(type)} สำเร็จสำหรับ ${selectedApplications.length} ใบสมัคร`);
+        alert(`ทำเครื่องหมายเสร็จสิ้นเอกสาร ${getDocumentTypeName(type)} สำหรับ ${selectedApplications.length} ใบสมัคร`);
       } else {
         alert(`เกิดข้อผิดพลาด: ${data.error}`);
       }

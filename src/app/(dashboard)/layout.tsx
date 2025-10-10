@@ -1,6 +1,5 @@
 'use client';
 
-import { AuthProvider } from '@/hooks/use-auth-provider';
 import { useAuth } from '@/hooks/use-auth';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -101,9 +100,5 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <AuthProvider>
-      <DashboardContent>{children}</DashboardContent>
-    </AuthProvider>
-  );
+  return <DashboardContent>{children}</DashboardContent>;
 }

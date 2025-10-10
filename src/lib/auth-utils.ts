@@ -131,7 +131,26 @@ export async function requireAuth(
   requiredRoles?: Role[]
 ): Promise<{ user: AuthUser; error?: never } | { user?: never; error: Response }> {
   const userId = getUserIdFromRequest(request);
-  
+
+  // Development fallback: allow pages to load without real auth/user records
+  if (!userId && process.env.NODE_ENV !== 'production') {
+    const devUser: AuthUser = {
+      id: 'dev-student',
+      name: 'Dev Student',
+      email: 'dev@student.local',
+      roles: ['student']
+    };
+    if (requiredRoles && !hasAnyRole(devUser, requiredRoles)) {
+      return {
+        error: new Response(
+          JSON.stringify({ error: 'Insufficient permissions' }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        )
+      };
+    }
+    return { user: devUser };
+  }
+
   if (!userId) {
     return {
       error: new Response(
@@ -142,7 +161,26 @@ export async function requireAuth(
   }
 
   const user = await getUserWithRoles(userId);
-  
+
+  // If user missing in DB in development, provide a mock student user
+  if (!user && process.env.NODE_ENV !== 'production') {
+    const devUser: AuthUser = {
+      id: userId,
+      name: 'Dev User',
+      email: `${userId}@local.dev`,
+      roles: ['student']
+    };
+    if (requiredRoles && !hasAnyRole(devUser, requiredRoles)) {
+      return {
+        error: new Response(
+          JSON.stringify({ error: 'Insufficient permissions' }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        )
+      };
+    }
+    return { user: devUser };
+  }
+
   if (!user) {
     return {
       error: new Response(

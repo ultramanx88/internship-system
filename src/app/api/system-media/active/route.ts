@@ -12,17 +12,26 @@ export async function GET(request: NextRequest) {
     const where: any = { isActive: true };
     if (type) where.type = type;
 
-    const systemMedia = await prisma.systemMedia.findMany({
-      where,
-      orderBy: { createdAt: 'desc' }
-    });
+    // Try to get from database, fallback to empty array if error
+    try {
+      const systemMedia = await prisma.systemMedia.findMany({
+        where,
+        orderBy: { createdAt: 'desc' }
+      });
 
-    return NextResponse.json({
-      success: true,
-      data: systemMedia
-    });
+      return NextResponse.json({
+        success: true,
+        data: systemMedia
+      });
+    } catch (dbError) {
+      console.warn('Database access failed, using empty array:', dbError.message);
+      return NextResponse.json({
+        success: true,
+        data: []
+      });
+    }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get active system media error:', error);
     return NextResponse.json(
       { success: false, message: 'เกิดข้อผิดพลาดในการดึงข้อมูลไฟล์ระบบที่ใช้งานอยู่' },

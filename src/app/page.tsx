@@ -14,7 +14,12 @@ export default function Home() {
     if (!loading) {
       if (user) {
         console.log('User is logged in, redirecting based on role...');
-        const userRoles = Array.isArray(user.roles) ? user.roles : JSON.parse(user.roles || '[]');
+        let userRoles: any[] = [];
+        try {
+          userRoles = Array.isArray(user.roles) ? (user.roles as any[]) : JSON.parse((user.roles as any) || '[]');
+        } catch {
+          userRoles = [];
+        }
         
         // Redirect based on user role
         if (userRoles.includes('admin')) {

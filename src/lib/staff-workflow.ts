@@ -8,11 +8,11 @@ export interface StaffWorkflowData {
 }
 
 export interface StaffWorkflowStatus {
-  currentStep: 'document_received' | 'document_reviewed' | 'document_approved' | 'document_sent_to_company' | 'completed';
+  currentStep: 'document_received' | 'document_reviewed' | 'document_approved' | 'documents_prepared' | 'completed';
   documentReceived: boolean;
   documentReviewed: boolean;
   documentApproved: boolean;
-  documentSentToCompany: boolean;
+  documentsPrepared: boolean;
   isCompleted: boolean;
 }
 
@@ -270,10 +270,10 @@ export async function sendDocumentToCompany(data: {
     const updatedApplication = await prisma.application.update({
       where: { id: data.applicationId },
       data: {
-        documentSentToCompany: true,
-        staffWorkflowStep: 'document_sent_to_company',
+        documentsPrepared: true,
+        staffWorkflowStep: 'documents_prepared',
         staffWorkflowNotes: data.notes || application.staffWorkflowNotes,
-        documentSentAt: new Date()
+        documentsPreparedAt: new Date()
       },
       include: {
         student: {
@@ -329,7 +329,7 @@ export async function getStaffWorkflowStatus(applicationId: string): Promise<Sta
     const documentReceived = application.documentReceived;
     const documentReviewed = application.documentReviewed;
     const documentApproved = application.documentApproved;
-    const documentSentToCompany = application.documentSentToCompany;
+    const documentsPrepared = application.documentsPrepared;
 
     let currentStep: StaffWorkflowStatus['currentStep'] = 'document_received';
     
@@ -339,9 +339,9 @@ export async function getStaffWorkflowStatus(applicationId: string): Promise<Sta
       currentStep = 'document_reviewed';
     } else if (documentReviewed && !documentApproved) {
       currentStep = 'document_approved';
-    } else if (documentApproved && !documentSentToCompany) {
-      currentStep = 'document_sent_to_company';
-    } else if (documentSentToCompany) {
+    } else if (documentApproved && !documentsPrepared) {
+      currentStep = 'documents_prepared';
+    } else if (documentsPrepared) {
       currentStep = 'completed';
     }
 
@@ -350,8 +350,8 @@ export async function getStaffWorkflowStatus(applicationId: string): Promise<Sta
       documentReceived,
       documentReviewed,
       documentApproved,
-      documentSentToCompany,
-      isCompleted: documentSentToCompany
+      documentsPrepared,
+      isCompleted: documentsPrepared
     };
   } catch (error) {
     console.error('Error getting staff workflow status:', error);

@@ -1,0 +1,798 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                           String                        @id @default(cuid())
+  name                         String
+  email                        String                        @unique
+  password                     String
+  roles                        String
+  skills                       String?
+  statement                    String?
+  t_title                      String?
+  t_name                       String?
+  t_middle_name                String?
+  t_surname                    String?
+  e_title                      String?
+  e_name                       String?
+  e_middle_name                String?
+  e_surname                    String?
+  facultyId                    String?
+  departmentId                 String?
+  curriculumId                 String?
+  majorId                      String?
+  studentYear                  Int?
+  phone                        String?
+  campus                       String?
+  gpa                          String?
+  nationality                  String?
+  passportId                   String?
+  visaType                     String?
+  profileImage                 String?
+  internshipPhoto1             String?
+  internshipPhoto2             String?
+  notifyEmail                  Boolean                       @default(true)
+  notifyPush                   Boolean                       @default(false)
+  notifySms                    Boolean                       @default(false)
+  notifyAppUpdates             Boolean                       @default(true)
+  notifyDeadlines              Boolean                       @default(true)
+  notifyNews                   Boolean                       @default(false)
+  language                     String                        @default("th")
+  theme                        String                        @default("light")
+  dateFormat                   String                        @default("thai")
+  createdAt                    DateTime                      @default(now())
+  updatedAt                    DateTime                      @updatedAt
+  courseInstructorApplications Application[]                 @relation("CourseInstructorApplications")
+  applications                 Application[]
+  supervisorApplications       Application[]                 @relation("SupervisorApplications")
+  auditLogs                    AuditLog[]
+  backupRecords                BackupRecord[]
+  committeeMembers             CommitteeMember[]
+  courseInstructors            CourseInstructor[]
+  dataProcessingConsents       DataProcessingConsent[]
+  documents                    Document[]
+  educatorRoleAssignments      EducatorRoleAssignment[]
+  evaluations                  Evaluation[]
+  facultyInstructorAssignments FacultyInstructorAssignment[]
+  printRecords                 PrintRecord[]
+  systemLogs                   SystemLog[]
+  curriculum                   Curriculum?                   @relation(fields: [curriculumId], references: [id])
+  department                   Department?                   @relation(fields: [departmentId], references: [id])
+  faculty                      Faculty?                      @relation(fields: [facultyId], references: [id])
+  major                        Major?                        @relation(fields: [majorId], references: [id])
+
+  @@map("users")
+}
+
+/// Honorific titles/prefixes (คำนำหน้า)
+model Title {
+  id           String   @id @default(cuid())
+  nameTh       String
+  nameEn       String?
+  applicableTo String[]
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("titles")
+}
+
+model Internship {
+  id            String         @id @default(cuid())
+  title         String
+  titleEn       String?
+  companyId     String
+  location      String
+  description   String
+  descriptionEn String?
+  type          InternshipType
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  applications  Application[]
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("internships")
+}
+
+model Application {
+  id                      String                 @id @default(cuid())
+  studentId               String
+  internshipId            String
+  status                  ApplicationStatus
+  dateApplied             DateTime               @default(now())
+  feedback                String?
+  projectTopic            String?
+  projectTopicEn          String?
+  printRecordId           String?
+  projectProposal         String?
+  preferredStartDate      DateTime?
+  availableDuration       Int?
+  staffReviewed           Boolean                @default(false)
+  staffReviewedAt         DateTime?
+  documentReceived        Boolean                @default(false)
+  documentReceivedAt      DateTime?
+  documentReviewed        Boolean                @default(false)
+  documentReviewedAt      DateTime?
+  documentApproved        Boolean                @default(false)
+  documentApprovedAt      DateTime?
+  documentSentToCompany   Boolean                @default(false)
+  documentSentAt          DateTime?
+  staffWorkflowNotes      String?
+  courseInstructorId      String?
+  instructorReceived      Boolean                @default(false)
+  instructorReceivedAt    DateTime?
+  instructorReviewed      Boolean                @default(false)
+  instructorReviewedAt    DateTime?
+  instructorWorkflowNotes String?
+  supervisorId            String?
+  supervisorAssigned      Boolean                @default(false)
+  supervisorAssignedAt    DateTime?
+  supervisorReceived      Boolean                @default(false)
+  supervisorReceivedAt    DateTime?
+  supervisorConfirmed     Boolean                @default(false)
+  supervisorConfirmedAt   DateTime?
+  appointmentScheduled    Boolean                @default(false)
+  appointmentScheduledAt  DateTime?
+  supervisorWorkflowNotes String?
+  committeeReceived       Boolean                @default(false)
+  committeeReceivedAt     DateTime?
+  committeeReviewed       Boolean                @default(false)
+  committeeReviewedAt     DateTime?
+  committeeApproved       Boolean                @default(false)
+  committeeApprovedAt     DateTime?
+  committeeWorkflowNotes  String?
+  studentWorkflowStep     Int                    @default(1)
+  staffFeedback           String?
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  committees              ApplicationCommittee[]
+  courseInstructor        User?                  @relation("CourseInstructorApplications", fields: [courseInstructorId], references: [id])
+  internship              Internship             @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  printRecord             PrintRecord?           @relation(fields: [printRecordId], references: [id])
+  student                 User                   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  supervisor              User?                  @relation("SupervisorApplications", fields: [supervisorId], references: [id])
+  evaluations             Evaluation[]
+
+  @@unique([studentId, internshipId])
+  @@index([status])
+  @@index([studentId])
+  @@index([internshipId])
+  @@index([createdAt])
+  @@map("applications")
+}
+
+model SystemMedia {
+  id           String   @id @default(cuid())
+  type         String
+  name         String
+  originalName String
+  filePath     String
+  fileSize     Int
+  mimeType     String
+  width        Int?
+  height       Int?
+  isActive     Boolean  @default(true)
+  uploadedBy   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("system_media")
+}
+
+model Document {
+  id         String         @id @default(cuid())
+  studentId  String
+  name       String
+  nameEn     String?
+  type       DocumentType
+  status     DocumentStatus @default(pending)
+  size       Int
+  url        String
+  uploadDate DateTime       @default(now())
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  student    User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+}
+
+model PrintRecord {
+  id             String        @id @default(cuid())
+  documentNumber String        @unique
+  documentDate   DateTime
+  printedAt      DateTime      @default(now())
+  printedById    String
+  applications   Application[]
+  printedBy      User          @relation(fields: [printedById], references: [id])
+
+  @@map("print_records")
+}
+
+model Faculty {
+  id                           String                        @id @default(cuid())
+  nameTh                       String
+  nameEn                       String?
+  code                         String?
+  isActive                     Boolean                       @default(true)
+  createdAt                    DateTime                      @default(now())
+  updatedAt                    DateTime                      @updatedAt
+  courses                      Course[]
+  departments                  Department[]
+  facultyInstructorAssignments FacultyInstructorAssignment[]
+  users                        User[]
+
+  @@map("faculties")
+}
+
+model Department {
+  id          String       @id @default(cuid())
+  nameTh      String
+  nameEn      String?
+  code        String?
+  facultyId   String
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  courses     Course[]
+  curriculums Curriculum[]
+  faculty     Faculty      @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  users       User[]
+
+  @@map("departments")
+}
+
+model Curriculum {
+  id           String     @id @default(cuid())
+  nameTh       String
+  nameEn       String?
+  code         String?
+  degree       String?
+  departmentId String
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  courses      Course[]
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  majors       Major[]
+  users        User[]
+
+  @@map("curriculums")
+}
+
+model Major {
+  id           String     @id @default(cuid())
+  nameTh       String
+  nameEn       String?
+  curriculumId String
+  area         String?
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  courses      Course[]
+  curriculum   Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  users        User[]
+
+  @@map("majors")
+}
+
+model Company {
+  id               String       @id @default(cuid())
+  name             String
+  nameEn           String?
+  address          String?
+  addressEn        String?
+  province         String?
+  district         String?
+  subdistrict      String?
+  postalCode       String?
+  phone            String?
+  email            String?
+  website          String?
+  description      String?
+  descriptionEn    String?
+  industry         String?
+  industryEn       String?
+  latitude         Float?
+  longitude        Float?
+  provinceIdRef    String?
+  districtIdRef    String?
+  subdistrictIdRef String?
+  size             CompanySize?
+  isActive         Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  districtRef      District?    @relation(fields: [districtIdRef], references: [id])
+  provinceRef      Province?    @relation(fields: [provinceIdRef], references: [id])
+  subdistrictRef   Subdistrict? @relation(fields: [subdistrictIdRef], references: [id])
+  internships      Internship[]
+
+  @@map("companies")
+}
+
+model Province {
+  id        String     @id @default(cuid())
+  nameTh    String
+  nameEn    String?
+  code      String?    @unique
+  isActive  Boolean    @default(true)
+  companies Company[]
+  districts District[]
+
+  @@map("provinces")
+}
+
+model District {
+  id           String        @id @default(cuid())
+  nameTh       String
+  nameEn       String?
+  code         String?       @unique
+  isActive     Boolean       @default(true)
+  provinceId   String
+  companies    Company[]
+  province     Province      @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  subdistricts Subdistrict[]
+
+  @@map("districts")
+}
+
+model Subdistrict {
+  id         String    @id @default(cuid())
+  nameTh     String
+  nameEn     String?
+  code       String?   @unique
+  postalCode String?
+  isActive   Boolean   @default(true)
+  districtId String
+  companies  Company[]
+  district   District  @relation(fields: [districtId], references: [id], onDelete: Cascade)
+
+  @@map("subdistricts")
+}
+
+model AcademicYear {
+  id                           String                        @id @default(cuid())
+  year                         Int                           @unique
+  name                         String
+  nameEn                       String?
+  isActive                     Boolean                       @default(false)
+  startDate                    DateTime?
+  endDate                      DateTime?
+  createdAt                    DateTime                      @default(now())
+  updatedAt                    DateTime                      @updatedAt
+  roleAssignments              EducatorRoleAssignment[]
+  facultyInstructorAssignments FacultyInstructorAssignment[]
+  semesters                    Semester[]
+
+  @@map("academic_years")
+}
+
+model Semester {
+  id                           String                        @id @default(cuid())
+  name                         String
+  nameEn                       String?
+  academicYearId               String
+  startDate                    DateTime?
+  endDate                      DateTime?
+  isActive                     Boolean                       @default(false)
+  createdAt                    DateTime                      @default(now())
+  updatedAt                    DateTime                      @updatedAt
+  roleAssignments              EducatorRoleAssignment[]
+  facultyInstructorAssignments FacultyInstructorAssignment[]
+  academicYear                 AcademicYear                  @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  @@unique([name, academicYearId])
+  @@map("semesters")
+}
+
+model EducatorRoleAssignment {
+  id             String        @id @default(cuid())
+  educatorId     String
+  academicYearId String
+  semesterId     String
+  educatorRoleId String?
+  roles          String
+  isActive       Boolean       @default(true)
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  academicYear   AcademicYear  @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  educator       User          @relation(fields: [educatorId], references: [id], onDelete: Cascade)
+  educatorRole   EducatorRole? @relation(fields: [educatorRoleId], references: [id], onDelete: Cascade)
+  semester       Semester      @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+
+  @@unique([educatorId, academicYearId, semesterId])
+  @@map("educator_role_assignments")
+}
+
+model FacultyInstructorAssignment {
+  id             String       @id @default(cuid())
+  facultyId      String
+  academicYearId String
+  semesterId     String
+  instructorId   String
+  isActive       Boolean      @default(true)
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  faculty        Faculty      @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  instructor     User         @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  semester       Semester     @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+
+  @@unique([facultyId, academicYearId, semesterId])
+  @@map("faculty_instructor_assignments")
+}
+
+model SystemLog {
+  id         String   @id @default(cuid())
+  level      LogLevel
+  message    String
+  context    Json?
+  userId     String?
+  sessionId  String?
+  ipAddress  String?
+  userAgent  String?
+  endpoint   String?
+  method     String?
+  statusCode Int?
+  duration   Int?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@map("system_logs")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String
+  entityId   String?
+  oldValues  Json?
+  newValues  Json?
+  userId     String?
+  sessionId  String?
+  ipAddress  String?
+  userAgent  String?
+  reason     String?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model LogRetentionPolicy {
+  id            String    @id @default(cuid())
+  logType       String    @unique
+  retentionDays Int       @default(90)
+  isActive      Boolean   @default(true)
+  lastCleanup   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("log_retention_policies")
+}
+
+model DataProcessingConsent {
+  id             String    @id @default(cuid())
+  userId         String
+  consentType    String
+  isConsented    Boolean
+  consentDate    DateTime  @default(now())
+  withdrawalDate DateTime?
+  consentVersion String    @default("1.0")
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("data_processing_consents")
+}
+
+model DataAnonymizationRule {
+  id                String   @id @default(cuid())
+  tableName         String
+  columnName        String
+  anonymizationType String
+  maskPattern       String?
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([tableName, columnName])
+  @@map("data_anonymization_rules")
+}
+
+model BackupRecord {
+  id            String       @id @default(cuid())
+  filename      String
+  filePath      String
+  fileSize      BigInt
+  backupType    BackupType
+  status        BackupStatus @default(IN_PROGRESS)
+  errorMessage  String?
+  metadata      Json?
+  createdBy     String?
+  createdAt     DateTime     @default(now())
+  completedAt   DateTime?
+  createdByUser User?        @relation(fields: [createdBy], references: [id])
+
+  @@map("backup_records")
+}
+
+model Committee {
+  id           String                 @id @default(cuid())
+  name         String
+  description  String?
+  isActive     Boolean                @default(true)
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  applications ApplicationCommittee[]
+  members      CommitteeMember[]
+
+  @@map("committees")
+}
+
+model CommitteeMember {
+  id          String    @id @default(cuid())
+  committeeId String
+  userId      String
+  role        String
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  committee   Committee @relation(fields: [committeeId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([committeeId, userId])
+  @@map("committee_members")
+}
+
+model ApplicationCommittee {
+  id            String      @id @default(cuid())
+  applicationId String
+  committeeId   String
+  status        String
+  notes         String?
+  reviewedAt    DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  committee     Committee   @relation(fields: [committeeId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, committeeId])
+  @@map("application_committees")
+}
+
+model Course {
+  id            String             @id @default(cuid())
+  code          String             @unique
+  name          String
+  nameEn        String?
+  description   String?
+  descriptionEn String?
+  credits       Int
+  categoryId    String?
+  facultyId     String?
+  departmentId  String?
+  curriculumId  String?
+  majorId       String?
+  isActive      Boolean            @default(true)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  instructors   CourseInstructor[]
+  category      CourseCategory?    @relation(fields: [categoryId], references: [id])
+  curriculum    Curriculum?        @relation(fields: [curriculumId], references: [id])
+  department    Department?        @relation(fields: [departmentId], references: [id])
+  faculty       Faculty?           @relation(fields: [facultyId], references: [id])
+  major         Major?             @relation(fields: [majorId], references: [id])
+
+  @@map("courses")
+}
+
+model CourseCategory {
+  id          String   @id @default(cuid())
+  name        String
+  nameEn      String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  courses     Course[]
+
+  @@map("course_categories")
+}
+
+model CourseInstructor {
+  id        String   @id @default(cuid())
+  courseId  String
+  userId    String
+  role      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, userId])
+  @@map("course_instructors")
+}
+
+model EvaluationForm {
+  id            String       @id @default(cuid())
+  name          String
+  nameEn        String?
+  description   String?
+  descriptionEn String?
+  type          String
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  evaluations   Evaluation[]
+
+  @@map("evaluation_forms")
+}
+
+model Evaluation {
+  id            String         @id @default(cuid())
+  formId        String
+  applicationId String
+  evaluatorId   String
+  evaluatorType String
+  score         Int
+  comments      String?
+  submittedAt   DateTime       @default(now())
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  application   Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  evaluator     User           @relation(fields: [evaluatorId], references: [id], onDelete: Cascade)
+  form          EvaluationForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@map("evaluations")
+}
+
+model DocumentTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  nameEn    String?
+  type      String
+  template  String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("document_templates")
+}
+
+model EducatorRole {
+  id            String                   @id @default(cuid())
+  name          String
+  nameEn        String?
+  description   String?
+  descriptionEn String?
+  permissions   Json?
+  isActive      Boolean                  @default(true)
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+  assignments   EducatorRoleAssignment[]
+
+  @@map("educator_roles")
+}
+
+model Holiday {
+  id        String   @id @default(cuid())
+  name      String
+  nameEn    String?
+  date      DateTime
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, date], name: "name_date")
+  @@map("holidays")
+}
+
+model DocumentSequence {
+  id         Int      @id @default(1)
+  nextNumber BigInt   @default(1)
+  updatedAt  DateTime @updatedAt
+
+  @@map("document_sequences")
+}
+
+model DocumentArchive {
+  id         String   @id @default(cuid())
+  documentNo BigInt   @unique
+  deletedAt  DateTime @default(now())
+  reason     String?
+  metaHash   String?
+
+  @@map("document_archive")
+}
+
+enum Role {
+  admin
+  staff
+  courseInstructor
+  committee
+  visitor
+  student
+}
+
+enum ApplicationStatus {
+  pending
+  approved
+  rejected
+  submitted
+  documents_ready
+  documents_delivered
+  assigned_supervisor
+  assigned_committee
+  committee_approved
+  supervisor_approved
+  completed
+}
+
+enum InternshipType {
+  internship
+  co_op
+}
+
+enum CompanySize {
+  startup
+  small
+  medium
+  large
+  enterprise
+}
+
+enum DocumentType {
+  cv
+  transcript
+  certificate
+  request_letter
+  introduction_letter
+  application_form
+  evaluation_form
+  project_proposal
+  internship_report
+  company_evaluation
+  supervisor_evaluation
+  other
+}
+
+enum DocumentStatus {
+  pending
+  approved
+  rejected
+  draft
+  submitted
+  under_review
+}
+
+enum LogLevel {
+  ERROR
+  WARN
+  INFO
+  DEBUG
+}
+
+enum BackupType {
+  FULL
+  INCREMENTAL
+  SCHEMA_ONLY
+  DATA_ONLY
+}
+
+enum BackupStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  EXPIRED
+}

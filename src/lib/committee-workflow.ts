@@ -26,7 +26,7 @@ export async function receiveApplication(data: {
   try {
     const application = await prisma.application.findUnique({
       where: { id: data.applicationId },
-      include: { student: true, internship: true }
+      include: { student: true }
     });
 
     if (!application) {
@@ -70,16 +70,6 @@ export async function receiveApplication(data: {
             email: true,
             t_name: true,
             e_name: true
-          }
-        },
-        internship: {
-          include: {
-            company: {
-              select: {
-                name: true,
-                address: true
-              }
-            }
           }
         }
       }
@@ -249,16 +239,6 @@ export async function getPendingCommitteeReceipt(committeeId: string) {
             t_name: true,
             e_name: true
           }
-        },
-        internship: {
-          include: {
-            company: {
-              select: {
-                name: true,
-                address: true
-              }
-            }
-          }
         }
       },
       orderBy: { courseInstructorApprovedAt: 'asc' }
@@ -293,18 +273,8 @@ export async function getCommitteeApplications(committeeId: string) {
             id: true,
             name: true,
             email: true,
-                    t_name: true,
-                    e_name: true
-          }
-        },
-        internship: {
-          include: {
-            company: {
-              select: {
-                name: true,
-                address: true
-              }
-            }
+            t_name: true,
+            e_name: true
           }
         }
       },
@@ -344,16 +314,6 @@ export async function getCommitteeApprovals(committeeId: string) {
                 email: true,
                 tName: true,
                 eName: true
-              }
-            },
-            internship: {
-              include: {
-                company: {
-                  select: {
-                    name: true,
-                    address: true
-                  }
-                }
               }
             }
           }

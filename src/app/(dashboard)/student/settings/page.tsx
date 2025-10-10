@@ -576,7 +576,7 @@ export default function SettingsPage() {
               <div className="flex items-start gap-6">
                 <div className="flex flex-col items-center space-y-3">
                   <Avatar className="h-24 w-24 border-4 border-amber-200">
-                    <AvatarImage src={profileImage || "/placeholder-avatar.jpg"} />
+                    <AvatarImage src={profileImage || "/assets/images/garuda-logo.png"} />
                     <AvatarFallback className="text-xl font-bold bg-amber-100 text-amber-700">
                       {userData.thaiName.charAt(0)}
                     </AvatarFallback>

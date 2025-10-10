@@ -45,9 +45,11 @@ type ApplicationData = {
 export default function PrintDocumentsPage() {
     const [applications, setApplications] = useState<ApplicationData[]>([]);
     const [selectedApplications, setSelectedApplications] = useState<Set<string>>(new Set());
+    // Document numbering/date removed per new flow
     const [documentNumber, setDocumentNumber] = useState('');
     const [documentDate, setDocumentDate] = useState<Date>();
     const [selectedLanguage, setSelectedLanguage] = useState<'th' | 'en'>('th');
+    // Templates are not required in the simplified flow
     const [selectedTemplates, setSelectedTemplates] = useState<Set<string>>(new Set());
     const [availableTemplates, setAvailableTemplates] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -60,20 +62,25 @@ export default function PrintDocumentsPage() {
     const fetchApplications = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [appsResponse, templatesResponse] = await Promise.all([
-                fetch('/api/applications/print'),
-                fetch('/api/document-templates')
-            ]);
-            
-            if (!appsResponse.ok || !templatesResponse.ok) {
-                throw new Error('Failed to fetch data');
+            const appsResponse = await fetch('/api/applications/print');
+            if (!appsResponse.ok) {
+                throw new Error('Failed to fetch applications');
             }
-            
             const appsData = await appsResponse.json();
-            const templatesData = await templatesResponse.json();
-            
             setApplications(appsData.applications || []);
-            setAvailableTemplates(templatesData.grouped || []);
+            // Optional: try load templates but ignore failures and shape differences
+            try {
+                const templatesResponse = await fetch('/api/document-template');
+                if (templatesResponse.ok) {
+                    const templatesData = await templatesResponse.json();
+                    // Normalize to empty list; UI no longer depends on this
+                    setAvailableTemplates(templatesData.grouped || []);
+                } else {
+                    setAvailableTemplates([]);
+                }
+            } catch {
+                setAvailableTemplates([]);
+            }
         } catch (error) {
             console.error('Fetch data error:', error);
             toast({
@@ -122,23 +129,7 @@ export default function PrintDocumentsPage() {
             return;
         }
 
-        if (!documentNumber.trim()) {
-            toast({
-                variant: 'destructive',
-                title: 'กรุณากรอกเลขที่เอกสาร',
-                description: 'กรุณากรอกเลขที่เอกสารก่อนพิมพ์',
-            });
-            return;
-        }
-
-        if (!documentDate) {
-            toast({
-                variant: 'destructive',
-                title: 'กรุณาเลือกวันที่เอกสาร',
-                description: 'กรุณาเลือกวันที่เอกสารก่อนพิมพ์',
-            });
-            return;
-        }
+        // No document number/date required anymore
 
         setIsPrinting(true);
         try {
@@ -149,8 +140,7 @@ export default function PrintDocumentsPage() {
                 },
                 body: JSON.stringify({
                     applicationIds: Array.from(selectedApplications),
-                    documentNumber: documentNumber.trim(),
-                    documentDate: documentDate.toISOString(),
+                    // no numbering/date
                 }),
             });
 
@@ -161,8 +151,8 @@ export default function PrintDocumentsPage() {
             const result = await response.json();
 
             toast({
-                title: 'พิมพ์เอกสารสำเร็จ',
-                description: `พิมพ์เอกสาร ${selectedApplications.size} ฉบับ เลขที่ ${documentNumber}`,
+                title: 'ดำเนินการสำเร็จ',
+                description: `ทำเครื่องหมายเสร็จสิ้น ${selectedApplications.size} รายการ`,
             });
 
             // Reset form
@@ -173,8 +163,7 @@ export default function PrintDocumentsPage() {
             // Refresh data
             fetchApplications();
 
-            // Open print dialog (simulate)
-            window.print();
+            // No browser print in this flow
 
         } catch (error) {
             console.error('Print error:', error);
@@ -242,7 +231,7 @@ export default function PrintDocumentsPage() {
                                         id="documentNumber"
                                         value={documentNumber}
                                         onChange={(e) => setDocumentNumber(e.target.value)}
-                                        placeholder="เช่น DOC-2024-001"
+                                        placeholder="เช่น มทร-2567-001"
                                     />
                                 </div>
                                 
@@ -289,7 +278,7 @@ export default function PrintDocumentsPage() {
                                 <div className="flex items-end">
                                     <Button 
                                         onClick={handlePrint}
-                                        disabled={selectedApplications.size === 0 || selectedTemplates.size === 0 || isPrinting || !documentNumber.trim() || !documentDate}
+                                        disabled={selectedApplications.size === 0 || isPrinting}
                                         className="w-full"
                                     >
                                         {isPrinting ? (
@@ -307,47 +296,7 @@ export default function PrintDocumentsPage() {
                                 </div>
                             </div>
 
-                            {/* Template Selection */}
-                            <div className="space-y-2">
-                                <Label>เลือกเอกสารที่ต้องการพิมพ์ *</Label>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
-                                    {availableTemplates
-                                        .filter(group => group.language === selectedLanguage)
-                                        .map(group => (
-                                            <div key={`${group.type}_${group.language}`} className="space-y-2">
-                                                <h4 className="font-medium">
-                                                    {group.type === 'internship' ? 'ฝึกงาน' : 'สหกิจศึกษา'}
-                                                    {group.language === 'en' ? ' (English)' : ' (ไทย)'}
-                                                </h4>
-                                                {group.templates.map((template: any) => (
-                                                    <div key={template.id} className="flex items-center space-x-2">
-                                                        <Checkbox
-                                                            id={template.id}
-                                                            checked={selectedTemplates.has(template.id)}
-                                                            onCheckedChange={(checked) => {
-                                                                const newSelection = new Set(selectedTemplates);
-                                                                if (checked) {
-                                                                    newSelection.add(template.id);
-                                                                } else {
-                                                                    newSelection.delete(template.id);
-                                                                }
-                                                                setSelectedTemplates(newSelection);
-                                                            }}
-                                                        />
-                                                        <Label htmlFor={template.id} className="text-sm">
-                                                            {template.name.replace(/^\d+_/, '')} (.{template.format})
-                                                        </Label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ))}
-                                </div>
-                                {selectedTemplates.size === 0 && (
-                                    <p className="text-sm text-muted-foreground">
-                                        กรุณาเลือกเอกสารที่ต้องการพิมพ์อย่างน้อย 1 รายการ
-                                    </p>
-                                )}
-                            </div>
+                            {/* Template Selection removed from required flow */}
                         </div>
                     </CardContent>
                 </Card>

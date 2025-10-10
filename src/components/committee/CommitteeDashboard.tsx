@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import CommitteeWorkflowStatus from './CommitteeWorkflowStatus';
 import CommitteeWorkflowActions from './CommitteeWorkflowActions';
+import CommitteeReviewActions from './CommitteeReviewActions';
 
 interface Application {
   id: string;
@@ -50,6 +51,7 @@ export default function CommitteeDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [activeTab, setActiveTab] = useState('pending_receipt');
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -184,10 +186,13 @@ export default function CommitteeDashboard() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => setSelectedApplication(application)}
+                    onClick={() => {
+                      setSelectedApplication(application);
+                      setShowReviewModal(true);
+                    }}
                   >
-                    <FileText className="h-4 w-4 mr-1" />
-                    จัดการ
+                    <Users className="h-4 w-4 mr-1" />
+                    พิจารณา
                   </Button>
                 </div>
               </TableCell>
@@ -289,6 +294,22 @@ export default function CommitteeDashboard() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* Committee Review Modal */}
+      {selectedApplication && showReviewModal && (
+        <CommitteeReviewActions
+          application={selectedApplication}
+          onClose={() => {
+            setShowReviewModal(false);
+            setSelectedApplication(null);
+          }}
+          onActionComplete={() => {
+            fetchApplications();
+            setShowReviewModal(false);
+            setSelectedApplication(null);
+          }}
+        />
       )}
     </div>
   );

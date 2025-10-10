@@ -12,8 +12,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/register') ||
     pathname.startsWith('/assets') ||
     pathname.startsWith('/uploads') ||
-    pathname.includes('.') ||
-    pathname === '/'
+    pathname.includes('.')
   ) {
     return NextResponse.next();
   }
@@ -21,7 +20,7 @@ export function middleware(request: NextRequest) {
   // Basic role-based routing redirects
   // Note: This is a basic implementation. Full authentication should be handled by client-side AuthRedirect component
   
-  // Redirect root to login if not authenticated
+  // Redirect root to login
   if (pathname === '/') {
     return NextResponse.redirect(new URL('/login', request.url));
   }

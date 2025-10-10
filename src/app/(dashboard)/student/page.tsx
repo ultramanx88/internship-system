@@ -19,6 +19,7 @@ import {
     Calendar
 } from 'lucide-react';
 import { ApplicationWorkflow } from '@/components/student/ApplicationWorkflow';
+import ApplicationTimeline from '@/components/student/ApplicationTimeline';
 
 interface DashboardData {
     user: {
@@ -62,15 +63,23 @@ export default function StudentPage() {
                     },
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch dashboard data');
+                let result: any = null;
+                try {
+                    result = await response.json();
+                } catch (_) {
+                    result = null;
                 }
 
-                const result = await response.json();
-                if (result.success) {
+                if (!response.ok) {
+                    const msg = (result && (result.error || result.message)) || 'Failed to fetch dashboard data';
+                    setError(msg);
+                    return;
+                }
+
+                if (result && result.success) {
                     setDashboardData(result.data);
                 } else {
-                    throw new Error(result.error || 'Failed to fetch dashboard data');
+                    setError((result && (result.error || result.message)) || 'Failed to fetch dashboard data');
                 }
             } catch (err) {
                 console.error('Error fetching dashboard data:', err);
@@ -119,10 +128,6 @@ export default function StudentPage() {
     }
 
     const { applications, approvedApplication, upcomingDeadlines, recentActivities, stats } = dashboardData;
-
-    // Get approved internship and company data
-    const approvedInternship = approvedApplication?.internship;
-    const approvedCompany = approvedInternship?.company;
 
     // Coop timeline data
     const coopTimeline = [
@@ -240,18 +245,34 @@ export default function StudentPage() {
                                                         เอกสาร {app.id}
                                                     </span>
                                                     <span className="text-sm text-gray-900">
-                                                        {app.status === 'approved' ? 'อนุมัติแล้วจากการพิจารณา' :
-                                                         app.status === 'pending' ? 'รอการพิจารณา' :
+                                                        {app.status === 'approved' || app.status === 'committee_approved' ? 'อนุมัติแล้วจากการพิจารณา' :
+                                                         app.status === 'course_instructor_pending' ? 'อาจารย์ประจำวิชากำลังพิจารณา' :
+                                                         app.status === 'course_instructor_approved' ? 'อาจารย์ประจำวิชาอนุมัติแล้ว' :
+                                                         app.status === 'course_instructor_rejected' ? 'อาจารย์ประจำวิชาไม่อนุมัติ' :
+                                                         app.status === 'supervisor_assignment_pending' ? 'รอมอบหมายอาจารย์นิเทศก์' :
+                                                         app.status === 'assigned_supervisor' ? 'มอบหมายอาจารย์นิเทศก์แล้ว' :
+                                                         app.status === 'assigned_committee' ? 'กรรมการกำลังพิจารณา' :
                                                          app.status === 'rejected' ? 'ไม่ผ่านการพิจารณา' :
+                                                         app.status === 'pending' ? 'รอการพิจารณา' :
                                                          'สถานะไม่ทราบ'}
                                                     </span>
                                                 </div>
-                                                <Badge variant={app.status === 'approved' ? 'default' : 
-                                                              app.status === 'pending' ? 'secondary' : 
-                                                              'destructive'}>
-                                                    {app.status === 'approved' ? 'อนุมัติ' :
+                                                <Badge variant={
+                                                    app.status === 'approved' || app.status === 'committee_approved' ? 'default' : 
+                                                    app.status === 'course_instructor_pending' || app.status === 'assigned_committee' || app.status === 'supervisor_assignment_pending' ? 'secondary' : 
+                                                    app.status === 'course_instructor_rejected' || app.status === 'rejected' ? 'destructive' :
+                                                    'secondary'
+                                                }>
+                                                    {app.status === 'approved' || app.status === 'committee_approved' ? 'อนุมัติ' :
+                                                     app.status === 'course_instructor_pending' ? 'รออาจารย์ประจำวิชา' :
+                                                     app.status === 'course_instructor_approved' ? 'อาจารย์ประจำวิชาอนุมัติ' :
+                                                     app.status === 'course_instructor_rejected' ? 'อาจารย์ประจำวิชาไม่อนุมัติ' :
+                                                     app.status === 'supervisor_assignment_pending' ? 'รอมอบหมายอาจารย์นิเทศก์' :
+                                                     app.status === 'assigned_supervisor' ? 'มอบหมายอาจารย์นิเทศก์แล้ว' :
+                                                     app.status === 'assigned_committee' ? 'กรรมการพิจารณา' :
                                                      app.status === 'pending' ? 'รอพิจารณา' :
-                                                     app.status === 'rejected' ? 'ไม่ผ่าน' : app.status}
+                                                     app.status === 'rejected' ? 'ไม่ผ่าน' :
+                                                     app.status}
                                                 </Badge>
                                             </div>
                                             {app.internship && (
@@ -272,6 +293,13 @@ export default function StudentPage() {
                                     <Button asChild className="mt-4">
                                         <Link href="/student/application-form">ยื่นขอฝึกงาน</Link>
                                     </Button>
+                                </div>
+                            )}
+                            
+                            {/* Timeline Component */}
+                            {applications.length > 0 && (
+                                <div className="mt-6">
+                                    <ApplicationTimeline application={applications[0]} />
                                 </div>
                             )}
                         </CardContent>

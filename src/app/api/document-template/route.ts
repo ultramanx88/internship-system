@@ -1,46 +1,93 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { requireAuth, cleanup } from '@/lib/auth-utils';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
-    // Removed authentication check for internal admin functions
+    console.log('🔍 Document template GET - Starting...');
+    console.log('🔍 DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
+    
+    // Test database connection first
+    try {
+      await prisma.$connect();
+      console.log('✅ Database connection successful');
+    } catch (connError) {
+      console.error('❌ Database connection failed:', connError);
+      throw connError;
+    }
 
-    // Get document template settings
-    const template = await prisma.documentTemplate.findFirst({
-      where: { type: 'DOCUMENT_NUMBER' }
-    });
-
+    const currentYear = new Date().getFullYear();
     const defaultTemplate = {
       thai: {
-        prefix: 'DOC',
+        prefix: 'มทร',
         digits: 6,
-        suffix: '',
+        suffix: `/${currentYear + 543}`, // พ.ศ.
         currentNumber: 1
       },
       english: {
         prefix: 'DOC',
         digits: 6,
-        suffix: '',
+        suffix: `/${currentYear}`, // ค.ศ.
         currentNumber: 1
       }
     };
 
-    return NextResponse.json({
-      success: true,
-      data: template ? JSON.parse(template.config) : defaultTemplate
+    console.log('🔍 Querying database for document template...');
+    // Get from database
+    const template = await prisma.documentTemplate.findFirst({
+      where: { type: 'DOCUMENT_NUMBER' }
     });
 
+    if (template) {
+      console.log('✅ Found existing template:', template.id);
+      const parsedData = JSON.parse(template.template);
+      console.log('✅ Template data:', parsedData);
+      
+      return NextResponse.json({
+        success: true,
+        data: parsedData
+      });
+    } else {
+      console.log('⚠️ No template found, creating default...');
+      // Create default template if none exists
+      const newTemplate = await prisma.documentTemplate.create({
+        data: {
+          name: 'Document Number Settings',
+          type: 'DOCUMENT_NUMBER',
+          template: JSON.stringify(defaultTemplate),
+          isActive: true
+        }
+      });
+      console.log('✅ Created default template:', newTemplate.id);
+
+      return NextResponse.json({
+        success: true,
+        data: defaultTemplate
+      });
+    }
+
   } catch (error) {
-    console.error('Document template GET error:', error);
+    console.error('❌ Document template GET error:', error);
+    console.error('❌ Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    });
+    
     return NextResponse.json(
-      { success: false, message: 'เกิดข้อผิดพลาดในการดึงข้อมูล' },
+      { 
+        success: false, 
+        message: 'เกิดข้อผิดพลาดในการดึงข้อมูล',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   } finally {
-    await cleanup();
+    try {
+      await cleanup();
+    } catch (cleanupError) {
+      console.error('❌ Cleanup error:', cleanupError);
+    }
   }
 }
 
@@ -91,15 +138,23 @@ export async function PUT(request: NextRequest) {
       english: validatedEnglish
     };
 
-    // Upsert document template
-    await prisma.documentTemplate.upsert({
-      where: { type: 'DOCUMENT_NUMBER' },
-      update: { config: JSON.stringify(config) },
-      create: {
-        type: 'DOCUMENT_NUMBER',
-        config: JSON.stringify(config)
-      }
-    });
+    // Save to database
+    const existing = await prisma.documentTemplate.findFirst({ where: { type: 'DOCUMENT_NUMBER' } });
+    if (existing) {
+      await prisma.documentTemplate.update({
+        where: { id: existing.id },
+        data: { template: JSON.stringify(config), name: existing.name || 'Document Number Settings' }
+      });
+    } else {
+      await prisma.documentTemplate.create({
+        data: {
+          name: 'Document Number Settings',
+          type: 'DOCUMENT_NUMBER',
+          template: JSON.stringify(config),
+          isActive: true
+        }
+      });
+    }
 
     return NextResponse.json({
       success: true,

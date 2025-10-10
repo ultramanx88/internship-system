@@ -12,8 +12,7 @@ yarn-error.log*
 .env.production.local
 
 # Database
-prisma/dev.db
-prisma/dev.db-journal
+# PostgreSQL only - no SQLite files
 
 # Build outputs
 .next/

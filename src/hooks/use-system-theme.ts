@@ -4,13 +4,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSystemMedia, SystemMedia } from './use-system-media';
 
 const DEFAULT_LOGO = '/assets/images/system/garuda-logo.png';
-const DEFAULT_BACKGROUND = '/assets/images/placeholder-bg.jpg';
+const DEFAULT_BACKGROUND = '/assets/images/Background.webp';
 
 export function useSystemTheme() {
   const { getActiveMediaByType, fetchActiveSystemMedia } = useSystemMedia();
   const [logo, setLogo] = useState<string>(DEFAULT_LOGO);
   const [background, setBackground] = useState<string>(DEFAULT_BACKGROUND);
-  const [favicon, setFavicon] = useState<string>('/favicon.ico');
+  const [favicon, setFavicon] = useState<string>('/assets/images/garuda-logo.png');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingTheme, setIsLoadingTheme] = useState(false);
 

@@ -13,17 +13,12 @@ export async function GET(request: NextRequest) {
 
     console.log('Student Dashboard API - Fetching data for user:', user.id);
 
-    // Get student's applications with related data
+    // Get student's applications with related data (internal-only fields)
     const applications = await prisma.application.findMany({
       where: {
         studentId: user.id,
       },
       include: {
-        internship: {
-          include: {
-            company: true,
-          },
-        },
         printRecord: true,
       },
       orderBy: {
@@ -31,8 +26,11 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Get approved application
-    const approvedApplication = applications.find(app => app.status === 'approved');
+    // Determine currently approved/accepted application by new enums
+    const approvedApplication = applications.find(app =>
+      ['committee_approved', 'company_accepted', 'internship_started', 'internship_ongoing', 'internship_completed', 'completed']
+        .includes(app.status as any)
+    );
 
     // Upcoming deadlines and recent activities will be fetched from real tables in future; return empty arrays for now
     const upcomingDeadlines: any[] = [];
@@ -41,9 +39,15 @@ export async function GET(request: NextRequest) {
     // Get statistics
     const stats = {
       totalApplications: applications.length,
-      approvedApplications: applications.filter(app => app.status === 'approved').length,
-      pendingApplications: applications.filter(app => app.status === 'pending').length,
-      completedApplications: applications.filter(app => app.status === 'completed').length,
+      approvedApplications: applications.filter(app =>
+        ['committee_approved', 'company_accepted', 'internship_started', 'internship_ongoing', 'internship_completed', 'completed']
+          .includes(app.status as any)
+      ).length,
+      pendingApplications: applications.filter(app =>
+        ['submitted', 'course_instructor_pending', 'course_instructor_approved', 'committee_pending', 'committee_partially_approved', 'documents_prepared', 'awaiting_external_response']
+          .includes(app.status as any)
+      ).length,
+      completedApplications: applications.filter(app => app.status === 'completed' || app.status === 'internship_completed').length,
     };
 
     return NextResponse.json({

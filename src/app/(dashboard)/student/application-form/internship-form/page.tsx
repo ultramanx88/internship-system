@@ -356,26 +356,15 @@ export default function InternshipFormPage() {
         try {
             // เรียก API จริง: สร้างคำขอฝึกงาน
             const lang = isEnglish ? 'en' : 'th';
-            const resp = await fetch('/api/applications', {
+            const resp = await fetch('/api/applications/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...(user?.id ? { 'x-user-id': user.id } : {}) },
                 body: JSON.stringify({
-                    internshipId: undefined, // ไม่มี internshipId ในฟอร์มนี้
-                    projectProposal: formData.projectProposal || '',
-                    studentReason: formData.studentReason || '',
+                    studentId: user?.id,
+                    projectTopic: formData.projectProposal || '',
+                    feedback: formData.studentReason || '',
                     position: formData.position || undefined,
-                    jobDescription: formData.jobDescription || undefined,
-                    company: {
-                        name: formData.companyName || undefined,
-                        phone: formData.companyPhone || undefined,
-                        address: [formData.addressNumber, formData.building, formData.floor, formData.soi, formData.road].filter(Boolean).join(' ') || undefined,
-                        provinceId: formData.provinceId || undefined,
-                        districtId: formData.districtId || undefined,
-                        subdistrictId: formData.subdistrictId || undefined,
-                        postalCode: formData.postalCode || undefined,
-                        latitude: formData.latitude || undefined,
-                        longitude: formData.longitude || undefined,
-                    }
+                    companyName: formData.companyName || ''
                 })
             });
 

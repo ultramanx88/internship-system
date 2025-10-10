@@ -1,0 +1,9 @@
+[0;34m[2025-10-09 22:11:35][0m Starting Docker deployment process...
+[0;32m[SUCCESS][0m Docker is running
+[0;36m[INFO][0m Skipping tests due to --skip-tests flag
+[0;34m[2025-10-09 22:11:36][0m 🧭 One-click production deploy started
+[0;32m[SUCCESS][0m .env validated
+[0;36m[INFO][0m Using COMPOSE_FILE=docker-compose.prod.yml
+[0;34m[2025-10-09 22:11:36][0m Starting database and cache services...
+[0;34m[2025-10-09 22:11:41][0m Applying Prisma migrations...
+[0;31m[ERROR][0m Prisma migrate deploy failed

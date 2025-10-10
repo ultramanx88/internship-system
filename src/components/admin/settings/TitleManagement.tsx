@@ -1,17 +1,44 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PlusCircle, Save, Trash2 } from 'lucide-react';
-import { titles as initialTitles, userRoleGroups, UserRoleGroup, UserTitle } from '@/lib/data';
+import { userRoleGroups, UserRoleGroup } from '@/lib/data';
+
+type TitleRow = {
+  id: string;
+  nameTh: string;
+  nameEn: string;
+  applicableTo: UserRoleGroup[];
+  isActive?: boolean;
+};
 
 export function TitleManagement() {
-  const [titles, setTitles] = useState<UserTitle[]>(initialTitles);
+  const [titles, setTitles] = useState<TitleRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [saving, setSaving] = useState<boolean>(false);
+  useEffect(() => {
+    let ignore = false;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch('/api/titles', { method: 'GET' });
+        const data = await res.json();
+        if (!ignore && data?.success) {
+          setTitles(data.data as TitleRow[]);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+    return () => { ignore = true; };
+  }, []);
   
   const handleAddTitle = () => {
     setTitles([
@@ -48,6 +75,43 @@ export function TitleManagement() {
     }));
   };
 
+  const saveAll = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch('/api/titles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(titles.map(t => ({
+          id: t.id?.startsWith('title-') ? undefined : t.id,
+          nameTh: t.nameTh,
+          nameEn: t.nameEn || null,
+          applicableTo: t.applicableTo,
+          isActive: t.isActive !== false,
+        })))
+      });
+      const data = await res.json();
+      if (data?.success) {
+        setTitles(data.data as TitleRow[]);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteTitle = async (id: string) => {
+    // Optimistic remove
+    const prev = titles;
+    setTitles(titles.filter(t => t.id !== id));
+    try {
+      const res = await fetch(`/api/titles?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (!res.ok) {
+        setTitles(prev);
+      }
+    } catch {
+      setTitles(prev);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -70,7 +134,7 @@ export function TitleManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {titles.map((title) => (
+              {(loading ? [] : titles).map((title) => (
                 <TableRow key={title.id}>
                   <TableCell>
                     <Input 
@@ -95,7 +159,7 @@ export function TitleManagement() {
                     </TableCell>
                   ))}
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleRemoveTitle(title.id)}>
+                    <Button variant="ghost" size="icon" onClick={() => (title.id?.startsWith('title-') ? handleRemoveTitle(title.id) : deleteTitle(title.id))}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </TableCell>
@@ -109,9 +173,9 @@ export function TitleManagement() {
             <PlusCircle className="mr-2 h-4 w-4" />
             เพิ่มคำนำหน้าชื่อ
           </Button>
-          <Button>
+          <Button onClick={saveAll} disabled={saving}>
             <Save className="mr-2 h-4 w-4" />
-            บันทึกการเปลี่ยนแปลง
+            {saving ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}
           </Button>
         </div>
       </CardContent>

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { allocateDocumentNumber } from "@/lib/document-number-allocator";
 
 export async function GET() {
   try {
@@ -65,7 +64,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { applicationIds, documentNumber, documentDate } = body;
+    const { applicationIds } = body;
 
     if (
       !applicationIds ||
@@ -78,59 +77,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If client does not provide a document number, allocate one atomically
-    let finalDocumentNumber: string = documentNumber;
-    if (!finalDocumentNumber) {
-      const allocated = await allocateDocumentNumber({ digits: 5 });
-      finalDocumentNumber = allocated.formatted;
-    }
-    if (!documentDate) {
-      return NextResponse.json(
-        { error: "กรุณากรอกวันที่เอกสาร" },
-        { status: 400 }
-      );
-    }
-
-    // Check if document number already exists
-    const existingRecord = await prisma.printRecord.findFirst({
-      where: { documentNumber: finalDocumentNumber },
-    });
-
-    if (existingRecord) {
-      return NextResponse.json(
-        { error: "เลขที่เอกสารนี้ถูกใช้แล้ว" },
-        { status: 400 }
-      );
-    }
-
-    // Create print record
-    const printRecord = await prisma.printRecord.create({
+    // Mark selected applications as completed (documents ready) without printing or numbering
+    const updated = await prisma.application.updateMany({
+      where: { id: { in: applicationIds as string[] } },
       data: {
-        documentNumber: finalDocumentNumber,
-        documentDate: new Date(documentDate),
-        printedAt: new Date(),
-        applications: {
-          connect: applicationIds.map((id: string) => ({ id })),
-        },
-      },
-      include: {
-        applications: {
-          include: {
-            student: true,
-            internship: {
-              include: {
-                company: true,
-              },
-            },
-          },
-        },
+        status: "documents_ready",
+        documentsPrepared: true,
+        documentsPreparedAt: new Date(),
       },
     });
 
     return NextResponse.json({
       success: true,
-      printRecord,
-      message: `พิมพ์เอกสาร ${applicationIds.length} ฉบับสำเร็จ`,
+      updatedCount: updated.count,
+      message: `ทำเครื่องหมายเสร็จสิ้น ${updated.count} รายการ`,
     });
   } catch (error) {
     console.error("Error printing documents:", error);

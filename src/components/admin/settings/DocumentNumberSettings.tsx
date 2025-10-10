@@ -14,7 +14,8 @@ import {
   DocumentSettingsValidator,
   DocumentNumberGenerator,
   Language,
-  DEFAULT_CONFIG
+  DEFAULT_CONFIG,
+  DocumentTemplate
 } from '@/lib/document-settings';
 
 export function DocumentNumberSettings() {
@@ -62,8 +63,16 @@ export function DocumentNumberSettings() {
       }
 
       // Save using the module
-      await DocumentSettingsAPI.saveConfig(config);
-      
+      const result = await DocumentSettingsAPI.saveConfig(config);
+      if (!result.success) {
+        toast({
+          variant: 'destructive',
+          title: 'บันทึกไม่สำเร็จ',
+          description: result.error || 'เกิดข้อผิดพลาดในการบันทึก'
+        });
+        return;
+      }
+
       toast({
         title: 'บันทึกสำเร็จ',
         description: 'บันทึกการตั้งค่าเลขเอกสารเรียบร้อยแล้ว'
@@ -73,7 +82,45 @@ export function DocumentNumberSettings() {
       toast({
         variant: 'destructive',
         title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถบันทึกข้อมูลได้'
+        description: error instanceof Error ? error.message : 'ไม่สามารถบันทึกข้อมูลได้'
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const resetConfiguration = async () => {
+    try {
+      setSaving(true);
+      
+      const response = await fetch('/api/document-template/reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to reset configuration');
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setConfig(data.data);
+        toast({
+          title: 'รีเซ็ตสำเร็จ',
+          description: 'รีเซ็ตการตั้งค่าเลขเอกสารเป็นค่าเริ่มต้นเรียบร้อยแล้ว'
+        });
+      } else {
+        throw new Error(data.message || 'Failed to reset configuration');
+      }
+    } catch (error) {
+      console.error('Error resetting document template:', error);
+      toast({
+        variant: 'destructive',
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถรีเซ็ตข้อมูลได้'
       });
     } finally {
       setSaving(false);
@@ -137,7 +184,7 @@ export function DocumentNumberSettings() {
                   id="thai-prefix"
                   value={config.thai.prefix}
                   onChange={(e) => updateTemplate('thai', 'prefix', e.target.value)}
-                  placeholder="เช่น DOC, INT, COOP"
+                  placeholder="เช่น มทร, อว, งบ"
                 />
               </div>
 
@@ -252,7 +299,17 @@ export function DocumentNumberSettings() {
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end pt-6">
+        <div className="flex justify-between pt-6">
+          <Button 
+            variant="outline" 
+            onClick={resetConfiguration} 
+            disabled={saving}
+            className="text-orange-600 border-orange-600 hover:bg-orange-50"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            รีเซ็ตเป็นค่าเริ่มต้น
+          </Button>
+          
           <Button onClick={saveConfiguration} disabled={saving}>
             {saving ? (
               <>

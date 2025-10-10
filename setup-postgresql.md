@@ -87,10 +87,25 @@ source ~/.zshrc
 
 ### 1. อัปเดต Environment Variables
 
+**สำหรับ Local Development:**
 ```bash
 # แก้ไขไฟล์ .env
-DATABASE_URL="postgresql://postgres:password@localhost:5432/internship_system_dev"
+DATABASE_URL="postgresql://postgres:password@localhost:5432/internship_system_dev?schema=public"
 ```
+
+**สำหรับ Docker Compose:**
+```bash
+# ใช้กับ docker-compose.yml
+DATABASE_URL="postgresql://postgres:password@postgres:5432/internship_system_dev?schema=public"
+```
+
+**สำหรับ VPS/Production:**
+```bash
+# แก้ไขไฟล์ .env บน VPS
+DATABASE_URL="postgresql://username:password@your-vps-ip:5432/internship_system_prod?schema=public"
+```
+
+**หมายเหตุ:** ระบบนี้ใช้ PostgreSQL เท่านั้น ไม่รองรับ SQLite อีกต่อไป
 
 ### 2. รัน Prisma Migration
 
@@ -186,9 +201,9 @@ psql -U postgres internship_system_dev < backup.sql
    - ตรวจสอบ user permissions
    - ใช้ `GRANT ALL PRIVILEGES ON DATABASE database_name TO username;`
 
-## การย้ายจาก SQLite
+## การตั้งค่า PostgreSQL
 
-### 1. Export ข้อมูลจาก SQLite
+### 1. การติดตั้ง PostgreSQL
 
 ```bash
 # ใช้ Prisma Studio หรือ SQL commands
@@ -199,7 +214,7 @@ npx prisma studio
 
 ```prisma
 datasource db {
-  provider = "postgresql"  // เปลี่ยนจาก "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 ```
@@ -230,7 +245,18 @@ sudo ufw allow 5432/tcp
 
 ### Environment Variables สำหรับ Production
 
+**สำหรับ VPS/Server:**
 ```bash
-DATABASE_URL="postgresql://username:password@localhost:5432/internship_system_prod"
+# ไฟล์ .env บน VPS
+DATABASE_URL="postgresql://username:password@localhost:5432/internship_system_prod?schema=public"
 NODE_ENV="production"
 ```
+
+**สำหรับ Docker Production:**
+```bash
+# ใช้กับ docker-compose.prod.yml
+DATABASE_URL="postgresql://postgres:your_secure_password@postgres:5432/internship_system_prod?schema=public"
+NODE_ENV="production"
+```
+
+**หมายเหตุ:** ระบบใช้ PostgreSQL เท่านั้น ไม่รองรับ SQLite

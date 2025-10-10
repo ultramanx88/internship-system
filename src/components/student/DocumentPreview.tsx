@@ -760,25 +760,7 @@ ${type === 'co_op' ? `       อาจารย์ที่รับผิดช
                 >
                   {useBetterTemplate ? 'Better' : useRealTemplate ? 'Real PDF' : useHtmlTemplate ? 'HTML' : 'Text'}
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="text-xs mr-2"
-                  onClick={handleDownload}
-                  disabled={isDownloading}
-                >
-                  <Download className="h-3 w-3 mr-1" />
-                  {isDownloading ? 'กำลังดาวน์โหลด...' : 'ดาวน์โหลด PDF'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="text-xs"
-                  onClick={handlePrint}
-                  title="พิมพ์เอกสาร"
-                >
-                  🖨️ พิมพ์
-                </Button>
+                {/* Printing/Download disabled per new flow */}
               </div>
             </div>
             
