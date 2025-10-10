@@ -93,9 +93,6 @@ export async function createApplication(data: {
         projectTopic: data.projectTopic || null,
         feedback: data.feedback || null,
         courseInstructorId: courseInstructor?.id,
-        courseInstructorStatus: 'pending',
-        supervisorStatus: 'pending',
-        committeeStatus: 'pending',
         companyName: data.companyName || null,
         position: data.position || null
       },
@@ -154,12 +151,9 @@ export async function courseInstructorReview(data: {
     const updatedApplication = await prisma.application.update({
       where: { id: data.applicationId },
       data: {
-        courseInstructorStatus: data.status,
-        courseInstructorFeedback: data.feedback,
-        courseInstructorApprovedAt: data.status === 'approved' ? new Date() : null,
-        courseInstructorRejectedAt: data.status === 'rejected' ? new Date() : null,
+        status: data.status === 'approved' ? 'course_instructor_approved' : 'course_instructor_rejected',
+        feedback: data.feedback,
         courseInstructorRejectionNote: data.status === 'rejected' ? data.rejectionNote : null,
-        status: data.status === 'approved' ? 'course_instructor_approved' : 'course_instructor_rejected'
       },
       include: {
         student: true,
@@ -528,8 +522,10 @@ export async function getApplicationWorkflowStatus(applicationId: string): Promi
   try {
     const application = await prisma.application.findUnique({
       where: { id: applicationId },
-      include: {
-        committeeApprovals: true
+      select: {
+        id: true,
+        status: true,
+        externalResponseStatus: true
       }
     });
 
@@ -537,37 +533,70 @@ export async function getApplicationWorkflowStatus(applicationId: string): Promi
       throw new Error('ไม่พบคำขอฝึกงาน');
     }
 
-    const courseInstructorStatus = application.courseInstructorStatus as 'pending' | 'approved' | 'rejected';
-    const supervisorStatus = application.supervisorStatus as 'pending' | 'assigned' | 'completed';
-    const committeeStatus = application.committeeStatus as 'pending' | 'approved' | 'rejected';
+    // Determine workflow status based on current application status
+    const currentStatus = application.status;
     
-    // ตรวจสอบสถานะการตอบรับภายนอก (บันทึกโดย staff)
-    const externalResponseStatus = (application.externalResponseStatus as any) || 'pending';
-
     let currentStep: WorkflowStatus['currentStep'] = 'submitted';
+    let courseInstructorStatus: 'pending' | 'approved' | 'rejected' = 'pending';
+    let supervisorStatus: 'pending' | 'assigned' | 'completed' = 'pending';
+    let committeeStatus: 'pending' | 'approved' | 'rejected' = 'pending';
+    let externalResponseStatus: 'pending' | 'accepted' | 'rejected' | undefined = undefined;
     
-    if (courseInstructorStatus === 'rejected') {
-      currentStep = 'rejected';
-    } else if (courseInstructorStatus === 'pending') {
-      currentStep = 'course_instructor_review';
-    } else if (courseInstructorStatus === 'approved' && supervisorStatus === 'pending') {
-      currentStep = 'supervisor_assignment';
-    } else if (supervisorStatus === 'assigned' && committeeStatus === 'pending') {
-      currentStep = 'committee_review';
-    } else if (committeeStatus === 'approved' && externalResponseStatus === 'pending') {
-      currentStep = 'awaiting_external_response';
-    } else if (externalResponseStatus === 'accepted' && application.status === 'company_accepted') {
-      currentStep = 'company_accepted';
-    } else if (application.status === 'internship_started') {
-      currentStep = 'internship_started';
-    } else if (application.status === 'internship_ongoing') {
-      currentStep = 'internship_ongoing';
-    } else if (application.status === 'internship_completed') {
-      currentStep = 'internship_completed';
-    } else if (application.status === 'completed') {
-      currentStep = 'completed';
-    } else if (committeeStatus === 'rejected' || externalResponseStatus === 'rejected') {
-      currentStep = 'rejected';
+    // Map current status to workflow steps
+    switch (currentStatus) {
+      case 'submitted':
+        currentStep = 'submitted';
+        courseInstructorStatus = 'pending';
+        break;
+      case 'course_instructor_pending':
+        currentStep = 'course_instructor_review';
+        courseInstructorStatus = 'pending';
+        break;
+      case 'course_instructor_approved':
+        currentStep = 'supervisor_assignment';
+        courseInstructorStatus = 'approved';
+        supervisorStatus = 'pending';
+        break;
+      case 'course_instructor_rejected':
+        currentStep = 'rejected';
+        courseInstructorStatus = 'rejected';
+        break;
+      case 'committee_pending':
+        currentStep = 'committee_review';
+        courseInstructorStatus = 'approved';
+        supervisorStatus = 'assigned';
+        committeeStatus = 'pending';
+        break;
+      case 'committee_approved':
+        currentStep = 'awaiting_external_response';
+        courseInstructorStatus = 'approved';
+        supervisorStatus = 'assigned';
+        committeeStatus = 'approved';
+        externalResponseStatus = 'pending';
+        break;
+      case 'documents_prepared':
+        currentStep = 'awaiting_external_response';
+        courseInstructorStatus = 'approved';
+        supervisorStatus = 'assigned';
+        committeeStatus = 'approved';
+        externalResponseStatus = 'pending';
+        break;
+      case 'company_accepted':
+        currentStep = 'company_accepted';
+        courseInstructorStatus = 'approved';
+        supervisorStatus = 'assigned';
+        committeeStatus = 'approved';
+        externalResponseStatus = 'accepted';
+        break;
+      case 'company_rejected':
+        currentStep = 'rejected';
+        courseInstructorStatus = 'approved';
+        supervisorStatus = 'assigned';
+        committeeStatus = 'approved';
+        externalResponseStatus = 'rejected';
+        break;
+      default:
+        currentStep = 'submitted';
     }
 
     return {
