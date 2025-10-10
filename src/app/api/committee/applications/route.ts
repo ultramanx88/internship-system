@@ -21,53 +21,34 @@ export async function GET(request: NextRequest) {
       case 'pending_receipt':
         // คำขอที่รอการพิจารณา (ส่งไปยังกรรมการแล้ว)
         whereClause = {
-          status: 'assigned_committee'
+          status: 'course_instructor_approved'
         };
         break;
       case 'my_applications':
-        // คำขอที่กรรมการนี้เกี่ยวข้อง
+        // คำขอที่กรรมการนี้เกี่ยวข้อง - simplified for current schema
         whereClause = {
-          committees: {
-            some: {
-              committee: {
-                members: {
-                  some: {
-                    userId: user.id
-                  }
-                }
-              }
-            }
-          }
+          status: { in: ['course_instructor_approved', 'committee_approved', 'documents_prepared'] }
         };
         break;
       case 'approvals':
         // คำขอที่กรรมการนี้พิจารณาแล้ว
         whereClause = {
-          committees: {
-            some: {
-              committee: {
-                members: {
-                  some: {
-                    userId: user.id
-                  }
-                }
-              },
-              status: {
-                in: ['approved', 'rejected']
-              }
-            }
-          }
+          status: { in: ['committee_approved', 'documents_prepared'] }
         };
         break;
       default:
         whereClause = {
-          status: 'assigned_committee'
+          status: 'course_instructor_approved'
         };
     }
 
     const applications = await prisma.application.findMany({
       where: whereClause,
-      include: {
+      select: {
+        id: true,
+        status: true,
+        documentStatus: true,
+        dateApplied: true,
         student: {
           select: {
             id: true,
@@ -84,43 +65,6 @@ export async function GET(request: NextRequest) {
                 nameEn: true
               }
             }
-          }
-        },
-        internship: {
-          include: {
-            company: {
-              select: {
-                id: true,
-                name: true,
-                address: true
-              }
-            }
-          }
-        },
-        committees: {
-          include: {
-            committee: {
-              include: {
-                members: {
-                  include: {
-                    user: {
-                      select: {
-                        id: true,
-                        name: true,
-                        email: true
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        supervisor: {
-          select: {
-            id: true,
-            name: true,
-            email: true
           }
         }
       },

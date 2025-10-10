@@ -3,27 +3,16 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    // Get all approved applications with print status
+    // Get applications waiting for documents to be prepared
     const applications = await prisma.application.findMany({
       where: {
-        status: "approved",
+        status: { in: ["committee_approved", "awaiting_external_response", "documents_prepared"] },
       },
-      include: {
-        student: {
-          select: {
-            id: true,
-            name: true,
-            major: {
-              select: { nameTh: true, nameEn: true }
-            }
-          }
-        },
-        internship: {
-          include: {
-            company: true,
-          },
-        },
-        printRecord: true,
+      select: {
+        id: true,
+        studentId: true,
+        status: true,
+        dateApplied: true,
       },
       orderBy: {
         dateApplied: "desc",
@@ -32,21 +21,14 @@ export async function GET() {
 
     const formattedApplications = applications.map((app) => ({
       id: app.id,
-      studentId: app.student.id,
-      studentName: app.student.name,
-      major: app.student.major?.nameTh || app.student.major?.nameEn || "-",
-      companyName: app.internship.company.name,
+      studentId: app.studentId,
+      studentName: "-",
+      major: "-",
+      companyName: "-",
       status: app.status,
       dateApplied: app.dateApplied.toISOString(),
-      isPrinted: !!app.printRecord,
-      printRecord: app.printRecord
-        ? {
-            id: app.printRecord.id,
-            documentNumber: app.printRecord.documentNumber,
-            documentDate: app.printRecord.documentDate.toISOString(),
-            printedAt: app.printRecord.printedAt.toISOString(),
-          }
-        : undefined,
+      isPrinted: false,
+      printRecord: undefined,
     }));
 
     return NextResponse.json({
@@ -77,11 +59,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mark selected applications as completed (documents ready) without printing or numbering
+    // Mark selected applications as documents_prepared without printing or numbering
     const updated = await prisma.application.updateMany({
       where: { id: { in: applicationIds as string[] } },
       data: {
-        status: "documents_ready",
+        status: "documents_prepared",
         documentsPrepared: true,
         documentsPreparedAt: new Date(),
       },

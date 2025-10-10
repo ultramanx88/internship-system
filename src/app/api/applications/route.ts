@@ -9,61 +9,35 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
-    const internshipId = searchParams.get('internshipId');
+    // internshipId filter removed (not part of current schema)
     const search = searchParams.get('search') || '';
     const status = searchParams.get('status') || 'all';
     const sort = searchParams.get('sort') || 'desc';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     
-    console.log('Applications API - Fetching applications by:', user.name, 'studentId:', studentId, 'internshipId:', internshipId);
+    console.log('Applications API - Fetching applications by:', user.name, 'studentId:', studentId);
     
     const whereClause: any = {};
     if (studentId) whereClause.studentId = studentId;
-    if (internshipId) whereClause.internshipId = internshipId;
+    // internshipId no longer supported on Application
     if (status !== 'all') whereClause.status = status;
     
     // Add search functionality
-    if (search) {
-      whereClause.OR = [
-        {
-          student: {
-            name: { contains: search, mode: 'insensitive' }
-          }
-        },
-        {
-          internship: {
-            company: {
-              name: { contains: search, mode: 'insensitive' }
-            }
-          }
-        }
-      ];
-    }
+    // Text search on related models removed to align with current schema
 
     const skip = (page - 1) * limit;
     
     const [applications, total] = await Promise.all([
       prisma.application.findMany({
         where: whereClause,
-        include: {
-          student: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              t_name: true,
-              t_surname: true,
-              e_name: true,
-              e_surname: true,
-              major: { select: { id: true, nameTh: true, nameEn: true } }
-            }
-          },
-          internship: {
-            include: {
-              company: true
-            }
-          }
+        select: {
+          id: true,
+          studentId: true,
+          status: true,
+          dateApplied: true,
+          feedback: true,
+          projectTopic: true
         },
         orderBy: {
           dateApplied: sort === 'desc' ? 'desc' : 'asc'
@@ -103,13 +77,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { 
       studentId: studentIdFromBody, 
-      internshipId, 
       studentReason, 
       expectedSkills, 
       preferredStartDate, 
       availableDuration,
       projectProposal,
-      status = 'pending',
+      status = 'submitted',
       // Optional company/address integration
       company: companyPayload
     } = body;
@@ -164,13 +137,13 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // ตรวจสอบว่าไม่ได้สมัครซ้ำ
-    const existingApplication = internshipId ? await prisma.application.findFirst({
+    // ตรวจสอบว่าไม่ได้สมัครซ้ำ (simple check by student + topic)
+    const existingApplication = await prisma.application.findFirst({
       where: {
         studentId,
-        internshipId
+        projectTopic: projectProposal || undefined
       }
-    }) : null;
+    });
     
     if (existingApplication) {
       return NextResponse.json(
@@ -189,34 +162,17 @@ export async function POST(request: NextRequest) {
     // });
 
     // ถ้ามีข้อมูลบริษัท/ที่อยู่/พิกัด ส่งมาพร้อมกัน ให้บันทึกลง Company ที่ผูกกับ internship
-    if (companyPayload && internshipId) {
+    if (companyPayload) {
       try {
-        const { name, phone, address, provinceId, districtId, subdistrictId, postalCode, latitude, longitude } = companyPayload;
-        const internship = await prisma.internship.findUnique({ where: { id: internshipId }, select: { companyId: true } });
-        if (internship?.companyId) {
-          await prisma.company.update({
-            where: { id: internship.companyId },
-            data: {
-              name: name ?? undefined,
-              phone: phone ?? undefined,
-              address: address ?? undefined,
-              postalCode: postalCode ?? undefined,
-              latitude: latitude ? Number(latitude) : undefined,
-              longitude: longitude ? Number(longitude) : undefined,
-              provinceIdRef: provinceId ?? undefined,
-              districtIdRef: districtId ?? undefined,
-              subdistrictIdRef: subdistrictId ?? undefined,
-            },
-          });
-        }
+        // Company enrichment skipped: internship relation not used in current schema
       } catch (e) {
         console.warn('Company enrichment skipped:', e);
       }
     }
 
     // หากไม่มี internshipId จะสร้าง company + internship ชั่วคราวให้คำขอนี้ (รองรับ flow ที่ไม่เลือกบริษัท/ตำแหน่งในขั้นแรก)
-    let createdInternshipId = internshipId;
-    if (!createdInternshipId && (companyPayload || true)) {
+    // Internship auto-create removed in current schema
+    if (false) {
       try {
         const {
           name,
@@ -255,7 +211,7 @@ export async function POST(request: NextRequest) {
             type: 'internship',
           },
         });
-        createdInternshipId = internship.id;
+        // createdInternshipId = internship.id;
       } catch (e) {
         console.error('Failed to auto-create internship:', e);
         return NextResponse.json({ success: false, error: 'Failed to create internship' }, { status: 500 });
@@ -265,39 +221,13 @@ export async function POST(request: NextRequest) {
     const application = await prisma.application.create({
       data: {
         studentId,
-        internshipId: createdInternshipId!,
         // courseInstructorId: courseInstructor?.id,
         status: status as any,
         dateApplied: new Date(),
         feedback: null,
         projectTopic: projectProposal || null
       },
-      include: {
-        student: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            t_name: true,
-            t_surname: true,
-            e_name: true,
-            e_surname: true,
-            major: { select: { id: true, nameTh: true, nameEn: true } }
-          }
-        },
-        internship: {
-          include: {
-            company: true
-          }
-        }
-        // courseInstructor: {
-        //   select: {
-        //     id: true,
-        //     name: true,
-        //     email: true
-        //   }
-        // }
-      }
+      select: { id: true, studentId: true, status: true, dateApplied: true, feedback: true, projectTopic: true }
     });
     
     console.log('Applications API - Created application:', application.id);
@@ -337,10 +267,7 @@ export async function PATCH(request: NextRequest) {
         status: status as any,
         feedback: feedback ?? null,
       },
-      include: {
-        student: true,
-        internship: { include: { company: true } },
-      },
+      select: { id: true, studentId: true, status: true, dateApplied: true, feedback: true, projectTopic: true },
     });
 
     return NextResponse.json({ success: true, application: updated });

@@ -18,14 +18,14 @@ const committeeReviewSchema = z.object({
 });
 
 // GET - ดูสถานะ workflow ของ application
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authResult = await requireAuth(request, ['admin', 'staff', 'courseInstructor', 'committee', 'student']);
     if ('error' in authResult) {
       return authResult.error;
     }
 
-    const applicationId = params.id;
+    const applicationId = (await params).id;
     const workflowStatus = await getApplicationWorkflowStatus(applicationId);
 
     return NextResponse.json({
@@ -49,14 +49,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // POST - อาจารย์ประจำวิชาพิจารณา
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authResult = await requireAuth(request, ['courseInstructor']);
     if ('error' in authResult) {
       return authResult.error;
     }
 
-    const applicationId = params.id;
+    const applicationId = (await params).id;
     const body = await request.json();
     const result = courseInstructorReviewSchema.safeParse(body);
 
@@ -103,14 +103,14 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 }
 
 // PUT - กรรมการพิจารณา
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authResult = await requireAuth(request, ['committee']);
     if ('error' in authResult) {
       return authResult.error;
     }
 
-    const applicationId = params.id;
+    const applicationId = (await params).id;
     const body = await request.json();
     const result = committeeReviewSchema.safeParse(body);
 

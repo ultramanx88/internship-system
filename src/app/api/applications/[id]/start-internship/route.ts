@@ -4,7 +4,7 @@ import { requireAuth } from '@/lib/auth-utils';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await requireAuth(request, ['student', 'admin', 'staff']);
@@ -12,7 +12,7 @@ export async function POST(
       return authResult.error;
     }
 
-    const applicationId = params.id;
+    const applicationId = (await params).id;
     const body = await request.json();
     const { startDate } = body;
 

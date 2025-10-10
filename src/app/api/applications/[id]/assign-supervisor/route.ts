@@ -4,7 +4,7 @@ import { requireAuth, cleanup } from '@/lib/auth-utils';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await requireAuth(request, ['courseInstructor', 'admin', 'staff']);
@@ -37,41 +37,14 @@ export async function POST(
 
     // อัปเดต Application
     const updatedApplication = await prisma.application.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: {
         supervisorId: supervisorId,
         supervisorAssigned: true,
         supervisorAssignedAt: new Date(),
-        status: 'assigned_supervisor'
+        status: 'course_instructor_approved'
       },
-      include: {
-        student: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            t_name: true,
-            e_name: true
-          }
-        },
-        internship: {
-          include: {
-            company: {
-              select: {
-                name: true,
-                address: true
-              }
-            }
-          }
-        },
-        supervisor: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
+      select: { id: true, studentId: true, status: true, supervisorId: true, supervisorAssigned: true, supervisorAssignedAt: true }
     });
 
     return NextResponse.json({

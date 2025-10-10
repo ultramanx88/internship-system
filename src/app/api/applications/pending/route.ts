@@ -16,30 +16,16 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    const whereClause: any = { status: 'pending' };
+    const whereClause: any = { status: 'submitted' };
 
-    if (search) {
-      whereClause.OR = [
-        { student: { name: { contains: search, mode: 'insensitive' } } },
-        { internship: { company: { name: { contains: search, mode: 'insensitive' } } } }
-      ];
-    }
+    // Remove cross-model search to align with current schema
 
     const skip = (page - 1) * limit;
 
     const [applications, total] = await Promise.all([
       prisma.application.findMany({
         where: whereClause,
-        include: {
-          student: {
-            select: {
-              id: true,
-              name: true,
-              major: { select: { id: true, nameTh: true, nameEn: true } }
-            }
-          },
-          internship: { include: { company: true } }
-        },
+        select: { id: true, studentId: true, status: true, dateApplied: true, feedback: true, projectTopic: true },
         orderBy: { dateApplied: sort === 'desc' ? 'desc' : 'asc' },
         skip,
         take: limit
