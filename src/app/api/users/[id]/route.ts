@@ -39,12 +39,12 @@ const updateUserSchema = z.object({
 // GET single user
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Temporarily bypass auth for testing admin/staff UI
 
-    const { id } = params;
+    const { id } = await params;
     const normalizedId = decodeURIComponent(id).trim();
     console.info('GET /api/users/[id] - fetching user', { id, normalizedId });
     const user = await prisma.user.findUnique({
@@ -115,12 +115,12 @@ export async function GET(
 // PUT update user
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Temporarily bypass auth for testing admin/staff UI
 
-    const { id } = params;
+    const { id } = await params;
     const normalizedId = decodeURIComponent(id).trim();
     const body = await request.json();
     console.log('PUT request body:', body);
@@ -339,12 +339,12 @@ export async function PUT(
 // DELETE single user
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Temporarily bypass auth for testing admin/staff UI
 
-    const { id } = params;
+    const { id } = await params;
     const normalizedId = decodeURIComponent(id).trim();
     // ตรวจสอบว่าผู้ใช้มีอยู่จริง
     const existingUser = await prisma.user.findUnique({

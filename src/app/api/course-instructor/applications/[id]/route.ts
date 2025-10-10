@@ -4,7 +4,7 @@ import { requireAuth, cleanup } from '@/lib/auth-utils';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await requireAuth(request, ['courseInstructor']);
@@ -14,7 +14,7 @@ export async function GET(
     const { user } = authResult;
 
     const application = await prisma.application.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: {
         student: {
           select: {

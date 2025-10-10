@@ -11,7 +11,7 @@ const updateSemesterSchema = z.object({
   isActive: z.boolean().optional()
 });
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Check authentication and authorization
     const authResult = await requireAuth(request, ['admin', 'staff']);
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return authResult.error;
     }
 
-    const semesterId = params.id;
+    const semesterId = (await params).id;
 
     const semester = await prisma.semester.findUnique({
       where: { id: semesterId },
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Check authentication and authorization
     const authResult = await requireAuth(request, ['admin', 'staff']);
@@ -75,7 +75,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return authResult.error;
     }
 
-    const semesterId = params.id;
+    const semesterId = (await params).id;
     const body = await request.json();
     const result = updateSemesterSchema.safeParse(body);
 
@@ -195,7 +195,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Check authentication and authorization
     const authResult = await requireAuth(request, ['admin', 'staff']);
@@ -203,7 +203,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return authResult.error;
     }
 
-    const semesterId = params.id;
+    const semesterId = (await params).id;
 
     // Check if semester exists
     const existingSemester = await prisma.semester.findUnique({

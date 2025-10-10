@@ -5,7 +5,7 @@ import { calculateCommitteeApprovalStatus } from '@/lib/application-workflow';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await requireAuth(request, ['committee']);
@@ -53,7 +53,7 @@ export async function POST(
     const committeeApproval = await prisma.applicationCommittee.upsert({
       where: {
         applicationId_committeeId: {
-          applicationId: params.id,
+          applicationId: (await params).id,
           committeeId: committeeMembership.committeeId
         }
       },
@@ -63,7 +63,7 @@ export async function POST(
         reviewedAt: new Date()
       },
       create: {
-        applicationId: params.id,
+        applicationId: (await params).id,
         committeeId: committeeMembership.committeeId,
         status: status,
         notes: notes || null,
@@ -89,7 +89,7 @@ export async function POST(
     });
 
     // คำนวณสถานะรวมของกรรมการ (เกณฑ์อนุมัติ >= 3 คน)
-    const approvalStatus = await calculateCommitteeApprovalStatus(params.id);
+    const approvalStatus = await calculateCommitteeApprovalStatus((await params).id);
 
     if (!approvalStatus.success) {
       return NextResponse.json(approvalStatus, { status: 500 });
@@ -107,7 +107,7 @@ export async function POST(
     }
 
     await prisma.application.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: {
         status: finalApplicationStatus,
         committeeApproved: approvalStatus.isApproved,

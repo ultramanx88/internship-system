@@ -4,7 +4,7 @@ import { courseInstructorReview } from '@/lib/application-workflow';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await requireAuth(request, ['courseInstructor']);
@@ -24,7 +24,7 @@ export async function POST(
     }
 
     const result = await courseInstructorReview({
-      applicationId: params.id,
+      applicationId: (await params).id,
       courseInstructorId: user.id,
       status: 'rejected',
       feedback,

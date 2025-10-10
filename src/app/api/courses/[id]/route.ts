@@ -3,11 +3,11 @@ import prisma from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const course = await prisma.course.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: {
         category: true,
         faculty: true,
@@ -36,7 +36,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await request.json();
@@ -55,7 +55,7 @@ export async function PUT(
     } = body;
 
     const course = await prisma.course.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: {
         code,
         name,
@@ -91,11 +91,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await prisma.course.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: { isActive: false }
     });
 

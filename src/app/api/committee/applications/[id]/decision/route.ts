@@ -5,10 +5,10 @@ const prisma = new PrismaClient();
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const applicationId = params.id;
+    const applicationId = (await params).id;
     const { decision, comments } = await request.json();
 
     if (!decision || !['approve', 'reject'].includes(decision)) {

@@ -4,7 +4,7 @@ import { courseInstructorReview } from '@/lib/application-workflow';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await requireAuth(request, ['courseInstructor']);
@@ -25,7 +25,7 @@ export async function POST(
 
     // อนุมัติคำขอและมอบหมายอาจารย์นิเทศก์
     const result = await courseInstructorReview({
-      applicationId: params.id,
+      applicationId: (await params).id,
       courseInstructorId: user.id,
       status: 'approved',
       feedback
@@ -38,7 +38,7 @@ export async function POST(
     // มอบหมายอาจารย์นิเทศก์
     const { assignSupervisorManually } = await import('@/lib/application-workflow');
     const assignmentResult = await assignSupervisorManually({
-      applicationId: params.id,
+      applicationId: (await params).id,
       supervisorId,
       courseInstructorId: user.id
     });
