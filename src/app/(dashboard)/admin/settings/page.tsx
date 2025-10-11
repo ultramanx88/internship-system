@@ -5,23 +5,65 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Save } from 'lucide-react';
+import { Save, Users, CheckCircle } from 'lucide-react';
 import { RoleManagementMatrix } from '@/components/admin/settings/RoleManagementMatrix';
 import { AcademicCalendarSettings } from '@/components/admin/settings/AcademicCalendarSettings';
 import { TitleManagement } from '@/components/admin/settings/TitleManagement';
 import StaffHierarchicalAcademicManagement from '@/components/staff/settings/HierarchicalAcademicManagement';
 import { DocumentNumberSettings } from '@/components/admin/settings/DocumentNumberSettings';
+// import { DemoUsersToggle } from '@/components/admin/DemoUsersToggle';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useState } from 'react';
 import { AdminGuard } from '@/components/auth/PermissionGuard';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui';
 
 export default function AdminSettingsPage() {
-  const { logo, loginBackground, handleLogoChange, handleLoginBgChange, saveTheme } = useAppTheme();
+  const { logo, loginBackground, isUploading, handleLogoChange, handleLoginBgChange, saveTheme } = useAppTheme();
   const { toast } = useToast();
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [bgPreview, setBgPreview] = useState<string | null>(null);
+
+  const handleLogoPreview = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      console.log('Logo file selected:', file.name, file.type);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        console.log('Logo preview loaded:', result.substring(0, 50) + '...');
+        setLogoPreview(result);
+      };
+      reader.onerror = (e) => {
+        console.error('Error reading logo file:', e);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setLogoPreview(null);
+    }
+  };
+
+  const handleBgPreview = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      console.log('Background file selected:', file.name, file.type);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        console.log('Background preview loaded:', result.substring(0, 50) + '...');
+        setBgPreview(result);
+      };
+      reader.onerror = (e) => {
+        console.error('Error reading background file:', e);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setBgPreview(null);
+    }
+  };
 
   const runAcademicCreate = async () => {
     try {
@@ -99,6 +141,67 @@ export default function AdminSettingsPage() {
             </AccordionTrigger>
             <AccordionContent>
               <TitleManagement />
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="ui-settings">
+            <AccordionTrigger>
+              การตั้งค่าหน้าจอและ UI
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="w-5 h-5" />
+                      การตั้งค่า Dropdown ผู้ใช้สาธิต
+                    </CardTitle>
+                    <CardDescription>
+                      ควบคุมการแสดงผล dropdown ผู้ใช้สาธิตในหน้าเข้าสู่ระบบ
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label htmlFor="demo-toggle" className="text-base font-medium">
+                          แสดง Dropdown ผู้ใช้สาธิต
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          เมื่อเปิดใช้งาน ผู้ใช้จะเห็น dropdown สำหรับเลือกผู้ใช้สาธิตในหน้าเข้าสู่ระบบ
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          id="demo-toggle"
+                          defaultChecked={false}
+                          onCheckedChange={(checked) => {
+                            // เก็บการตั้งค่าใน localStorage
+                            localStorage.setItem('demo_users_toggle', checked.toString());
+                            toast({
+                              title: 'การตั้งค่าอัปเดตแล้ว',
+                              description: `Dropdown ผู้ใช้สาธิต ${checked ? 'เปิดใช้งาน' : 'ปิดใช้งาน'} แล้ว`,
+                            });
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-muted rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                        <div className="text-sm">
+                          <p className="font-medium">หมายเหตุ:</p>
+                          <ul className="mt-1 space-y-1 text-muted-foreground">
+                            <li>• การตั้งค่านี้จะมีผลทันทีหลังจากบันทึก</li>
+                            <li>• ในโหมด development จะแสดง dropdown เสมอ</li>
+                            <li>• ในโหมด production จะใช้การตั้งค่านี้</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </AccordionContent>
           </AccordionItem>
 
@@ -208,19 +311,155 @@ export default function AdminSettingsPage() {
                   <div className="space-y-2">
                     <Label htmlFor="logo-upload">โลโก้แอปพลิเคชัน</Label>
                     <div className="flex items-center gap-4">
-                      {logo && <Image src={logo} alt="Current Logo" width={40} height={40} className="rounded-md" />}
-                      <Input id="logo-upload" type="file" accept="image/*" onChange={handleLogoChange} className="max-w-sm"/>
+                      <div className="w-10 h-10 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center bg-gray-50 relative">
+                        {isUploading.logo ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                        ) : logoPreview ? (
+                          <img 
+                            src={logoPreview} 
+                            alt="Logo Preview" 
+                            className="w-full h-full object-contain rounded-md"
+                            onError={(e) => {
+                              console.error('Logo preview error:', e);
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling.style.display = 'block';
+                            }}
+                          />
+                        ) : logo ? (
+                          <Image 
+                            src={logo} 
+                            alt="Current Logo" 
+                            width={40} 
+                            height={40} 
+                            className="rounded-md object-contain"
+                            onError={(e) => {
+                              console.error('Current logo error:', e);
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling.style.display = 'block';
+                            }}
+                          />
+                        ) : (
+                          <div className="text-gray-400 text-xs">Logo</div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <Input 
+                          id="logo-upload" 
+                          type="file" 
+                          accept="image/*" 
+                          disabled={isUploading.logo}
+                          onChange={async (e) => {
+                            handleLogoPreview(e);
+                            const result = await handleLogoChange(e);
+                            
+                            if (result.success) {
+                              toast({
+                                title: 'สำเร็จ',
+                                description: result.message,
+                              });
+                              // Clear preview after successful upload
+                              setLogoPreview(null);
+                            } else {
+                              toast({
+                                title: 'เกิดข้อผิดพลาด',
+                                description: result.message,
+                                variant: 'destructive',
+                              });
+                            }
+                          }} 
+                          className="max-w-sm"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {logoPreview ? 'Preview: Ready' : logo ? 'Current: Loaded' : 'No logo'}
+                        </p>
+                        {logoPreview && (
+                          <div className="text-xs text-muted-foreground mt-2">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="w-3 h-3 text-green-500" />
+                              <span>ไฟล์พร้อมอัปโหลด</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                     <p className="text-sm text-muted-foreground">
-                        อัปโหลดไฟล์ภาพสำหรับโลโก้ (แนะนำ .png, .svg)
+                    <p className="text-sm text-muted-foreground">
+                      อัปโหลดไฟล์ภาพสำหรับโลโก้ (แนะนำ .png, .svg)
                     </p>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="login-bg-upload">ภาพพื้นหลังหน้า Login</Label>
                     <div className="flex items-center gap-4">
-                      {loginBackground && <Image src={loginBackground} alt="Login Background" width={80} height={45} className="rounded-md object-cover" />}
-                      <Input id="login-bg-upload" type="file" accept="image/*" onChange={handleLoginBgChange} className="max-w-sm"/>
+                      <div className="w-20 h-12 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center bg-gray-50 relative">
+                        {isUploading.background ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                        ) : bgPreview ? (
+                          <img 
+                            src={bgPreview} 
+                            alt="Background Preview" 
+                            className="w-full h-full object-cover rounded-md"
+                            onError={(e) => {
+                              console.error('Background preview error:', e);
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling.style.display = 'block';
+                            }}
+                          />
+                        ) : loginBackground ? (
+                          <Image 
+                            src={loginBackground} 
+                            alt="Login Background" 
+                            width={80} 
+                            height={45} 
+                            className="rounded-md object-cover"
+                            onError={(e) => {
+                              console.error('Current background error:', e);
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling.style.display = 'block';
+                            }}
+                          />
+                        ) : (
+                          <div className="text-gray-400 text-xs">BG</div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <Input 
+                          id="login-bg-upload" 
+                          type="file" 
+                          accept="image/*" 
+                          disabled={isUploading.background}
+                          onChange={async (e) => {
+                            handleBgPreview(e);
+                            const result = await handleLoginBgChange(e);
+                            
+                            if (result.success) {
+                              toast({
+                                title: 'สำเร็จ',
+                                description: result.message,
+                              });
+                              // Clear preview after successful upload
+                              setBgPreview(null);
+                            } else {
+                              toast({
+                                title: 'เกิดข้อผิดพลาด',
+                                description: result.message,
+                                variant: 'destructive',
+                              });
+                            }
+                          }} 
+                          className="max-w-sm"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {bgPreview ? 'Preview: Ready' : loginBackground ? 'Current: Loaded' : 'No background'}
+                        </p>
+                        {bgPreview && (
+                          <div className="text-xs text-muted-foreground mt-2">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="w-3 h-3 text-green-500" />
+                              <span>ไฟล์พร้อมอัปโหลด</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <p className="text-sm text-muted-foreground">
                       เลือกภาพพื้นหลังสำหรับหน้าเข้าสู่ระบบ (แนวแนะนำ 1920x1080)

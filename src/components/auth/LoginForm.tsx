@@ -14,10 +14,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { LogIn } from 'lucide-react';
+import { LogIn, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import { Role } from '@prisma/client';
 import { demoUsers } from '@/lib/demo-users';
 import { RoleSelector } from './RoleSelector';
+// import { useSystemSettings } from '@/hooks/use-system-settings';
 
 export function LoginForm() {
   const router = useRouter();
@@ -29,6 +30,11 @@ export function LoginForm() {
   const [userRoles, setUserRoles] = useState<Role[]>([]);
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showDemoUsers, setShowDemoUsers] = useState(false);
+
+  // Check if demo users should be shown based on localStorage and environment
+  const shouldShowDemoUsers = process.env.NODE_ENV === 'development' || 
+    (typeof window !== 'undefined' && localStorage.getItem('demo_users_toggle') === 'true');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -175,21 +181,58 @@ export function LoginForm() {
       </Button>
     </form>
     
-    <div className="mt-4">
-      <Label htmlFor="user-select">หรือเลือกผู้ใช้สาธิต:</Label>
-      <Select onValueChange={handleUserSelect} disabled={isLoading}>
-        <SelectTrigger id="user-select">
-          <SelectValue placeholder="เลือกผู้ใช้สาธิต" />
-        </SelectTrigger>
-        <SelectContent>
-          {demoUsers?.filter(user => user?.id && user?.email && user?.name).map(user => (
-            <SelectItem key={user.id} value={user.email}>
-              {user.name} ({Array.isArray(user.roles) ? user.roles.join(', ') : user.roles})
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    {shouldShowDemoUsers && (
+      <div className="mt-4">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="user-select" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            หรือเลือกผู้ใช้สาธิต:
+          </Label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowDemoUsers(!showDemoUsers)}
+            disabled={isLoading}
+            className="flex items-center gap-1"
+          >
+            {showDemoUsers ? (
+              <>
+                <ChevronUp className="w-4 h-4" />
+                ซ่อน
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4" />
+                แสดง
+              </>
+            )}
+          </Button>
+        </div>
+        
+        {showDemoUsers && (
+          <div className="mt-2">
+            <Select onValueChange={handleUserSelect} disabled={isLoading}>
+              <SelectTrigger id="user-select">
+                <SelectValue placeholder="เลือกผู้ใช้สาธิต" />
+              </SelectTrigger>
+              <SelectContent className="max-h-60">
+                {demoUsers?.filter(user => user?.id && user?.email && user?.name).map(user => (
+                  <SelectItem key={user.id} value={user.email}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{user.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {Array.isArray(user.roles) ? user.roles.join(', ') : user.roles}
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+    )}
     </>
   );
 }

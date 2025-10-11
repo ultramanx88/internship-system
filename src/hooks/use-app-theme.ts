@@ -4,13 +4,17 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSystemTheme } from './use-system-theme';
 
 const THEME_STORAGE_KEY = "internship-flow-theme";
-const DEFAULT_LOGO_URL = "/assets/images/system/garuda-logo.png";
+const DEFAULT_LOGO_URL = '/favicon.png';
 
 export function useAppTheme() {
   const { logo: systemLogo, background: systemBackground, isLoading: systemLoading } = useSystemTheme();
   const [logo, setLogo] = useState<string | null>(systemLogo);
   const [isThemeLoading, setIsThemeLoading] = useState(true);
   const [loginBackground, setLoginBackground] = useState<string | null>(systemBackground);
+  const [isUploading, setIsUploading] = useState({
+    logo: false,
+    background: false
+  });
 
   useEffect(() => {
     if (!systemLoading) {
@@ -59,72 +63,82 @@ export function useAppTheme() {
 
   const handleLogoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      try {
-        // Upload to system media API
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('type', 'logo');
-        formData.append('uploadedBy', 'admin'); // TODO: Get actual user ID
+    if (!file) return { success: false, message: 'ไม่พบไฟล์' };
+    
+    setIsUploading(prev => ({ ...prev, logo: true }));
+    
+    try {
+      // Upload to system media API
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'logo');
+      formData.append('uploadedBy', 'admin'); // TODO: Get actual user ID
+      
+      const response = await fetch('/api/system-media', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const logoPath = data.url;
+        setLogo(logoPath);
+        updateFavicon(logoPath);
         
-        const response = await fetch('/api/system-media', {
-          method: 'POST',
-          body: formData,
-        });
+        // Trigger theme reload
+        localStorage.setItem('system-theme-updated', 'true');
+        window.dispatchEvent(new StorageEvent('storage', { key: 'system-theme-updated' }));
         
-        if (response.ok) {
-          const data = await response.json();
-          const logoPath = data.url || `/assets/images/system/${file.name}`;
-          setLogo(logoPath);
-          updateFavicon(logoPath);
-          alert('อัปโหลดโลโก้สำเร็จ');
-          
-          // Trigger theme reload
-          localStorage.setItem('system-theme-updated', 'true');
-          window.dispatchEvent(new StorageEvent('storage', { key: 'system-theme-updated' }));
-        } else {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Upload failed');
-        }
-      } catch (error) {
-        console.error('Error uploading logo:', error);
-        alert(`เกิดข้อผิดพลาดในการอัปโหลดโลโก้: ${error.message}`);
+        return { success: true, message: 'อัปโหลดโลโก้สำเร็จ', url: logoPath };
+      } else {
+        const errorData = await response.json();
+        return { success: false, message: errorData.message || 'อัปโหลดล้มเหลว' };
       }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      return { success: false, message: `เกิดข้อผิดพลาด: ${error.message}` };
+    } finally {
+      setIsUploading(prev => ({ ...prev, logo: false }));
     }
   };
 
   const handleLoginBgChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      try {
-        // Upload to system media API
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('type', 'background');
-        formData.append('uploadedBy', 'admin'); // TODO: Get actual user ID
+    if (!file) return { success: false, message: 'ไม่พบไฟล์' };
+    
+    setIsUploading(prev => ({ ...prev, background: true }));
+    
+    try {
+      // Upload to system media API
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'background');
+      formData.append('uploadedBy', 'admin'); // TODO: Get actual user ID
+      
+      const response = await fetch('/api/system-media', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const bgPath = data.url;
+        setLoginBackground(bgPath);
         
-        const response = await fetch('/api/system-media', {
-          method: 'POST',
-          body: formData,
-        });
+        // Trigger theme reload
+        localStorage.setItem('system-theme-updated', 'true');
+        window.dispatchEvent(new StorageEvent('storage', { key: 'system-theme-updated' }));
         
-        if (response.ok) {
-          const data = await response.json();
-          const bgPath = data.url || `/assets/images/system/${file.name}`;
-          setLoginBackground(bgPath);
-          alert('อัปโหลดภาพพื้นหลังสำเร็จ');
-          
-          // Trigger theme reload
-          localStorage.setItem('system-theme-updated', 'true');
-          window.dispatchEvent(new StorageEvent('storage', { key: 'system-theme-updated' }));
-        } else {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Upload failed');
-        }
-      } catch (error) {
-        console.error('Error uploading background:', error);
-        alert(`เกิดข้อผิดพลาดในการอัปโหลดภาพพื้นหลัง: ${error.message}`);
+        return { success: true, message: 'อัปโหลดภาพพื้นหลังสำเร็จ', url: bgPath };
+      } else {
+        const errorData = await response.json();
+        return { success: false, message: errorData.message || 'อัปโหลดล้มเหลว' };
       }
+    } catch (error) {
+      console.error('Error uploading background:', error);
+      return { success: false, message: `เกิดข้อผิดพลาด: ${error.message}` };
+    } finally {
+      setIsUploading(prev => ({ ...prev, background: false }));
     }
   };
 
@@ -142,7 +156,15 @@ export function useAppTheme() {
     }
   }, [logo]);
 
-  return { logo, loginBackground, isThemeLoading, handleLogoChange, handleLoginBgChange, saveTheme };
+  return { 
+    logo, 
+    loginBackground, 
+    isThemeLoading, 
+    isUploading,
+    handleLogoChange, 
+    handleLoginBgChange, 
+    saveTheme 
+  };
 }
 
 type AppTheme = {

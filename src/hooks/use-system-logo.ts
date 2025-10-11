@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSystemTheme } from './use-system-theme';
 
 const SYSTEM_LOGO_KEY = 'system-logo';
-const DEFAULT_SYSTEM_LOGO = '/assets/images/system/garuda-logo.png';
+const DEFAULT_SYSTEM_LOGO = '/favicon.png';
 
 export function useSystemLogo() {
   const { logo, isLoading: themeLoading } = useSystemTheme();
