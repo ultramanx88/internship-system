@@ -1,94 +1,55 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: internship_postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: internship_system_dev
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - internship_network
-
-  # Next.js Application
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: internship_app
-    restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8081:8080"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/internship_system_dev
-      - NEXTAUTH_SECRET=your-secret-key-here
-      - NEXTAUTH_URL=http://localhost:8080
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - PORT=8080
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/internship_system?schema=public
     volumes:
-      - ./backups:/app/backups
-      - ./logs:/app/logs
-    networks:
-      - internship_network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # pgAdmin for database management
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: internship_pgadmin
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "8081:80"
+      - ./docker.env:/app/.env:ro
     depends_on:
       - postgres
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
+    restart: unless-stopped
     networks:
-      - internship_network
+      - app-network
 
-  # Nginx Reverse Proxy (Optional)
+  postgres:
+    image: postgres:15-alpine
+    container_name: internship_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: internship_system
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - app-network
+
   nginx:
     image: nginx:alpine
     container_name: internship_nginx
-    restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       - app
+    restart: unless-stopped
     networks:
-      - internship_network
+      - app-network
 
 volumes:
   postgres_data:
-  pgadmin_data:
 
 networks:
-  internship_network:
+  app-network:
     driver: bridge

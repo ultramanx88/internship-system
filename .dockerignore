@@ -1,7 +1,3 @@
-# =============================================================================
-# 🐳 Docker Ignore File
-# =============================================================================
-
 # Dependencies
 node_modules
 npm-debug.log*
@@ -14,11 +10,11 @@ out
 dist
 
 # Environment files
-.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env
 
 # Logs
 logs
@@ -32,7 +28,6 @@ pids
 
 # Coverage directory used by tools like istanbul
 coverage
-*.lcov
 
 # nyc test coverage
 .nyc_output
@@ -43,15 +38,6 @@ jspm_packages/
 # Optional npm cache directory
 .npm
 
-# Optional eslint cache
-.eslintcache
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
 # Optional REPL history
 .node_repl_history
 
@@ -61,71 +47,105 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
+# dotenv environment variables file
+.env
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
 
-# Next.js build output
+# next.js build output
 .next
 
-# Nuxt.js build / generate output
+# nuxt.js build output
 .nuxt
 
-# Gatsby files
-.cache/
-public
+# vuepress build output
+.vuepress/dist
 
-# Storybook build outputs
-.out
-.storybook-out
+# Serverless directories
+.serverless
 
-# Temporary folders
-tmp/
-temp/
+# FuseBox cache
+.fusebox/
 
-# Editor directories and files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# DynamoDB Local files
+.dynamodb/
 
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
 
 # Git
 .git
 .gitignore
 
 # Docker
-Dockerfile
+Dockerfile*
+docker-compose*
 .dockerignore
-docker-compose*.yml
+
+# Documentation
+*.md
+docs/
+*.pdf
 
 # Backup files
 backups/
 *.backup
 *.bak
 
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+._*
+Thumbs.db
+
+# macOS metadata files
+**/._*
+**/.DS_Store
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
 # Test files
-test-*
-*.test.js
-*.spec.js
+__tests__/
+*.test.*
+*.spec.*
 
-# Documentation
-*.md
-docs/
-
-# Scripts (keep only essential ones)
+# Scripts
 scripts/
-!scripts/essential-*
+*.sh
 
-# Development files
-*.dev.js
-*.dev.ts
+# Uploads
+uploads/
+generated-documents/
+
+# SSL certificates
+ssl/
+
+# Vercel
+.vercel/
+
+# Railway
+.railway/
+
+# Other deployment files
+deploy*.sh
+docker-deploy.sh
+multi-deploy.sh
+docker-only-deploy.sh
+
+# Large files
+*.tar.gz
+*.zip
+*.rar
+
+# Prisma
+prisma/migrations/
