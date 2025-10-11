@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     
     // ทดสอบการ query
     const userCount = await prisma.user.count();
-    const companyCount = await prisma.company.count();
+    // const companyCount = await prisma.company.count(); // Company model removed
     const internshipCount = await prisma.internship.count();
     const applicationCount = await prisma.application.count();
 

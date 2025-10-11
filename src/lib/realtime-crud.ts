@@ -224,10 +224,33 @@ export class RealtimeCRUD {
     }
   }
 
-  // Company CRUD Operations
+  // Company CRUD Operations - Updated to use Application model
   static async createCompany(data: any) {
     try {
-      const company = await prisma.company.create({ data });
+      // Create a system application record for company registration
+      const application = await prisma.application.create({
+        data: {
+          studentId: 'system',
+          status: 'company_registered',
+          dateApplied: new Date(),
+          projectTopic: `Company Registration: ${data.name}`,
+          companyName: data.name,
+          companyRegNumber: data.regNumber,
+          companyPhone: data.phone,
+          addressNumber: data.addressNumber,
+          provinceId: data.provinceId,
+          districtId: data.districtId,
+          subdistrictId: data.subdistrictId,
+          postalCode: data.postalCode,
+          latitude: data.latitude,
+          longitude: data.longitude
+        }
+      });
+      
+      const company = {
+        id: `company_${data.name.toLowerCase().replace(/\s+/g, '_')}`,
+        ...data
+      };
       
       const io = getIO();
       io.to('admin-room').emit('company-created', {
@@ -246,10 +269,27 @@ export class RealtimeCRUD {
 
   static async updateCompany(id: string, data: any) {
     try {
-      const company = await prisma.company.update({
+      // Update the application record that represents the company
+      const application = await prisma.application.update({
         where: { id },
-        data,
+        data: {
+          companyName: data.name,
+          companyRegNumber: data.regNumber,
+          companyPhone: data.phone,
+          addressNumber: data.addressNumber,
+          provinceId: data.provinceId,
+          districtId: data.districtId,
+          subdistrictId: data.subdistrictId,
+          postalCode: data.postalCode,
+          latitude: data.latitude,
+          longitude: data.longitude
+        }
       });
+      
+      const company = {
+        id: `company_${data.name.toLowerCase().replace(/\s+/g, '_')}`,
+        ...data
+      };
       
       const io = getIO();
       io.to('admin-room').emit('company-updated', {

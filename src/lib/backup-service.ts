@@ -191,7 +191,7 @@ class BackupService {
           updatedAt: true,
         },
       }),
-      companies: await prisma.company.findMany(),
+      // companies: await prisma.company.findMany(), // Company model removed
       internships: await prisma.internship.findMany(),
       applications: await prisma.application.findMany(),
       documents: await prisma.document.findMany(),
@@ -323,9 +323,9 @@ class BackupService {
       if (backupData.users) {
         await prisma.user.createMany({ data: backupData.users });
       }
-      if (backupData.companies) {
-        await prisma.company.createMany({ data: backupData.companies });
-      }
+      // if (backupData.companies) {
+      //   await prisma.company.createMany({ data: backupData.companies });
+      // } // Company model removed
       if (backupData.internships) {
         await prisma.internship.createMany({ data: backupData.internships });
       }
@@ -385,7 +385,7 @@ class BackupService {
     await prisma.document.deleteMany();
     await prisma.application.deleteMany();
     await prisma.internship.deleteMany();
-    await prisma.company.deleteMany();
+    // await prisma.company.deleteMany(); // Company model removed
     await prisma.user.deleteMany();
     await prisma.major.deleteMany();
     await prisma.curriculum.deleteMany();
