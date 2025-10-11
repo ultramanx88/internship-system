@@ -1022,3 +1022,102 @@ export async function generateStudentIntroductionLetter(applicationId: string) {
 }
 
 // Function createNotification is already defined at the top of the file
+
+/**
+ * บันทึกผลตอบรับจากสถานประกอบการ (สำหรับ Staff)
+ */
+export async function recordExternalResponse(data: {
+  applicationId: string;
+  status: 'accepted' | 'rejected';
+  responseNote?: string;
+  documentUrl?: string;
+}) {
+  try {
+    // หา Application และ Company ที่เกี่ยวข้อง
+    const application = await prisma.application.findUnique({
+      where: { id: data.applicationId },
+      include: {
+        student: true,
+        internship: {
+          include: {
+            company: true
+          }
+        },
+        companyResponses: true
+      }
+    });
+
+    if (!application) {
+      return {
+        success: false,
+        error: 'ไม่พบข้อมูลคำขอฝึกงาน'
+      };
+    }
+
+    // อัปเดตสถานะ Application
+    const newStatus = data.status === 'accepted' ? 'company_accepted' : 'rejected';
+    const updatedApplication = await prisma.application.update({
+      where: { id: data.applicationId },
+      data: {
+        status: newStatus,
+        updatedAt: new Date()
+      }
+    });
+
+    // สร้างหรืออัปเดต Company Response
+    const companyResponse = await prisma.companyResponse.upsert({
+      where: {
+        applicationId_companyId: {
+          applicationId: data.applicationId,
+          companyId: application.internship.companyId
+        }
+      },
+      update: {
+        status: data.status,
+        responseDate: new Date(),
+        responseNote: data.responseNote,
+        documentUrl: data.documentUrl
+      },
+      create: {
+        applicationId: data.applicationId,
+        companyId: application.internship.companyId,
+        status: data.status,
+        responseDate: new Date(),
+        responseNote: data.responseNote,
+        documentUrl: data.documentUrl
+      }
+    });
+
+    // ส่งการแจ้งเตือน
+    const notificationMessage = data.status === 'accepted' 
+      ? `สถานประกอบการ ${application.internship.company.name} ตอบรับคำขอฝึกงานของ ${application.student.name}`
+      : `สถานประกอบการ ${application.internship.company.name} ปฏิเสธคำขอฝึกงานของ ${application.student.name}`;
+
+    await createNotification({
+      userId: application.studentId,
+      type: 'application_status_change',
+      title: 'สถานประกอบการตอบรับ/ปฏิเสธ',
+      message: notificationMessage,
+      actionUrl: `/student/applications/${data.applicationId}`,
+      metadata: {
+        applicationId: data.applicationId,
+        companyId: application.internship.companyId,
+        status: data.status
+      }
+    });
+
+    return {
+      success: true,
+      data: {
+        application: updatedApplication,
+        companyResponse: companyResponse
+      }
+    };
+  } catch (error) {
+    console.error('Record external response error:', error);
+    return {
+      success: false,
+      error: 'บันทึกผลตอบรับไม่สำเร็จ'
+    };
+  }
+}
